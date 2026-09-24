@@ -1,0 +1,62 @@
+Train contracts: 289
+Non-empty lines: 42621, median line length: 140.0
+Newlines that are part of a blank-line break: 55506 of 111027
+
+=== Grid (train contracts) ===
+ max_chars  min_cov  segments  median_len  p90_len  over_max  none_pct  excluded  pos_1_label_pct  pos_2_label_pct  pos_3plus_pct  span_recall_pct
+      1000      0.3     38377         284      896       353      89.0        55             80.6             14.7            4.7            100.0
+      1000      0.5     38377         284      896       353      89.1        53             80.7             14.7            4.6            100.0
+      1000      0.7     38377         284      896       353      89.2        51             80.6             14.8            4.6             99.8
+      1500      0.3     34921         260     1168       178      88.8        52             78.4             15.5            6.1            100.0
+      1500      0.5     34921         260     1168       178      88.9        50             78.5             15.5            6.1            100.0
+      1500      0.7     34921         260     1168       178      89.0        48             78.5             15.4            6.1             99.9
+      2500      0.3     33001         245     1140        79      88.9        49             76.3             16.7            7.0            100.0
+      2500      0.5     33001         245     1140        79      88.9        47             76.4             16.6            7.0            100.0
+      2500      0.7     33001         245     1140        79      89.0        45             76.2             16.7            7.0             99.9
+
+=== Segments per label at max_chars=1500, min_cov=0.5 (train) ===
+License Grant                         471
+Cap On Liability                      333
+Anti-Assignment                       312
+Audit Rights                          303
+Expiration Date                       266
+Governing Law                         259
+Post-Termination Services             258
+Revenue/Profit Sharing                255
+Minimum Commitment                    235
+Exclusivity                           202
+Insurance                             200
+Non-Transferable License              184
+Ip Ownership Assignment               184
+Termination For Convenience           124
+Non-Compete                           118
+Affiliate License                     117
+Change Of Control                     116
+Irrevocable Or Perpetual License      113
+Uncapped Liability                    109
+Renewal Term                          106
+Rofr/Rofo/Rofn                        100
+Warranty Duration                      84
+Covenant Not To Sue                    80
+Volume Restriction                     76
+Joint Ip Ownership                     63
+Notice Period To Terminate Renewal     60
+Competitive Restriction Exception      57
+No-Solicit Of Employees                35
+Liquidated Damages                     32
+Non-Disparagement                      31
+No-Solicit Of Customers                22
+Most Favored Nation                    20
+Third Party Beneficiary                17
+
+=== Examples: Cap On Liability + Uncapped Liability on one segment ===
+Count: 95
+
+[contract 3, chars 60778-61449]
+WITHOUT AFFECTING STRICT PRODUCT LIABILITY UNDER MANDATORY APPLICABLE LAW,  SECTION 10, OR THE RESPECTIVE OBLIGATIONS OF THE PARTIES UNDER THE CONFIDENTIAILITY AGREEMENT AND  EXCEPT FOR BREACHES ASSOCIATED WITH THE UNAUTHORIZED USE OF INTELLECTUAL PROPERTY, IN NO EVENT  SHALL EITHER PARTY BE LIABLE TO THE OTHER PARTY FOR SPECIAL, INCIDENTAL, CONSEQUENTIAL, PUNITIVE OR  TORT DAMAGES, INCLUDING WITHOUT LIMITATION, ANY DAMAGES RESULTING FROM LOSS OF USE, LOSS OF DATA,  LOSS OF PROFITS OR LOSS OF BU
+
+[contract 3, chars 61460-62882]
+11.3. Liability Cap. Without affecting Section 10 or the respective obligations of the parties under the Confidentiality Agreement and except  for any liability (i) relating to any breach associated with the unauthorized use of Intellectual Property, (ii) arising from the  intentional breach or willful misconduct of a party, or (iii) arising from the non-compliance with any mandatory applicable law or  regulation, the total aggregate liability of one party to another party for any claim relating
+
+[contract 6, chars 16851-17399]
+4.3 LIMITATION OF LIABILITY. EXCEPT FOR PIVX'S OBLIGATIONS UNDER SECTION 4.2, IN NO EVENT SHALL PIVX'S OR ITS LICENSORS' LIABILITY TO DETTO OR ANY THIRD PARTY ARISING OUT OF THIS AGREEMENT EXCEED THE TOTAL AMOUNT ACTUALLY RECEIVED BY PIVX HEREUNDER DURING THE PREVIOUS SIX (6) MONTHS. IN NO EVENT SHALL ANY PARTY OR PIVX'S LICENSORS BE LIABLE TO ANOTHER PARTY OR ANY THIRD PARTY FOR LOSS OF DATA, COSTS OF PROCUREMENTS OF SUBSTITUTE GOODS OR SERVICES OR ANY INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUE

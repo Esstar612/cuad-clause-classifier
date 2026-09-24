@@ -1,0 +1,76 @@
+Seed: 42  Shift types: ('Franchise', 'Transportation')  Fractions: (0.6, 0.2, 0.2)
+
+=== Contracts per split ===
+split
+train    289
+val       97
+test      96
+shift     28
+
+=== Contracts per type and split ===
+split                                     train  val  test  shift
+contract_type                                                    
+Affiliate                                     6    2     2      0
+Agency                                        8    3     2      0
+Co-Branding                                  13    4     5      0
+Collaboration/Cooperation                    16    5     5      0
+Consulting                                    7    2     2      0
+Development                                  17    6     6      0
+Distributor                                  19    7     6      0
+Endorsement                                  14    5     5      0
+Franchise                                     0    0     0     15
+Hosting                                      12    4     4      0
+IP                                           10    3     4      0
+Joint Venture                                14    5     4      0
+License                                      20    6     7      0
+Maintenance                                  20    7     7      0
+Manufacturing                                10    4     3      0
+Marketing                                    10    3     4      0
+Non-Compete/No-Solicit/Non-Disparagement      2    1     0      0
+Outsourcing                                  11    3     4      0
+Promotion                                     7    3     2      0
+Reseller                                      7    2     3      0
+Service                                      17    6     5      0
+Sponsorship                                  19    6     6      0
+Strategic Alliance                           19    6     7      0
+Supply                                       11    4     3      0
+Transportation                                0    0     0     13
+
+=== Contracts with each kept label, per split ===
+split                               train  val  test  shift
+label                                                      
+No-Solicit Of Customers                18    1     7      8
+Non-Disparagement                      22    5     6      5
+Most Favored Nation                    16    5     6      1
+Third Party Beneficiary                17    7     3      5
+Joint Ip Ownership                     29    8     9      0
+Volume Restriction                     46   11    14     11
+Affiliate License                      42   12     9      2
+No-Solicit Of Employees                27   12    12      8
+Liquidated Damages                     23   14    14     10
+Warranty Duration                      42   14    17      2
+Irrevocable Or Perpetual License       44   15     9      2
+Ip Ownership Assignment                78   16    22      8
+Competitive Restriction Exception      37   17    13      9
+Non-Compete                            68   18    22     11
+Covenant Not To Sue                    51   19    20     10
+Uncapped Liability                     67   20    19      5
+Rofr/Rofo/Rofn                         41   21    14      9
+Notice Period To Terminate Renewal     55   21    24     11
+Minimum Commitment                     91   25    35     14
+Change Of Control                      67   25    20      9
+Non-Transferable License               83   27    24      4
+Revenue/Profit Sharing                 94   29    32     11
+Renewal Term                           94   31    36     15
+Post-Termination Services             103   32    37     10
+Insurance                              91   32    28     15
+Exclusivity                           102   32    36     10
+Termination For Convenience           102   36    38      7
+Audit Rights                          122   40    39     13
+License Grant                         152   47    46     10
+Cap On Liability                      153   52    56     14
+Anti-Assignment                       209   74    71     20
+Expiration Date                       237   78    75     23
+Governing Law                         246   87    81     23
+
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/data/processed/splits.parquet (510 rows)

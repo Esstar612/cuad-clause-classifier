@@ -1,0 +1,173 @@
+
+=== Top level ===
+JSON version field: aok_v1.0
+Documents in JSON: 510
+Unique titles: 510
+Paragraphs per document (count: n_docs): {1: 510}
+Categories per document (count: n_docs): {41: 510}
+Unique categories: 41
+Total (contract, category) pairs: 20910
+Pairs with at least one answer: 6702
+Total answer spans: 13823
+Contracts with at least one answer: 510
+
+=== Per category (sorted by contracts with a label) ===
+                                    spans  contracts  median_len  p90_len  multiline_spans
+category                                                                                  
+Document Name                         521        510          25       47                1
+Parties                              2554        509          17       44                1
+Agreement Date                        476        470          16       26                0
+Governing Law                         464        437         178      331                5
+Expiration Date                       467        413         195      408                8
+Effective Date                        447        390          20      185                3
+Anti-Assignment                       654        374         218      584               17
+Cap On Liability                      672        275         306      704               28
+License Grant                         777        255         356      758               48
+Audit Rights                          643        214         253      555               14
+Termination For Convenience           246        183         163      410                7
+Post-Termination Services             450        182         368      864               23
+Exclusivity                           410        180         300      665               20
+Renewal Term                          210        176         270      460                6
+Revenue/Profit Sharing                418        166         267      632               48
+Insurance                             560        166         244      610               29
+Minimum Commitment                    424        165         275      637               45
+Non-Transferable License              298        138         351      740               21
+Ip Ownership Assignment               318        124         337      799                8
+Change Of Control                     253        121         304      771               10
+Non-Compete                           259        119         309      719               23
+Uncapped Liability                    167        111         423      767                8
+Notice Period To Terminate Renewal    122        111         298      442                4
+Covenant Not To Sue                   173        100         335      730                3
+Rofr/Rofo/Rofn                        367         85         328      715               11
+Volume Restriction                    171         82         233      527                6
+Competitive Restriction Exception     125         76         366      890                4
+Warranty Duration                     176         75         261      566                8
+Irrevocable Or Perpetual License      165         70         489     1048               15
+Liquidated Damages                    121         61         289      633                7
+No-Solicit Of Employees                91         59         350      690                4
+Affiliate License-Licensee            115         59         484      962                5
+Joint Ip Ownership                    115         46         299      610                3
+Non-Disparagement                      65         38         226     1320                0
+No-Solicit Of Customers                58         34         258      551                3
+Third Party Beneficiary                39         32         205      371                0
+Most Favored Nation                    38         28         379      842                0
+Affiliate License-Licensor             69         23         491     1088                6
+Unlimited/All-You-Can-Eat-License      32         17         342      685                6
+Price Restrictions                     27         15         282      859                1
+Source Code Escrow                     66         13         252      869                8
+
+=== Span length (characters), all categories ===
+count    13823.0
+mean       262.0
+std        285.2
+min          1.0
+10%         14.0
+25%         37.0
+50%        196.0
+75%        365.0
+90%        587.0
+99%       1330.0
+max       3884.0
+Spans containing a newline: 467
+Spans per non-empty (contract, category) pair: {'count': 6702.0, 'mean': 2.06, 'std': 2.15, 'min': 1.0, '25%': 1.0, '50%': 1.0, '75%': 2.0, 'max': 55.0}
+
+=== Contract types (from pdf folder names) ===
+contract_type
+Affiliate                                   10
+Agency                                      13
+Co-Branding                                 22
+Collaboration/Cooperation                   26
+Consulting                                  11
+Development                                 29
+Distributor                                 32
+Endorsement                                 24
+Franchise                                   15
+Hosting                                     20
+IP                                          17
+Joint Venture                               23
+License                                     33
+Maintenance                                 34
+Manufacturing                               17
+Marketing                                   17
+Non-Compete/No-Solicit/Non-Disparagement     3
+Outsourcing                                 18
+Promotion                                   12
+Reseller                                    12
+Service                                     28
+Sponsorship                                 31
+Strategic Alliance                          32
+Supply                                      18
+Transportation                              13
+Number of distinct types: 25
+PDF files found: 510
+Raw folder names mapped (folder: n_pdfs):
+  'Affiliate Agreement': 1  ->  Affiliate
+  'Affiliate_Agreements': 9  ->  Affiliate
+  'Agency Agreements': 13  ->  Agency
+  'Co_Branding': 22  ->  Co-Branding
+  'Collaboration': 26  ->  Collaboration/Cooperation
+  'Consulting Agreements': 11  ->  Consulting
+  'Development': 29  ->  Development
+  'Distributor': 32  ->  Distributor
+  'Endorsement': 15  ->  Endorsement
+  'Endorsement Agreement': 9  ->  Endorsement
+  'Franchise': 15  ->  Franchise
+  'Hosting': 20  ->  Hosting
+  'IP': 17  ->  IP
+  'Joint Venture': 9  ->  Joint Venture
+  'Joint Venture _ Filing': 14  ->  Joint Venture
+  'License_Agreements': 33  ->  License
+  'Maintenance': 34  ->  Maintenance
+  'Manufacturing': 17  ->  Manufacturing
+  'Marketing': 17  ->  Marketing
+  'Non_Compete_Non_Solicit': 3  ->  Non-Compete/No-Solicit/Non-Disparagement
+  'Outsourcing': 18  ->  Outsourcing
+  'Promotion': 12  ->  Promotion
+  'Reseller': 12  ->  Reseller
+  'Service': 28  ->  Service
+  'Sponsorship': 31  ->  Sponsorship
+  'Strategic Alliance': 32  ->  Strategic Alliance
+  'Supply': 18  ->  Supply
+  'Transportation': 13  ->  Transportation
+Unmapped folders: []
+Fuzzy title matches (title -> pdf key): [('HarpoonTherapeuticsInc_20200312_10-K_EX-10.18_12051356_EX-10.18_Development Agreement', 'harpoontherapeuticsinc_20200312_10-k_ex-10.18_12051356_ex-10.18_development agreement_option agreement')]
+Titles with no pdf match: []
+
+=== Data checks ===
+Spans where context[start:end] != answer_text: 0
+is_impossible=True but has answers: 0
+is_impossible=False but no answers: 0
+Exact duplicate spans within a (contract, category): 0
+Overlapping spans within the same (contract, category): 349
+Context vs full_contract_txt: {'n_txt_files': 510, 'equal': 510, 'differ': 0, 'missing': 0, 'differ_examples': []}
+Contract length (characters): {'count': 510.0, 'mean': 52563.0, 'std': 55946.0, 'min': 645.0, '25%': 16416.0, '50%': 33143.0, '75%': 66395.0, 'max': 338211.0}
+Redaction / splice markers:
+  asterisks (***): contracts containing=110, answer spans containing=648
+  underscores (_____): contracts containing=105, answer spans containing=42
+  <omitted>: contracts containing=0, answer spans containing=0
+
+=== Cross-category overlap (positive spans only) ===
+Spans overlapping a span of a different category: 3151 of 13823 (22.8%)
+Top 15 overlapping category pairs:
+    265  Agreement Date  <>  Effective Date
+    216  License Grant  <>  Non-Transferable License
+    155  Irrevocable Or Perpetual License  <>  License Grant
+    141  Cap On Liability  <>  Uncapped Liability
+    113  Exclusivity  <>  License Grant
+    105  Notice Period To Terminate Renewal  <>  Renewal Term
+     74  Affiliate License-Licensee  <>  License Grant
+     61  Effective Date  <>  Expiration Date
+     48  Affiliate License-Licensor  <>  License Grant
+     46  Expiration Date  <>  Renewal Term
+     37  Affiliate License-Licensee  <>  Irrevocable Or Perpetual License
+     35  Irrevocable Or Perpetual License  <>  Non-Transferable License
+     34  Anti-Assignment  <>  Change Of Control
+     26  Exclusivity  <>  Non-Transferable License
+     26  Competitive Restriction Exception  <>  Exclusivity
+
+=== master_clauses.csv ===
+Shape: (510, 83)
+
+=== Wrote ===
+/Users/owner/Dropbox/My Resume/Code/CCC/data/processed/spans.parquet 28031 rows
+/Users/owner/Dropbox/My Resume/Code/CCC/data/processed/contracts.parquet 510 rows
