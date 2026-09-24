@@ -1,0 +1,50 @@
+{
+  "model_name": "tfidf-ovr-logreg",
+  "model_version": "7253e7a8662b",
+  "seed": 42,
+  "chosen_config_id": 62,
+  "chosen": {
+    "ngram_range": [
+      1,
+      2
+    ],
+    "class_weight": "balanced",
+    "C": 16.0,
+    "none_ratio": 5,
+    "min_df": 2,
+    "sublinear_tf": true,
+    "solver": "liblinear"
+  },
+  "train_segments": 22974,
+  "selection": "validation macro-AP over 33 labels; within 0.005, higher macro-F1, then simpler",
+  "validation_all33": {
+    "n_labels": 33,
+    "segments": 11656,
+    "macro_f1": 0.5652189214104631,
+    "micro_f1": 0.6362790697674419,
+    "macro_ap": 0.5597500223454761,
+    "none_segments": 10320,
+    "none_fp_rate": 0.028294573643410852
+  },
+  "validation_supported28": {
+    "n_labels": 28,
+    "segments": 11656,
+    "macro_f1": 0.6084127764242363,
+    "micro_f1": 0.6390906220397853,
+    "macro_ap": 0.5894928734976804,
+    "none_segments": 10320,
+    "none_fp_rate": 0.028294573643410852
+  },
+  "validation_note": "thresholds tuned on this same validation set, so F1 is optimistic",
+  "latency": {
+    "batch_amortized_ms_per_segment": 0.03695960235161938,
+    "batch_note": "batch-amortized: one predict_proba call over the split, divided by its segment count",
+    "single_segment": {
+      "method": "single-segment: one predict_proba call per segment, model loaded, local CPU",
+      "n": 200,
+      "median_ms": 1.5271040028892457,
+      "p95_ms": 1.6771420137956736
+    }
+  },
+  "created_utc": "2026-09-24T05:23:13+00:00"
+}

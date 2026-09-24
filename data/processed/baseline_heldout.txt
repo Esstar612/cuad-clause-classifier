@@ -1,0 +1,66 @@
+
+=== test: 9378 segments, 96 contracts ===
+All labels (combined): {'n_labels': 33, 'segments': 9378, 'macro_f1': 0.5486, 'micro_f1': 0.6543, 'macro_ap': 0.5928, 'none_segments': 8167, 'none_fp_rate': 0.0255}
+Rule A labels (26): {'n_labels': 26, 'segments': 9378, 'macro_f1': 0.6311, 'micro_f1': 0.6659, 'macro_ap': 0.6602, 'none_segments': 8167, 'none_fp_rate': 0.0255}
+All 33 labels (main_table=False: insufficient support, not interpreted):
+                             label  support  predicted  tp  precision  recall    f1    ap  test_contracts  main_table
+               Most Favored Nation        8          0   0      0.000   0.000 0.000 0.360               6       False
+           No-Solicit Of Customers       10          3   0      0.000   0.000 0.000 0.181               7       False
+           Third Party Beneficiary        3          3   0      0.000   0.000 0.000 0.080               3       False
+                 Affiliate License       14         10   1      0.100   0.071 0.083 0.069               9       False
+                 Non-Disparagement       11          1   1      1.000   0.091 0.167 0.294               6       False
+  Irrevocable Or Perpetual License       18         27  16      0.593   0.889 0.711 0.760               9       False
+                Joint Ip Ownership       19         11  11      1.000   0.579 0.733 0.652               9       False
+                Volume Restriction       24          3   2      0.667   0.083 0.148 0.218              14        True
+ Competitive Restriction Exception       17         32   6      0.188   0.353 0.245 0.269              13        True
+                Minimum Commitment       86         23  18      0.783   0.209 0.330 0.288              35        True
+                 Warranty Duration       44         20  12      0.600   0.273 0.375 0.400              17        True
+         Post-Termination Services       74        111  46      0.414   0.622 0.497 0.553              37        True
+                 Change Of Control       42         34  19      0.559   0.452 0.500 0.451              20        True
+                       Non-Compete       43         30  19      0.633   0.442 0.521 0.552              22        True
+                       Exclusivity       76         76  40      0.526   0.526 0.526 0.562              36        True
+            Revenue/Profit Sharing       83         91  46      0.505   0.554 0.529 0.497              32        True
+                    Rofr/Rofo/Rofn       46         24  21      0.875   0.457 0.600 0.727              14        True
+                Liquidated Damages       30         18  15      0.833   0.500 0.625 0.679              14        True
+           Ip Ownership Assignment       38         25  20      0.800   0.526 0.635 0.658              22        True
+       Termination For Convenience       50         72  39      0.542   0.780 0.639 0.594              38        True
+                Uncapped Liability       25         24  16      0.667   0.640 0.653 0.569              19        True
+                  Cap On Liability      121         98  81      0.827   0.669 0.740 0.773              56        True
+               Covenant Not To Sue       33         31  24      0.774   0.727 0.750 0.752              20        True
+          Non-Transferable License       47         41  33      0.805   0.702 0.750 0.727              24        True
+                   Expiration Date       78         68  55      0.809   0.705 0.753 0.854              75        True
+           No-Solicit Of Employees       15         14  11      0.786   0.733 0.759 0.837              12        True
+                      Audit Rights       77         61  53      0.869   0.688 0.768 0.797              39        True
+                         Insurance       73         79  59      0.747   0.808 0.776 0.883              28        True
+                     License Grant      112         90  80      0.889   0.714 0.792 0.827              46        True
+Notice Period To Terminate Renewal       27         25  21      0.840   0.778 0.808 0.859              24        True
+                   Anti-Assignment       91         76  68      0.895   0.747 0.814 0.901              71        True
+                      Renewal Term       37         33  32      0.970   0.865 0.914 0.944              36        True
+                     Governing Law       87         88  84      0.955   0.966 0.960 0.992              81        True
+
+=== shift: 4584 segments, 28 contracts ===
+All labels (combined): {'n_labels': 32, 'segments': 4584, 'macro_f1': 0.3614, 'micro_f1': 0.4682, 'macro_ap': 0.4497, 'none_segments': 3971, 'none_fp_rate': 0.034}
+Franchise, all labels: {'n_labels': 30, 'segments': 2694, 'macro_f1': 0.3534, 'micro_f1': 0.4694, 'macro_ap': 0.4801, 'none_segments': 2233, 'none_fp_rate': 0.0443}
+Franchise, Rule C labels: {'n_labels': 17, 'segments': 2694, 'macro_f1': 0.4478, 'micro_f1': 0.5141, 'macro_ap': 0.551, 'none_segments': 2233, 'none_fp_rate': 0.0443}
+Transportation, all labels: {'n_labels': 24, 'segments': 1890, 'macro_f1': 0.3583, 'micro_f1': 0.4646, 'macro_ap': 0.5264, 'none_segments': 1738, 'none_fp_rate': 0.0207}
+Transportation, Rule C labels: {'n_labels': 16, 'segments': 1890, 'macro_f1': 0.4291, 'micro_f1': 0.4741, 'macro_ap': 0.5412, 'none_segments': 1738, 'none_fp_rate': 0.0207}
+Combined, Rule C labels: {'n_labels': 17, 'segments': 4584, 'macro_f1': 0.474, 'micro_f1': 0.5027, 'macro_ap': 0.5279, 'none_segments': 3971, 'none_fp_rate': 0.034}
+Rule C labels, combined shift:
+                             label  support  predicted  tp  precision  recall    f1    ap
+                Volume Restriction       31          0   0      0.000   0.000 0.000 0.250
+                Minimum Commitment       58          2   2      1.000   0.034 0.067 0.335
+         Post-Termination Services       31         19   9      0.474   0.290 0.360 0.360
+                       Exclusivity       22         11   6      0.545   0.273 0.364 0.404
+                     License Grant       25         16   8      0.500   0.320 0.390 0.384
+                       Non-Compete       53         18  14      0.778   0.264 0.394 0.462
+            Revenue/Profit Sharing       25         33  12      0.364   0.480 0.414 0.526
+Notice Period To Terminate Renewal       14          8   5      0.625   0.357 0.455 0.618
+                      Renewal Term       33         14  11      0.786   0.333 0.468 0.468
+                   Anti-Assignment       45         27  18      0.667   0.400 0.500 0.542
+               Covenant Not To Sue       22         24  13      0.542   0.591 0.565 0.574
+                Liquidated Damages       19         16  11      0.688   0.579 0.629 0.492
+                   Expiration Date       26         20  15      0.750   0.577 0.652 0.647
+                         Insurance       67         85  50      0.588   0.746 0.658 0.761
+                      Audit Rights       43         42  28      0.667   0.651 0.659 0.655
+                  Cap On Liability       24         18  15      0.833   0.625 0.714 0.705
+                     Governing Law       24         28  20      0.714   0.833 0.769 0.792
