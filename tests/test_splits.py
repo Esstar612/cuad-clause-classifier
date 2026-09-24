@@ -108,3 +108,16 @@ def test_saved_splits_match_config_seed():
         pytest.skip("data/processed/splits.parquet missing; run python -m src.splits")
     saved = pd.read_parquet(SPLITS_PATH)
     pd.testing.assert_frame_equal(saved, assign_splits(real_contracts()))
+
+
+def test_contract_splits_csv_matches_parquet_and_config_seed():
+    if not (config.SPLITS_CSV.exists() and SPLITS_PATH.exists()):
+        pytest.skip("contract_splits.csv or splits.parquet missing; run python -m src.splits")
+    csv = pd.read_csv(config.SPLITS_CSV)
+    assert list(csv.columns) == ["contract_id", "contract_type", "split"]
+    assert len(csv) == 510 and csv["contract_id"].is_unique
+    saved = pd.read_parquet(SPLITS_PATH)[["contract_id", "contract_type", "split"]]
+    expected = saved.sort_values("contract_id").reset_index(drop=True)
+    pd.testing.assert_frame_equal(csv, expected, check_dtype=False)
+    fresh = assign_splits(real_contracts()).sort_values("contract_id").reset_index(drop=True)
+    pd.testing.assert_frame_equal(csv, fresh[["contract_id", "contract_type", "split"]], check_dtype=False)

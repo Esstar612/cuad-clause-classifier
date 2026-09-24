@@ -59,11 +59,19 @@ def assign_splits(contracts: pd.DataFrame, seed: int = config.SEED,
     return df
 
 
+def write_contract_splits_csv(splits: pd.DataFrame, path=config.SPLITS_CSV) -> None:
+    """Human-readable, git-tracked copy of the split (contract_id, contract_type, split)."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    (splits[["contract_id", "contract_type", "split"]].sort_values("contract_id")
+     .to_csv(path, index=False))
+
+
 def main() -> None:
     pd.set_option("display.width", 200)
     contracts = pd.read_parquet(config.PROCESSED_DIR / "contracts.parquet")
     splits = assign_splits(contracts)
     splits.to_parquet(config.PROCESSED_DIR / "splits.parquet", index=False)
+    write_contract_splits_csv(splits)
 
     print(f"Seed: {config.SEED}  Shift types: {config.SHIFT_TYPES}  Fractions: {config.SPLIT_FRACTIONS}")
     print("\n=== Contracts per split ===")
@@ -79,7 +87,7 @@ def main() -> None:
              .unstack(fill_value=0).reindex(columns=SPLIT_ORDER, fill_value=0))
     print("\n=== Contracts with each kept label, per split ===")
     print(table.sort_values("val").to_string())
-    print(f"\nWrote {config.PROCESSED_DIR / 'splits.parquet'} ({len(splits)} rows)")
+    print(f"\nWrote {config.PROCESSED_DIR / 'splits.parquet'} and {config.SPLITS_CSV} ({len(splits)} rows)")
 
 
 if __name__ == "__main__":

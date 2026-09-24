@@ -1,0 +1,511 @@
+contract_id,contract_type,split
+0,Co-Branding,val
+1,Service,test
+2,Joint Venture,val
+3,Distributor,train
+4,Endorsement,train
+5,Strategic Alliance,val
+6,Reseller,train
+7,Manufacturing,test
+8,Consulting,train
+9,Consulting,train
+10,Agency,test
+11,Distributor,val
+12,Franchise,shift
+13,Agency,test
+14,Agency,train
+15,Agency,val
+16,Collaboration/Cooperation,train
+17,Endorsement,val
+18,Agency,train
+19,Hosting,test
+20,Collaboration/Cooperation,val
+21,IP,train
+22,Promotion,train
+23,Reseller,train
+24,Outsourcing,train
+25,Joint Venture,train
+26,Agency,train
+27,Transportation,shift
+28,Service,train
+29,Strategic Alliance,test
+30,Supply,train
+31,Development,train
+32,License,val
+33,Sponsorship,test
+34,Manufacturing,val
+35,Manufacturing,val
+36,Sponsorship,train
+37,Development,test
+38,License,val
+39,IP,train
+40,Development,train
+41,License,test
+42,Maintenance,train
+43,Marketing,train
+44,Maintenance,train
+45,Maintenance,train
+46,IP,val
+47,Hosting,train
+48,Agency,val
+49,Supply,train
+50,Supply,train
+51,Collaboration/Cooperation,val
+52,Hosting,train
+53,Service,val
+54,Development,test
+55,Development,val
+56,Collaboration/Cooperation,val
+57,Supply,val
+58,Agency,train
+59,Distributor,train
+60,Joint Venture,test
+61,Service,test
+62,Hosting,val
+63,Agency,train
+64,Agency,train
+65,Hosting,train
+66,Outsourcing,test
+67,Hosting,test
+68,Agency,val
+69,Joint Venture,train
+70,Franchise,shift
+71,Manufacturing,val
+72,Manufacturing,val
+73,Manufacturing,train
+74,Manufacturing,test
+75,Endorsement,test
+76,Endorsement,train
+77,Maintenance,test
+78,Reseller,test
+79,Sponsorship,test
+80,Collaboration/Cooperation,train
+81,Outsourcing,test
+82,Hosting,train
+83,Collaboration/Cooperation,train
+84,Hosting,train
+85,Transportation,shift
+86,Collaboration/Cooperation,train
+87,Strategic Alliance,val
+88,Collaboration/Cooperation,train
+89,Strategic Alliance,train
+90,Strategic Alliance,train
+91,Consulting,val
+92,Hosting,test
+93,Sponsorship,val
+94,Service,train
+95,Promotion,test
+96,Maintenance,train
+97,Maintenance,train
+98,Maintenance,val
+99,Maintenance,val
+100,Marketing,test
+101,IP,train
+102,Manufacturing,train
+103,License,train
+104,Development,test
+105,Development,train
+106,Development,test
+107,Manufacturing,train
+108,Development,train
+109,Affiliate,train
+110,Affiliate,test
+111,License,train
+112,Reseller,test
+113,Sponsorship,train
+114,Outsourcing,test
+115,Consulting,train
+116,Sponsorship,val
+117,Strategic Alliance,test
+118,Transportation,shift
+119,Hosting,train
+120,License,train
+121,Co-Branding,train
+122,Affiliate,train
+123,Promotion,train
+124,Outsourcing,train
+125,Manufacturing,train
+126,Collaboration/Cooperation,train
+127,Consulting,test
+128,Strategic Alliance,train
+129,Transportation,shift
+130,Transportation,shift
+131,Distributor,val
+132,Strategic Alliance,train
+133,Distributor,train
+134,Distributor,val
+135,Co-Branding,test
+136,Endorsement,val
+137,Sponsorship,train
+138,Co-Branding,test
+139,Reseller,train
+140,Development,val
+141,Co-Branding,train
+142,Development,train
+143,Marketing,val
+144,Development,train
+145,License,train
+146,Promotion,val
+147,Service,val
+148,Service,val
+149,Service,train
+150,Service,train
+151,Collaboration/Cooperation,val
+152,IP,train
+153,Supply,train
+154,Collaboration/Cooperation,train
+155,Strategic Alliance,test
+156,Supply,test
+157,Outsourcing,val
+158,Hosting,train
+159,Sponsorship,train
+160,Development,train
+161,License,train
+162,Distributor,train
+163,Sponsorship,train
+164,Hosting,train
+165,Joint Venture,train
+166,Strategic Alliance,train
+167,Consulting,test
+168,Promotion,train
+169,Strategic Alliance,val
+170,Franchise,shift
+171,Transportation,shift
+172,Supply,train
+173,IP,train
+174,Sponsorship,test
+175,Affiliate,train
+176,Marketing,train
+177,IP,train
+178,Distributor,test
+179,License,test
+180,License,val
+181,License,train
+182,License,test
+183,License,train
+184,License,val
+185,License,test
+186,Service,train
+187,Endorsement,train
+188,Endorsement,train
+189,Sponsorship,train
+190,Collaboration/Cooperation,test
+191,Hosting,train
+192,Hosting,test
+193,Supply,train
+194,IP,train
+195,Endorsement,train
+196,Franchise,shift
+197,Collaboration/Cooperation,train
+198,Outsourcing,train
+199,Sponsorship,val
+200,Distributor,train
+201,Development,val
+202,Reseller,test
+203,Co-Branding,train
+204,Maintenance,test
+205,License,train
+206,Development,val
+207,Strategic Alliance,train
+208,Collaboration/Cooperation,train
+209,Joint Venture,val
+210,Maintenance,test
+211,Promotion,train
+212,Joint Venture,train
+213,IP,train
+214,Hosting,val
+215,Collaboration/Cooperation,test
+216,Strategic Alliance,train
+217,Franchise,shift
+218,Supply,val
+219,Strategic Alliance,train
+220,Strategic Alliance,train
+221,Sponsorship,train
+222,Sponsorship,test
+223,Development,val
+224,License,val
+225,License,train
+226,Distributor,val
+227,Outsourcing,train
+228,Co-Branding,train
+229,Manufacturing,test
+230,Distributor,train
+231,Service,train
+232,Co-Branding,train
+233,Co-Branding,train
+234,Reseller,train
+235,IP,val
+236,Franchise,shift
+237,Strategic Alliance,train
+238,Transportation,shift
+239,Promotion,val
+240,Joint Venture,train
+241,Consulting,train
+242,IP,test
+243,Service,train
+244,Service,test
+245,Manufacturing,train
+246,Marketing,train
+247,Distributor,train
+248,Collaboration/Cooperation,train
+249,Strategic Alliance,train
+250,Distributor,test
+251,Sponsorship,train
+252,Sponsorship,train
+253,Reseller,val
+254,Distributor,train
+255,Co-Branding,train
+256,Endorsement,train
+257,Development,train
+258,License,train
+259,License,train
+260,Endorsement,val
+261,Affiliate,val
+262,Development,test
+263,Supply,val
+264,Marketing,train
+265,Collaboration/Cooperation,train
+266,Joint Venture,train
+267,Strategic Alliance,train
+268,Outsourcing,train
+269,Endorsement,test
+270,Transportation,shift
+271,Consulting,train
+272,Supply,test
+273,Collaboration/Cooperation,train
+274,Sponsorship,train
+275,Service,train
+276,Joint Venture,train
+277,Promotion,train
+278,Joint Venture,train
+279,Strategic Alliance,test
+280,Endorsement,test
+281,Endorsement,train
+282,Transportation,shift
+283,Franchise,shift
+284,IP,test
+285,Reseller,val
+286,Manufacturing,train
+287,Marketing,val
+288,Development,train
+289,License,train
+290,Marketing,test
+291,License,val
+292,Co-Branding,test
+293,Co-Branding,train
+294,Sponsorship,train
+295,Distributor,test
+296,Sponsorship,val
+297,Joint Venture,train
+298,Distributor,train
+299,Distributor,val
+300,Distributor,val
+301,Distributor,train
+302,Distributor,train
+303,Distributor,train
+304,Sponsorship,train
+305,Maintenance,train
+306,Outsourcing,train
+307,Outsourcing,val
+308,Joint Venture,val
+309,Marketing,test
+310,Service,train
+311,Endorsement,train
+312,Co-Branding,train
+313,Manufacturing,train
+314,Development,train
+315,License,train
+316,Service,test
+317,Outsourcing,train
+318,Outsourcing,val
+319,Agency,train
+320,Agency,train
+321,Reseller,train
+322,Maintenance,train
+323,Promotion,test
+324,Joint Venture,test
+325,Service,train
+326,Distributor,val
+327,Strategic Alliance,train
+328,IP,train
+329,Sponsorship,val
+330,Marketing,train
+331,Consulting,train
+332,Service,train
+333,Service,val
+334,Strategic Alliance,train
+335,Strategic Alliance,val
+336,Strategic Alliance,test
+337,Joint Venture,test
+338,IP,test
+339,Maintenance,train
+340,Supply,train
+341,Sponsorship,train
+342,License,test
+343,License,train
+344,Endorsement,train
+345,Co-Branding,test
+346,Outsourcing,train
+347,Hosting,val
+348,Co-Branding,train
+349,Co-Branding,val
+350,Co-Branding,val
+351,Development,train
+352,Development,val
+353,Transportation,shift
+354,Endorsement,train
+355,Franchise,shift
+356,Franchise,shift
+357,Endorsement,val
+358,Development,train
+359,License,train
+360,Outsourcing,train
+361,License,train
+362,License,train
+363,Distributor,test
+364,Marketing,train
+365,Endorsement,val
+366,Joint Venture,train
+367,Collaboration/Cooperation,train
+368,Non-Compete/No-Solicit/Non-Disparagement,val
+369,Hosting,train
+370,Hosting,train
+371,Strategic Alliance,val
+372,Service,train
+373,Joint Venture,train
+374,Strategic Alliance,train
+375,Sponsorship,test
+376,Co-Branding,test
+377,Co-Branding,train
+378,Transportation,shift
+379,IP,train
+380,Development,test
+381,Marketing,train
+382,License,test
+383,Development,train
+384,Supply,train
+385,Service,train
+386,Franchise,shift
+387,Development,train
+388,Maintenance,test
+389,Service,test
+390,Supply,train
+391,Maintenance,train
+392,Collaboration/Cooperation,test
+393,Maintenance,train
+394,Maintenance,val
+395,Strategic Alliance,train
+396,Consulting,val
+397,Maintenance,val
+398,Maintenance,train
+399,Service,val
+400,Sponsorship,test
+401,Maintenance,train
+402,Consulting,train
+403,Maintenance,train
+404,Collaboration/Cooperation,test
+405,Collaboration/Cooperation,train
+406,Endorsement,train
+407,Joint Venture,val
+408,Sponsorship,train
+409,Maintenance,train
+410,Collaboration/Cooperation,train
+411,Strategic Alliance,val
+412,Maintenance,train
+413,Maintenance,train
+414,Outsourcing,train
+415,Reseller,train
+416,Distributor,train
+417,Distributor,test
+418,Distributor,train
+419,Distributor,train
+420,Promotion,train
+421,Marketing,train
+422,Franchise,shift
+423,Distributor,train
+424,Manufacturing,train
+425,Franchise,shift
+426,Franchise,shift
+427,Franchise,shift
+428,Franchise,shift
+429,Affiliate,train
+430,Distributor,train
+431,Co-Branding,val
+432,Affiliate,train
+433,Service,train
+434,Joint Venture,train
+435,Endorsement,train
+436,Maintenance,test
+437,Maintenance,val
+438,Service,val
+439,Sponsorship,train
+440,Service,train
+441,Joint Venture,train
+442,Outsourcing,test
+443,Maintenance,val
+444,Development,train
+445,Collaboration/Cooperation,train
+446,Strategic Alliance,test
+447,Transportation,shift
+448,Co-Branding,train
+449,Endorsement,test
+450,Marketing,train
+451,Co-Branding,train
+452,Affiliate,train
+453,Maintenance,train
+454,Supply,train
+455,Outsourcing,train
+456,Collaboration/Cooperation,val
+457,Strategic Alliance,train
+458,Affiliate,test
+459,Manufacturing,train
+460,Affiliate,val
+461,Joint Venture,test
+462,Manufacturing,train
+463,Maintenance,test
+464,Supply,val
+465,Joint Venture,val
+466,Supply,train
+467,IP,test
+468,Maintenance,test
+469,Maintenance,train
+470,Sponsorship,val
+471,Joint Venture,train
+472,Strategic Alliance,train
+473,Distributor,train
+474,Sponsorship,train
+475,Non-Compete/No-Solicit/Non-Disparagement,train
+476,Sponsorship,train
+477,Service,train
+478,Marketing,test
+479,Development,train
+480,License,test
+481,Hosting,train
+482,Promotion,val
+483,Development,train
+484,Endorsement,train
+485,Strategic Alliance,train
+486,Hosting,val
+487,Maintenance,train
+488,Non-Compete/No-Solicit/Non-Disparagement,train
+489,Promotion,train
+490,Endorsement,test
+491,Endorsement,train
+492,Reseller,train
+493,Service,train
+494,License,train
+495,Distributor,train
+496,License,train
+497,Supply,test
+498,Maintenance,val
+499,Collaboration/Cooperation,test
+500,Strategic Alliance,test
+501,Sponsorship,train
+502,Sponsorship,train
+503,License,train
+504,Marketing,train
+505,IP,val
+506,Maintenance,train
+507,Distributor,test
+508,Marketing,val
+509,Transportation,shift
