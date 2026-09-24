@@ -1,0 +1,2037 @@
+{
+  "model": "baseline",
+  "model_version": "9692b04f03fb",
+  "method": "2000 contract-level bootstrap resamples, stratified by contract type, percentile 95% intervals, seed 42",
+  "scopes": {
+    "test | Rule A": {
+      "n_labels": 26,
+      "contracts": 96,
+      "segments": 9378,
+      "macro_f1": {
+        "point": 0.631083681385719,
+        "ci_low": 0.604342160522585,
+        "ci_high": 0.6532384008118464,
+        "n_resamples": 2000
+      },
+      "micro_f1": {
+        "point": 0.6659428157799493,
+        "ci_low": 0.6434294028067912,
+        "ci_high": 0.6906540486517021,
+        "n_resamples": 2000
+      },
+      "macro_ap": {
+        "point": 0.6602066182573305,
+        "ci_low": 0.640838690636623,
+        "ci_high": 0.6962419657342858,
+        "n_resamples": 2000
+      },
+      "none_fp_rate": {
+        "point": 0.025468348230684463,
+        "ci_low": 0.021788321647418157,
+        "ci_high": 0.02958666119902406,
+        "n_resamples": 2000
+      }
+    },
+    "test | all": {
+      "n_labels": 33,
+      "contracts": 96,
+      "segments": 9378,
+      "macro_f1": {
+        "point": 0.5485642472870648,
+        "ci_low": 0.5216995289634242,
+        "ci_high": 0.5742871494077249,
+        "n_resamples": 2000
+      },
+      "micro_f1": {
+        "point": 0.6542571527059634,
+        "ci_low": 0.6303371178181579,
+        "ci_high": 0.6791581673391395,
+        "n_resamples": 2000
+      },
+      "macro_ap": {
+        "point": 0.5927716793068831,
+        "ci_low": 0.5728982275546146,
+        "ci_high": 0.6339076163753459,
+        "n_resamples": 2000
+      },
+      "none_fp_rate": {
+        "point": 0.025468348230684463,
+        "ci_low": 0.021788321647418157,
+        "ci_high": 0.02958666119902406,
+        "n_resamples": 2000
+      }
+    },
+    "test | Rule C": {
+      "n_labels": 17,
+      "contracts": 96,
+      "segments": 9378,
+      "macro_f1": {
+        "point": 0.661901820322608,
+        "ci_low": 0.6257307665890703,
+        "ci_high": 0.692850690018944,
+        "n_resamples": 2000
+      },
+      "micro_f1": {
+        "point": 0.6901997213190897,
+        "ci_low": 0.6640226536440849,
+        "ci_high": 0.7179963576674149,
+        "n_resamples": 2000
+      },
+      "macro_ap": {
+        "point": 0.7019393583019272,
+        "ci_low": 0.6714088044771277,
+        "ci_high": 0.7463964436470624,
+        "n_resamples": 2000
+      },
+      "none_fp_rate": {
+        "point": 0.025468348230684463,
+        "ci_low": 0.021788321647418157,
+        "ci_high": 0.02958666119902406,
+        "n_resamples": 2000
+      }
+    },
+    "shift | Rule C": {
+      "n_labels": 17,
+      "contracts": 28,
+      "segments": 4584,
+      "macro_f1": {
+        "point": 0.47397260452891,
+        "ci_low": 0.41857832448166593,
+        "ci_high": 0.5332354546225476,
+        "n_resamples": 2000
+      },
+      "micro_f1": {
+        "point": 0.5026511134676565,
+        "ci_low": 0.44722998547435044,
+        "ci_high": 0.5631080735820132,
+        "n_resamples": 2000
+      },
+      "macro_ap": {
+        "point": 0.5279437600386213,
+        "ci_low": 0.49184406546769704,
+        "ci_high": 0.615045161938064,
+        "n_resamples": 2000
+      },
+      "none_fp_rate": {
+        "point": 0.033996474439687736,
+        "ci_low": 0.025614716370293892,
+        "ci_high": 0.04151372509944822,
+        "n_resamples": 2000
+      }
+    },
+    "shift | all": {
+      "n_labels": 32,
+      "contracts": 28,
+      "segments": 4584,
+      "macro_f1": {
+        "point": 0.3613801076009881,
+        "ci_low": 0.3169229527372926,
+        "ci_high": 0.4289993499509089,
+        "n_resamples": 2000
+      },
+      "micro_f1": {
+        "point": 0.4682274247491639,
+        "ci_low": 0.421260483134747,
+        "ci_high": 0.5248801862491865,
+        "n_resamples": 2000
+      },
+      "macro_ap": {
+        "point": 0.4497043577948027,
+        "ci_low": 0.43398320223943115,
+        "ci_high": 0.548593081970498,
+        "n_resamples": 2000
+      },
+      "none_fp_rate": {
+        "point": 0.033996474439687736,
+        "ci_low": 0.025614716370293892,
+        "ci_high": 0.04151372509944822,
+        "n_resamples": 2000
+      }
+    },
+    "shift:Franchise | Rule C": {
+      "n_labels": 17,
+      "contracts": 15,
+      "segments": 2694,
+      "macro_f1": {
+        "point": 0.44777058971173117,
+        "ci_low": 0.39943196520737273,
+        "ci_high": 0.5314555822491634,
+        "n_resamples": 2000
+      },
+      "micro_f1": {
+        "point": 0.5141158989598811,
+        "ci_low": 0.46637294744704827,
+        "ci_high": 0.5708829850517145,
+        "n_resamples": 2000
+      },
+      "macro_ap": {
+        "point": 0.5509702281348765,
+        "ci_low": 0.5034766634973906,
+        "ci_high": 0.6615794253588219,
+        "n_resamples": 2000
+      },
+      "none_fp_rate": {
+        "point": 0.04433497536945813,
+        "ci_low": 0.03590091017816945,
+        "ci_high": 0.05491031917036458,
+        "n_resamples": 2000
+      }
+    },
+    "shift:Franchise | all": {
+      "n_labels": 30,
+      "contracts": 15,
+      "segments": 2694,
+      "macro_f1": {
+        "point": 0.3533598081641908,
+        "ci_low": 0.31130453738150726,
+        "ci_high": 0.4354870024509676,
+        "n_resamples": 2000
+      },
+      "micro_f1": {
+        "point": 0.4694104560622914,
+        "ci_low": 0.42881358440712714,
+        "ci_high": 0.526203049893671,
+        "n_resamples": 2000
+      },
+      "macro_ap": {
+        "point": 0.4800706347956002,
+        "ci_low": 0.44697457326822093,
+        "ci_high": 0.5886709489936727,
+        "n_resamples": 2000
+      },
+      "none_fp_rate": {
+        "point": 0.04433497536945813,
+        "ci_low": 0.03590091017816945,
+        "ci_high": 0.05491031917036458,
+        "n_resamples": 2000
+      }
+    },
+    "shift:Transportation | Rule C": {
+      "n_labels": 16,
+      "contracts": 13,
+      "segments": 1890,
+      "macro_f1": {
+        "point": 0.42914209100568124,
+        "ci_low": 0.3502053640486135,
+        "ci_high": 0.5617628861269552,
+        "n_resamples": 2000
+      },
+      "micro_f1": {
+        "point": 0.4740740740740741,
+        "ci_low": 0.33204556900209076,
+        "ci_high": 0.6212852213916044,
+        "n_resamples": 2000
+      },
+      "macro_ap": {
+        "point": 0.5412315083321765,
+        "ci_low": 0.4564024083443137,
+        "ci_high": 0.689079355123584,
+        "n_resamples": 2000
+      },
+      "none_fp_rate": {
+        "point": 0.020713463751438434,
+        "ci_low": 0.005801483730382198,
+        "ci_high": 0.03516161624124318,
+        "n_resamples": 2000
+      }
+    },
+    "shift:Transportation | all": {
+      "n_labels": 24,
+      "contracts": 13,
+      "segments": 1890,
+      "macro_f1": {
+        "point": 0.35831694955934307,
+        "ci_low": 0.305191459957475,
+        "ci_high": 0.49072108750117677,
+        "n_resamples": 2000
+      },
+      "micro_f1": {
+        "point": 0.46464646464646464,
+        "ci_low": 0.3300224016815089,
+        "ci_high": 0.5949421838728044,
+        "n_resamples": 2000
+      },
+      "macro_ap": {
+        "point": 0.5263835237133093,
+        "ci_low": 0.4552362100210854,
+        "ci_high": 0.6643592847775609,
+        "n_resamples": 2000
+      },
+      "none_fp_rate": {
+        "point": 0.020713463751438434,
+        "ci_low": 0.005801483730382198,
+        "ci_high": 0.03516161624124318,
+        "n_resamples": 2000
+      }
+    }
+  },
+  "per_label_test": [
+    {
+      "label": "Affiliate License",
+      "contracts": 9,
+      "segments": 14,
+      "precision": 0.1,
+      "recall": 0.07142857142857142,
+      "f1": {
+        "point": 0.08333333333333333,
+        "ci_low": 0.0,
+        "ci_high": 0.25,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.06942674625396912,
+        "ci_low": 0.019869580501694253,
+        "ci_high": 0.16591800289824238,
+        "n_resamples": 2000
+      },
+      "main_table": false
+    },
+    {
+      "label": "Anti-Assignment",
+      "contracts": 71,
+      "segments": 91,
+      "precision": 0.8947368421052632,
+      "recall": 0.7472527472527473,
+      "f1": {
+        "point": 0.8143712574850299,
+        "ci_low": 0.739375,
+        "ci_high": 0.8933333333333333,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.9013036157267883,
+        "ci_low": 0.850512400257674,
+        "ci_high": 0.9537459638756672,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Audit Rights",
+      "contracts": 39,
+      "segments": 77,
+      "precision": 0.8688524590163934,
+      "recall": 0.6883116883116883,
+      "f1": {
+        "point": 0.7681159420289855,
+        "ci_low": 0.6811594202898551,
+        "ci_high": 0.8548387096774194,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.7966992597191842,
+        "ci_low": 0.7152316217023779,
+        "ci_high": 0.8891894593962568,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Cap On Liability",
+      "contracts": 56,
+      "segments": 121,
+      "precision": 0.826530612244898,
+      "recall": 0.6694214876033058,
+      "f1": {
+        "point": 0.7397260273972602,
+        "ci_low": 0.6864365237620471,
+        "ci_high": 0.7976910199311412,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.7732742978646991,
+        "ci_low": 0.7034386609625853,
+        "ci_high": 0.8520071264435684,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Change Of Control",
+      "contracts": 20,
+      "segments": 42,
+      "precision": 0.5588235294117647,
+      "recall": 0.4523809523809524,
+      "f1": {
+        "point": 0.5,
+        "ci_low": 0.3939393939393939,
+        "ci_high": 0.5901639344262295,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.4508870082934164,
+        "ci_low": 0.33967340411590624,
+        "ci_high": 0.5966440164766953,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Competitive Restriction Exception",
+      "contracts": 13,
+      "segments": 17,
+      "precision": 0.1875,
+      "recall": 0.35294117647058826,
+      "f1": {
+        "point": 0.24489795918367346,
+        "ci_low": 0.12121212121212122,
+        "ci_high": 0.358974358974359,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.26927720039338876,
+        "ci_low": 0.11603870892359802,
+        "ci_high": 0.47001159732046316,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Covenant Not To Sue",
+      "contracts": 20,
+      "segments": 33,
+      "precision": 0.7741935483870968,
+      "recall": 0.7272727272727273,
+      "f1": {
+        "point": 0.75,
+        "ci_low": 0.6511627906976745,
+        "ci_high": 0.8363847780126848,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.7521490128984045,
+        "ci_low": 0.6282731571314323,
+        "ci_high": 0.875522326947099,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Exclusivity",
+      "contracts": 36,
+      "segments": 76,
+      "precision": 0.5263157894736842,
+      "recall": 0.5263157894736842,
+      "f1": {
+        "point": 0.5263157894736842,
+        "ci_low": 0.4369699603979523,
+        "ci_high": 0.6285829493087557,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.5624896240186166,
+        "ci_low": 0.44964391591871783,
+        "ci_high": 0.7187963160862618,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Expiration Date",
+      "contracts": 75,
+      "segments": 78,
+      "precision": 0.8088235294117647,
+      "recall": 0.7051282051282052,
+      "f1": {
+        "point": 0.7534246575342466,
+        "ci_low": 0.687488072519084,
+        "ci_high": 0.8138054187192117,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.853500666618581,
+        "ci_low": 0.7956820549997787,
+        "ci_high": 0.910863337244856,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Governing Law",
+      "contracts": 81,
+      "segments": 87,
+      "precision": 0.9545454545454546,
+      "recall": 0.9655172413793104,
+      "f1": {
+        "point": 0.96,
+        "ci_low": 0.9341300914654208,
+        "ci_high": 0.9828571428571429,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.9921684275223611,
+        "ci_low": 0.9824886532035827,
+        "ci_high": 0.9991198888596089,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Insurance",
+      "contracts": 28,
+      "segments": 73,
+      "precision": 0.7468354430379747,
+      "recall": 0.8082191780821918,
+      "f1": {
+        "point": 0.7763157894736842,
+        "ci_low": 0.6719785234899329,
+        "ci_high": 0.8533375796178344,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.8827572909563484,
+        "ci_low": 0.7903530210163362,
+        "ci_high": 0.9436737373977927,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Ip Ownership Assignment",
+      "contracts": 22,
+      "segments": 38,
+      "precision": 0.8,
+      "recall": 0.5263157894736842,
+      "f1": {
+        "point": 0.6349206349206349,
+        "ci_low": 0.47619047619047616,
+        "ci_high": 0.77422646477946,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.6581427036585608,
+        "ci_low": 0.5100042945612452,
+        "ci_high": 0.8050991416514633,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Irrevocable Or Perpetual License",
+      "contracts": 9,
+      "segments": 18,
+      "precision": 0.5925925925925926,
+      "recall": 0.8888888888888888,
+      "f1": {
+        "point": 0.7111111111111111,
+        "ci_low": 0.5237577639751554,
+        "ci_high": 0.84,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.7599407654641235,
+        "ci_low": 0.5142391350764455,
+        "ci_high": 0.9027989270069011,
+        "n_resamples": 2000
+      },
+      "main_table": false
+    },
+    {
+      "label": "Joint Ip Ownership",
+      "contracts": 9,
+      "segments": 19,
+      "precision": 1.0,
+      "recall": 0.5789473684210527,
+      "f1": {
+        "point": 0.7333333333333333,
+        "ci_low": 0.47619047619047616,
+        "ci_high": 0.9411764705882353,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.6520706051816296,
+        "ci_low": 0.3787443799582959,
+        "ci_high": 0.9523969508752116,
+        "n_resamples": 2000
+      },
+      "main_table": false
+    },
+    {
+      "label": "License Grant",
+      "contracts": 46,
+      "segments": 112,
+      "precision": 0.8888888888888888,
+      "recall": 0.7142857142857143,
+      "f1": {
+        "point": 0.7920792079207921,
+        "ci_low": 0.7309551955125976,
+        "ci_high": 0.8497474093264249,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.8273588288754382,
+        "ci_low": 0.7656918547247625,
+        "ci_high": 0.890211870746132,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Liquidated Damages",
+      "contracts": 14,
+      "segments": 30,
+      "precision": 0.8333333333333334,
+      "recall": 0.5,
+      "f1": {
+        "point": 0.625,
+        "ci_low": 0.38461538461538464,
+        "ci_high": 0.7843137254901961,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.6792066432891185,
+        "ci_low": 0.5278128939963516,
+        "ci_high": 0.831165162433928,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Minimum Commitment",
+      "contracts": 35,
+      "segments": 86,
+      "precision": 0.782608695652174,
+      "recall": 0.20930232558139536,
+      "f1": {
+        "point": 0.3302752293577982,
+        "ci_low": 0.22727272727272727,
+        "ci_high": 0.44660194174757284,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.28839731871838237,
+        "ci_low": 0.20478417433997118,
+        "ci_high": 0.5408385942046614,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Most Favored Nation",
+      "contracts": 6,
+      "segments": 8,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n_resamples": 1997
+      },
+      "ap": {
+        "point": 0.35986426511898006,
+        "ci_low": 0.09997425997425999,
+        "ci_high": 0.6223023247695041,
+        "n_resamples": 1997
+      },
+      "main_table": false
+    },
+    {
+      "label": "No-Solicit Of Customers",
+      "contracts": 7,
+      "segments": 10,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.18053352505416492,
+        "ci_low": 0.08119047619047619,
+        "ci_high": 0.4189327585366357,
+        "n_resamples": 2000
+      },
+      "main_table": false
+    },
+    {
+      "label": "No-Solicit Of Employees",
+      "contracts": 12,
+      "segments": 15,
+      "precision": 0.7857142857142857,
+      "recall": 0.7333333333333333,
+      "f1": {
+        "point": 0.7586206896551724,
+        "ci_low": 0.5555555555555556,
+        "ci_high": 0.8888888888888888,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.836755247320074,
+        "ci_low": 0.6637274879617341,
+        "ci_high": 0.9501103524743232,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Non-Compete",
+      "contracts": 22,
+      "segments": 43,
+      "precision": 0.6333333333333333,
+      "recall": 0.4418604651162791,
+      "f1": {
+        "point": 0.5205479452054794,
+        "ci_low": 0.3492063492063492,
+        "ci_high": 0.6451612903225806,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.5524727522797358,
+        "ci_low": 0.3739415603852815,
+        "ci_high": 0.6753665355711674,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Non-Disparagement",
+      "contracts": 6,
+      "segments": 11,
+      "precision": 1.0,
+      "recall": 0.09090909090909091,
+      "f1": {
+        "point": 0.16666666666666666,
+        "ci_low": 0.0,
+        "ci_high": 0.4444444444444444,
+        "n_resamples": 1998
+      },
+      "ap": {
+        "point": 0.2937707503315486,
+        "ci_low": 0.04341212557810028,
+        "ci_high": 0.6689891226366951,
+        "n_resamples": 1998
+      },
+      "main_table": false
+    },
+    {
+      "label": "Non-Transferable License",
+      "contracts": 24,
+      "segments": 47,
+      "precision": 0.8048780487804879,
+      "recall": 0.7021276595744681,
+      "f1": {
+        "point": 0.75,
+        "ci_low": 0.6428350970017638,
+        "ci_high": 0.8387096774193549,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.7268233377241088,
+        "ci_low": 0.6104871558338,
+        "ci_high": 0.8361513981743295,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Notice Period To Terminate Renewal",
+      "contracts": 24,
+      "segments": 27,
+      "precision": 0.84,
+      "recall": 0.7777777777777778,
+      "f1": {
+        "point": 0.8076923076923077,
+        "ci_low": 0.6875,
+        "ci_high": 0.9152895480225987,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.8592176727989417,
+        "ci_low": 0.7599230960108279,
+        "ci_high": 0.9521283284580663,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Post-Termination Services",
+      "contracts": 37,
+      "segments": 74,
+      "precision": 0.4144144144144144,
+      "recall": 0.6216216216216216,
+      "f1": {
+        "point": 0.4972972972972973,
+        "ci_low": 0.4251629556239246,
+        "ci_high": 0.5581612017911309,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.5528910369646207,
+        "ci_low": 0.43463356557921,
+        "ci_high": 0.6496051642837081,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Renewal Term",
+      "contracts": 36,
+      "segments": 37,
+      "precision": 0.9696969696969697,
+      "recall": 0.8648648648648649,
+      "f1": {
+        "point": 0.9142857142857143,
+        "ci_low": 0.8378009828009828,
+        "ci_high": 0.975,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.944145885642651,
+        "ci_low": 0.8808425927219332,
+        "ci_high": 0.9972993274148114,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Revenue/Profit Sharing",
+      "contracts": 32,
+      "segments": 83,
+      "precision": 0.5054945054945055,
+      "recall": 0.5542168674698795,
+      "f1": {
+        "point": 0.5287356321839081,
+        "ci_low": 0.38993444195714744,
+        "ci_high": 0.6557728337236531,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.4970848817020469,
+        "ci_low": 0.3234391503447104,
+        "ci_high": 0.6943010405424943,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Rofr/Rofo/Rofn",
+      "contracts": 14,
+      "segments": 46,
+      "precision": 0.875,
+      "recall": 0.45652173913043476,
+      "f1": {
+        "point": 0.6,
+        "ci_low": 0.4,
+        "ci_high": 0.7384931506849314,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.7273982636728268,
+        "ci_low": 0.5333909275797155,
+        "ci_high": 0.8356327444216395,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Termination For Convenience",
+      "contracts": 38,
+      "segments": 50,
+      "precision": 0.5416666666666666,
+      "recall": 0.78,
+      "f1": {
+        "point": 0.639344262295082,
+        "ci_low": 0.540527027027027,
+        "ci_high": 0.724144718979093,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.5940757653320016,
+        "ci_low": 0.48685169766872116,
+        "ci_high": 0.7047025545406593,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Third Party Beneficiary",
+      "contracts": 3,
+      "segments": 3,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n_resamples": 1948
+      },
+      "ap": {
+        "point": 0.08048668503213957,
+        "ci_low": 0.008747139588100689,
+        "ci_high": 0.25,
+        "n_resamples": 1948
+      },
+      "main_table": false
+    },
+    {
+      "label": "Uncapped Liability",
+      "contracts": 19,
+      "segments": 25,
+      "precision": 0.6666666666666666,
+      "recall": 0.64,
+      "f1": {
+        "point": 0.6530612244897959,
+        "ci_low": 0.4826896551724139,
+        "ci_high": 0.7843137254901961,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.5687755830034433,
+        "ci_low": 0.4263591120070115,
+        "ci_high": 0.7615479300866265,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Volume Restriction",
+      "contracts": 14,
+      "segments": 24,
+      "precision": 0.6666666666666666,
+      "recall": 0.08333333333333333,
+      "f1": {
+        "point": 0.14814814814814814,
+        "ci_low": 0.0,
+        "ci_high": 0.42105263157894735,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.21785187553684646,
+        "ci_low": 0.06710169337255212,
+        "ci_high": 0.4157020617225382,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    },
+    {
+      "label": "Warranty Duration",
+      "contracts": 17,
+      "segments": 44,
+      "precision": 0.6,
+      "recall": 0.2727272727272727,
+      "f1": {
+        "point": 0.375,
+        "ci_low": 0.2857142857142857,
+        "ci_high": 0.5,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.4002678741600032,
+        "ci_low": 0.30851850889555626,
+        "ci_high": 0.5585194100134608,
+        "n_resamples": 2000
+      },
+      "main_table": true
+    }
+  ],
+  "per_label_shift_rule_c": [
+    {
+      "label": "Anti-Assignment",
+      "contracts": 20,
+      "segments": 45,
+      "precision": 0.6666666666666666,
+      "recall": 0.4,
+      "f1": {
+        "point": 0.5,
+        "ci_low": 0.35413602941176475,
+        "ci_high": 0.675685192234488,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.5418609590466621,
+        "ci_low": 0.4219928704270579,
+        "ci_high": 0.7121126622126459,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Audit Rights",
+      "contracts": 13,
+      "segments": 43,
+      "precision": 0.6666666666666666,
+      "recall": 0.6511627906976745,
+      "f1": {
+        "point": 0.6588235294117647,
+        "ci_low": 0.5230681818181818,
+        "ci_high": 0.8,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.6552968281609743,
+        "ci_low": 0.5437001109921636,
+        "ci_high": 0.8213586102108819,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Cap On Liability",
+      "contracts": 14,
+      "segments": 24,
+      "precision": 0.8333333333333334,
+      "recall": 0.625,
+      "f1": {
+        "point": 0.7142857142857143,
+        "ci_low": 0.5127659574468085,
+        "ci_high": 0.9142857142857143,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.7049512671138278,
+        "ci_low": 0.4838482858712809,
+        "ci_high": 0.9559303954689983,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Covenant Not To Sue",
+      "contracts": 10,
+      "segments": 22,
+      "precision": 0.5416666666666666,
+      "recall": 0.5909090909090909,
+      "f1": {
+        "point": 0.5652173913043478,
+        "ci_low": 0.43243243243243246,
+        "ci_high": 0.7222222222222222,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.574418046098198,
+        "ci_low": 0.44401743786853126,
+        "ci_high": 0.7984821834100059,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Exclusivity",
+      "contracts": 10,
+      "segments": 22,
+      "precision": 0.5454545454545454,
+      "recall": 0.2727272727272727,
+      "f1": {
+        "point": 0.36363636363636365,
+        "ci_low": 0.0,
+        "ci_high": 0.6038307604345337,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.4038917930616058,
+        "ci_low": 0.09346252824890437,
+        "ci_high": 0.6489540335309031,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Expiration Date",
+      "contracts": 23,
+      "segments": 26,
+      "precision": 0.75,
+      "recall": 0.5769230769230769,
+      "f1": {
+        "point": 0.6521739130434783,
+        "ci_low": 0.46502683363148495,
+        "ci_high": 0.8076923076923077,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.6465449765567511,
+        "ci_low": 0.48089728193035125,
+        "ci_high": 0.8134842013870686,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Governing Law",
+      "contracts": 23,
+      "segments": 24,
+      "precision": 0.7142857142857143,
+      "recall": 0.8333333333333334,
+      "f1": {
+        "point": 0.7692307692307693,
+        "ci_low": 0.6440677966101694,
+        "ci_high": 0.9166666666666666,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.7916866654443677,
+        "ci_low": 0.6413511028997299,
+        "ci_high": 0.9572319568226194,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Insurance",
+      "contracts": 15,
+      "segments": 67,
+      "precision": 0.5882352941176471,
+      "recall": 0.746268656716418,
+      "f1": {
+        "point": 0.6578947368421053,
+        "ci_low": 0.47690476190476194,
+        "ci_high": 0.8244898708162064,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.7613202707737404,
+        "ci_low": 0.6206027413491162,
+        "ci_high": 0.8847591732412079,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "License Grant",
+      "contracts": 10,
+      "segments": 25,
+      "precision": 0.5,
+      "recall": 0.32,
+      "f1": {
+        "point": 0.3902439024390244,
+        "ci_low": 0.21621621621621623,
+        "ci_high": 0.5652378999179654,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.3839949324356658,
+        "ci_low": 0.25169954981016696,
+        "ci_high": 0.6823185545243596,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Liquidated Damages",
+      "contracts": 10,
+      "segments": 19,
+      "precision": 0.6875,
+      "recall": 0.5789473684210527,
+      "f1": {
+        "point": 0.6285714285714286,
+        "ci_low": 0.3155870445344133,
+        "ci_high": 0.8333333333333334,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.4924245203854211,
+        "ci_low": 0.21560224251366272,
+        "ci_high": 0.8572364634093282,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Minimum Commitment",
+      "contracts": 14,
+      "segments": 58,
+      "precision": 1.0,
+      "recall": 0.034482758620689655,
+      "f1": {
+        "point": 0.06666666666666667,
+        "ci_low": 0.0,
+        "ci_high": 0.14285714285714285,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.33487006169648753,
+        "ci_low": 0.20077561636028682,
+        "ci_high": 0.47130721643358475,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Non-Compete",
+      "contracts": 11,
+      "segments": 53,
+      "precision": 0.7777777777777778,
+      "recall": 0.2641509433962264,
+      "f1": {
+        "point": 0.39436619718309857,
+        "ci_low": 0.1875,
+        "ci_high": 0.6,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.4618146744678116,
+        "ci_low": 0.28211706640327056,
+        "ci_high": 0.6863325558779791,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Notice Period To Terminate Renewal",
+      "contracts": 11,
+      "segments": 14,
+      "precision": 0.625,
+      "recall": 0.35714285714285715,
+      "f1": {
+        "point": 0.45454545454545453,
+        "ci_low": 0.17391304347826086,
+        "ci_high": 0.7060924369747889,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.6176550649062914,
+        "ci_low": 0.40695768447964265,
+        "ci_high": 0.8669968844561236,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Post-Termination Services",
+      "contracts": 10,
+      "segments": 31,
+      "precision": 0.47368421052631576,
+      "recall": 0.2903225806451613,
+      "f1": {
+        "point": 0.36,
+        "ci_low": 0.22210144927536252,
+        "ci_high": 0.49056603773584906,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.36005781193467473,
+        "ci_low": 0.2715369502937118,
+        "ci_high": 0.5237609667294633,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Renewal Term",
+      "contracts": 15,
+      "segments": 33,
+      "precision": 0.7857142857142857,
+      "recall": 0.3333333333333333,
+      "f1": {
+        "point": 0.46808510638297873,
+        "ci_low": 0.3188405797101449,
+        "ci_high": 0.7142857142857143,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.4682910576534446,
+        "ci_low": 0.3562584319795648,
+        "ci_high": 0.7678075154046397,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Revenue/Profit Sharing",
+      "contracts": 11,
+      "segments": 25,
+      "precision": 0.36363636363636365,
+      "recall": 0.48,
+      "f1": {
+        "point": 0.41379310344827586,
+        "ci_low": 0.29089442815249267,
+        "ci_high": 0.5306281887755101,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.5264335245516769,
+        "ci_low": 0.39095700018076057,
+        "ci_high": 0.6439369556776373,
+        "n_resamples": 2000
+      }
+    },
+    {
+      "label": "Volume Restriction",
+      "contracts": 11,
+      "segments": 31,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n_resamples": 2000
+      },
+      "ap": {
+        "point": 0.24953146636896,
+        "ci_low": 0.11417095352775233,
+        "ci_high": 0.42461768008610073,
+        "n_resamples": 2000
+      }
+    }
+  ],
+  "test_minus_shift_rule_c": {
+    "macro_f1": {
+      "difference": 0.18792921579369803,
+      "ci_low": 0.11997253058501982,
+      "ci_high": 0.2524451228814514,
+      "n_resamples": 2000
+    },
+    "micro_f1": {
+      "difference": 0.18754860785143324,
+      "ci_low": 0.1210183935032986,
+      "ci_high": 0.2511266798481728,
+      "n_resamples": 2000
+    },
+    "macro_ap": {
+      "difference": 0.1739955982633059,
+      "ci_low": 0.08431386545169611,
+      "ci_high": 0.2287158784490417,
+      "n_resamples": 2000
+    },
+    "none_fp_rate": {
+      "difference": -0.008528126209003273,
+      "ci_low": -0.017117322976893102,
+      "ci_high": 0.0007855083109483251,
+      "n_resamples": 2000
+    }
+  },
+  "calibration_test": {
+    "pooled_ece": {
+      "point": 0.001518631011726818,
+      "ci_low": 0.0009108123649999804,
+      "ci_high": 0.0025162774582202824,
+      "n_resamples": 2000
+    },
+    "reliability": [
+      {
+        "bin": "[0.0, 0.1)",
+        "count": 306899,
+        "mean_predicted": 0.0010486492208192056,
+        "observed_rate": 0.0013554948044796496
+      },
+      {
+        "bin": "[0.1, 0.2)",
+        "count": 590,
+        "mean_predicted": 0.1393130476673925,
+        "observed_rate": 0.1288135593220339
+      },
+      {
+        "bin": "[0.2, 0.3)",
+        "count": 251,
+        "mean_predicted": 0.24736178005109632,
+        "observed_rate": 0.21912350597609562
+      },
+      {
+        "bin": "[0.3, 0.4)",
+        "count": 197,
+        "mean_predicted": 0.34824314657380767,
+        "observed_rate": 0.25380710659898476
+      },
+      {
+        "bin": "[0.4, 0.5)",
+        "count": 125,
+        "mean_predicted": 0.4498351118039134,
+        "observed_rate": 0.288
+      },
+      {
+        "bin": "[0.5, 0.6)",
+        "count": 123,
+        "mean_predicted": 0.5539324315858657,
+        "observed_rate": 0.35772357723577236
+      },
+      {
+        "bin": "[0.6, 0.7)",
+        "count": 102,
+        "mean_predicted": 0.6495531022098123,
+        "observed_rate": 0.4117647058823529
+      },
+      {
+        "bin": "[0.7, 0.8)",
+        "count": 119,
+        "mean_predicted": 0.7494250160645449,
+        "observed_rate": 0.5882352941176471
+      },
+      {
+        "bin": "[0.8, 0.9)",
+        "count": 127,
+        "mean_predicted": 0.853339903821984,
+        "observed_rate": 0.5511811023622047
+      },
+      {
+        "bin": "[0.9, 1.0]",
+        "count": 941,
+        "mean_predicted": 0.9752885940156084,
+        "observed_rate": 0.7438894792773645
+      }
+    ],
+    "per_label_rule_a": [
+      {
+        "label": "Anti-Assignment",
+        "ece": 0.0023877804837406417,
+        "mean_predicted": 0.012046340406648039,
+        "observed_rate": 0.009703561526978034
+      },
+      {
+        "label": "Audit Rights",
+        "ece": 0.0009741107069404359,
+        "mean_predicted": 0.007941768428513477,
+        "observed_rate": 0.008210705907442951
+      },
+      {
+        "label": "Cap On Liability",
+        "ece": 0.0022478982664171287,
+        "mean_predicted": 0.01297614524623522,
+        "observed_rate": 0.01290253785455321
+      },
+      {
+        "label": "Change Of Control",
+        "ece": 0.0017415232229637035,
+        "mean_predicted": 0.004064108485508969,
+        "observed_rate": 0.004478566858605247
+      },
+      {
+        "label": "Competitive Restriction Exception",
+        "ece": 0.0005997387098597148,
+        "mean_predicted": 0.001280573124524991,
+        "observed_rate": 0.0018127532522925996
+      },
+      {
+        "label": "Covenant Not To Sue",
+        "ece": 0.0008434014782664429,
+        "mean_predicted": 0.0028156474576556687,
+        "observed_rate": 0.0035188739603326936
+      },
+      {
+        "label": "Exclusivity",
+        "ece": 0.003935340976298564,
+        "mean_predicted": 0.009421703606161343,
+        "observed_rate": 0.008104073363190446
+      },
+      {
+        "label": "Expiration Date",
+        "ece": 0.003075484121267936,
+        "mean_predicted": 0.010856011404222309,
+        "observed_rate": 0.008317338451695458
+      },
+      {
+        "label": "Governing Law",
+        "ece": 0.0013647274173674642,
+        "mean_predicted": 0.010641758767335476,
+        "observed_rate": 0.009277031349968011
+      },
+      {
+        "label": "Insurance",
+        "ece": 0.001965380867175567,
+        "mean_predicted": 0.009124608692222048,
+        "observed_rate": 0.0077841757304329285
+      },
+      {
+        "label": "Ip Ownership Assignment",
+        "ece": 0.0012612965698927433,
+        "mean_predicted": 0.004760735772675206,
+        "observed_rate": 0.004052036681595223
+      },
+      {
+        "label": "License Grant",
+        "ece": 0.002752743394937595,
+        "mean_predicted": 0.013701307297207525,
+        "observed_rate": 0.011942844956280656
+      },
+      {
+        "label": "Liquidated Damages",
+        "ece": 0.0020044821810810813,
+        "mean_predicted": 0.0013765315754551218,
+        "observed_rate": 0.003198976327575176
+      },
+      {
+        "label": "Minimum Commitment",
+        "ece": 0.02065566905729362,
+        "mean_predicted": 0.027192077323752808,
+        "observed_rate": 0.009170398805715504
+      },
+      {
+        "label": "No-Solicit Of Employees",
+        "ece": 0.0005145942540984244,
+        "mean_predicted": 0.0013615111651619958,
+        "observed_rate": 0.001599488163787588
+      },
+      {
+        "label": "Non-Compete",
+        "ece": 0.0011327807336615912,
+        "mean_predicted": 0.004132495316818829,
+        "observed_rate": 0.004585199402857752
+      },
+      {
+        "label": "Non-Transferable License",
+        "ece": 0.0018940462571640651,
+        "mean_predicted": 0.0063614835771344126,
+        "observed_rate": 0.005011729579867776
+      },
+      {
+        "label": "Notice Period To Terminate Renewal",
+        "ece": 0.0008181690782260743,
+        "mean_predicted": 0.0032210451466223307,
+        "observed_rate": 0.0028790786948176585
+      },
+      {
+        "label": "Post-Termination Services",
+        "ece": 0.0020345939951915823,
+        "mean_predicted": 0.00894003109846224,
+        "observed_rate": 0.007890808274685433
+      },
+      {
+        "label": "Renewal Term",
+        "ece": 0.0009242891978519801,
+        "mean_predicted": 0.004479470782526713,
+        "observed_rate": 0.003945404137342717
+      },
+      {
+        "label": "Revenue/Profit Sharing",
+        "ece": 0.0032968223406862774,
+        "mean_predicted": 0.01105749211937469,
+        "observed_rate": 0.008850501172957987
+      },
+      {
+        "label": "Rofr/Rofo/Rofn",
+        "ece": 0.0019356211695921882,
+        "mean_predicted": 0.003240057057942283,
+        "observed_rate": 0.00490509703561527
+      },
+      {
+        "label": "Termination For Convenience",
+        "ece": 0.002053241347582696,
+        "mean_predicted": 0.006866955456104879,
+        "observed_rate": 0.0053316272126252935
+      },
+      {
+        "label": "Uncapped Liability",
+        "ece": 0.001698975770082775,
+        "mean_predicted": 0.004207554075406659,
+        "observed_rate": 0.0026658136063126467
+      },
+      {
+        "label": "Volume Restriction",
+        "ece": 0.0014222010052181574,
+        "mean_predicted": 0.0017290348200934313,
+        "observed_rate": 0.0025591810620601407
+      },
+      {
+        "label": "Warranty Duration",
+        "ece": 0.0023436320327744568,
+        "mean_predicted": 0.003446139345817753,
+        "observed_rate": 0.004691831947110258
+      }
+    ]
+  },
+  "error_analysis_val": {
+    "split": "val",
+    "confused_pairs": [
+      {
+        "true": "License Grant",
+        "predicted": "Exclusivity",
+        "segments": 24
+      },
+      {
+        "true": "License Grant",
+        "predicted": "Affiliate License",
+        "segments": 13
+      },
+      {
+        "true": "Anti-Assignment",
+        "predicted": "Change Of Control",
+        "segments": 10
+      },
+      {
+        "true": "Non-Transferable License",
+        "predicted": "Exclusivity",
+        "segments": 10
+      },
+      {
+        "true": "Audit Rights",
+        "predicted": "Post-Termination Services",
+        "segments": 9
+      },
+      {
+        "true": "License Grant",
+        "predicted": "Irrevocable Or Perpetual License",
+        "segments": 9
+      },
+      {
+        "true": "Expiration Date",
+        "predicted": "Renewal Term",
+        "segments": 8
+      },
+      {
+        "true": "Expiration Date",
+        "predicted": "Termination For Convenience",
+        "segments": 8
+      },
+      {
+        "true": "Affiliate License",
+        "predicted": "Exclusivity",
+        "segments": 6
+      },
+      {
+        "true": "Irrevocable Or Perpetual License",
+        "predicted": "Affiliate License",
+        "segments": 6
+      },
+      {
+        "true": "License Grant",
+        "predicted": "Non-Transferable License",
+        "segments": 6
+      },
+      {
+        "true": "Expiration Date",
+        "predicted": "Notice Period To Terminate Renewal",
+        "segments": 5
+      },
+      {
+        "true": "Expiration Date",
+        "predicted": "Post-Termination Services",
+        "segments": 5
+      },
+      {
+        "true": "Irrevocable Or Perpetual License",
+        "predicted": "Exclusivity",
+        "segments": 5
+      },
+      {
+        "true": "Non-Compete",
+        "predicted": "Exclusivity",
+        "segments": 5
+      }
+    ],
+    "missed": [
+      {
+        "label": "Affiliate License",
+        "false_negatives": 19,
+        "segment_predicted_none": 16
+      },
+      {
+        "label": "Anti-Assignment",
+        "false_negatives": 24,
+        "segment_predicted_none": 21
+      },
+      {
+        "label": "Audit Rights",
+        "false_negatives": 16,
+        "segment_predicted_none": 15
+      },
+      {
+        "label": "Cap On Liability",
+        "false_negatives": 34,
+        "segment_predicted_none": 33
+      },
+      {
+        "label": "Change Of Control",
+        "false_negatives": 22,
+        "segment_predicted_none": 16
+      },
+      {
+        "label": "Competitive Restriction Exception",
+        "false_negatives": 29,
+        "segment_predicted_none": 23
+      },
+      {
+        "label": "Covenant Not To Sue",
+        "false_negatives": 12,
+        "segment_predicted_none": 11
+      },
+      {
+        "label": "Exclusivity",
+        "false_negatives": 52,
+        "segment_predicted_none": 43
+      },
+      {
+        "label": "Expiration Date",
+        "false_negatives": 31,
+        "segment_predicted_none": 23
+      },
+      {
+        "label": "Governing Law",
+        "false_negatives": 2,
+        "segment_predicted_none": 2
+      },
+      {
+        "label": "Insurance",
+        "false_negatives": 13,
+        "segment_predicted_none": 13
+      },
+      {
+        "label": "Ip Ownership Assignment",
+        "false_negatives": 10,
+        "segment_predicted_none": 8
+      },
+      {
+        "label": "Irrevocable Or Perpetual License",
+        "false_negatives": 19,
+        "segment_predicted_none": 14
+      },
+      {
+        "label": "Joint Ip Ownership",
+        "false_negatives": 8,
+        "segment_predicted_none": 7
+      },
+      {
+        "label": "License Grant",
+        "false_negatives": 70,
+        "segment_predicted_none": 59
+      },
+      {
+        "label": "Liquidated Damages",
+        "false_negatives": 21,
+        "segment_predicted_none": 11
+      },
+      {
+        "label": "Minimum Commitment",
+        "false_negatives": 47,
+        "segment_predicted_none": 44
+      },
+      {
+        "label": "Most Favored Nation",
+        "false_negatives": 5,
+        "segment_predicted_none": 5
+      },
+      {
+        "label": "No-Solicit Of Customers",
+        "false_negatives": 2,
+        "segment_predicted_none": 1
+      },
+      {
+        "label": "No-Solicit Of Employees",
+        "false_negatives": 3,
+        "segment_predicted_none": 3
+      },
+      {
+        "label": "Non-Compete",
+        "false_negatives": 16,
+        "segment_predicted_none": 12
+      },
+      {
+        "label": "Non-Disparagement",
+        "false_negatives": 6,
+        "segment_predicted_none": 5
+      },
+      {
+        "label": "Non-Transferable License",
+        "false_negatives": 31,
+        "segment_predicted_none": 22
+      },
+      {
+        "label": "Notice Period To Terminate Renewal",
+        "false_negatives": 5,
+        "segment_predicted_none": 0
+      },
+      {
+        "label": "Post-Termination Services",
+        "false_negatives": 45,
+        "segment_predicted_none": 36
+      },
+      {
+        "label": "Renewal Term",
+        "false_negatives": 6,
+        "segment_predicted_none": 3
+      },
+      {
+        "label": "Revenue/Profit Sharing",
+        "false_negatives": 37,
+        "segment_predicted_none": 37
+      },
+      {
+        "label": "Rofr/Rofo/Rofn",
+        "false_negatives": 45,
+        "segment_predicted_none": 41
+      },
+      {
+        "label": "Termination For Convenience",
+        "false_negatives": 20,
+        "segment_predicted_none": 18
+      },
+      {
+        "label": "Third Party Beneficiary",
+        "false_negatives": 4,
+        "segment_predicted_none": 4
+      },
+      {
+        "label": "Uncapped Liability",
+        "false_negatives": 9,
+        "segment_predicted_none": 2
+      },
+      {
+        "label": "Volume Restriction",
+        "false_negatives": 14,
+        "segment_predicted_none": 14
+      },
+      {
+        "label": "Warranty Duration",
+        "false_negatives": 14,
+        "segment_predicted_none": 13
+      }
+    ],
+    "failing_labels": [
+      "Competitive Restriction Exception",
+      "Most Favored Nation",
+      "No-Solicit Of Customers",
+      "Volume Restriction"
+    ],
+    "samples": [
+      {
+        "label": "Competitive Restriction Exception",
+        "kind": "false_negative",
+        "segment_id": "51_272",
+        "p": 0.009291179056846205,
+        "true": [
+          "Competitive Restriction Exception"
+        ],
+        "predicted": [],
+        "text": "In the event [***], [***] in a manner that (x) [***], (y) [***] or (z) [***]. For clarity, the foregoing sentence shall not [***]. Except as provided in this Section 6.2.1 (Restrictions on BLI) and the scope of rights granted to Page 35 of 85"
+      },
+      {
+        "label": "Competitive Restriction Exception",
+        "kind": "false_negative",
+        "segment_id": "296_9",
+        "p": 0.00237778541912849,
+        "true": [
+          "Competitive Restriction Exception",
+          "Exclusivity",
+          "License Grant"
+        ],
+        "predicted": [],
+        "text": "1.1 APPOINTMENT AS AGENT. NCB appoints NPC, and NPC agrees to serve, as NCB's sole agent (i) to provide authorization, processing and settlement services with respect to Visa and MasterCard transactions (\"Merchant Processing Services\") to merchants who desire to receive Merchant Processing Services from NCB or NPC (\"Merchants\") and (ii) to enter into contracts with merchants (\"Merchant Contracts\") for the provision of Merchant Processing Services as agent of NCB; provided, however, that nothing herein shall limit NPC's right to provide, as agent for other members of Visa and MasterCard, Merchant Processing Services to merchants who desire to receive such services from NCB or others. NCB agrees that NPC may use NCB's name and its BIN, ICA and any other Visa and MasterCard identification numbers to the extent necessary or appropriate to perform the Merchant Processing Services."
+      },
+      {
+        "label": "Competitive Restriction Exception",
+        "kind": "false_negative",
+        "segment_id": "326_11",
+        "p": 6.012257186902071e-05,
+        "true": [
+          "Competitive Restriction Exception"
+        ],
+        "predicted": [],
+        "text": "(INTERNATIONAL TEST SYSTEMS RESERVES THE RIGHT TO CHANGE THE RETAIL         PRICE AT ANY TIME, WITH NOTICE TO COMWARE.)"
+      },
+      {
+        "label": "Competitive Restriction Exception",
+        "kind": "false_negative",
+        "segment_id": "326_14",
+        "p": 6.012257186902071e-05,
+        "true": [
+          "Competitive Restriction Exception"
+        ],
+        "predicted": [],
+        "text": "(INTERNATIONAL TEST SYSTEMS RESERVES THE RIGHT TO CHANGE THE RETAIL         PRICE AT ANY TIME, WITH NOTICE TO COMWARE.)"
+      },
+      {
+        "label": "Competitive Restriction Exception",
+        "kind": "false_negative",
+        "segment_id": "508_45",
+        "p": 0.003582763771059036,
+        "true": [
+          "Competitive Restriction Exception",
+          "Liquidated Damages",
+          "No-Solicit Of Employees"
+        ],
+        "predicted": [
+          "Liquidated Damages",
+          "No-Solicit Of Employees"
+        ],
+        "text": "15.9 Non-Solicitation of Employees. During the term hereof and for a period of five (5) years thereafter, each Party agrees not to, either directly or indirectly, for itself or on behalf of any other person, firm, partnership, corporation or other entity hire, solicit, contract for, attempt to solicit, or cause to be solicited, the employment or services of any current or previous employee of the other Party (unless a period of sixty months has elapsed from the last date that such employee was employed by such party) without the prior written consent of such other Party. Each Party agrees that in the event it violates the provisions of this Section 15.9, it will pay to the other Party as liquidated damages, and not as a penalty, an amount equal to one hundred times (100 X) of any such employee's then-current base annual salary. 15.10 Severability; Validity. If any provision of this Agreement is held invalid or unenforceable under applicable law, the parties agree to renegotiate such provision(s) in good faith, in order to maintain or achieve the economic position enjoyed by each Party as close as possible to that under the provision(s) rendered unenforceable."
+      },
+      {
+        "label": "Competitive Restriction Exception",
+        "kind": "false_positive",
+        "segment_id": "51_234",
+        "p": 0.06919779152149612,
+        "true": [],
+        "predicted": [
+          "Competitive Restriction Exception"
+        ],
+        "text": "The foregoing shall apply and, along with any applicable provisions of the Agreement, be the exclusive terms and conditions for Ginkgo's Purchase Orders under this Agreement, notwithstanding anything to the contrary in the BLI Terms and Conditions with respect to Ginkgo's orders for or ability to order (and have orders fulfilled for) [***]."
+      },
+      {
+        "label": "Competitive Restriction Exception",
+        "kind": "false_positive",
+        "segment_id": "180_19",
+        "p": 0.0711281948202727,
+        "true": [
+          "Exclusivity"
+        ],
+        "predicted": [
+          "Competitive Restriction Exception",
+          "Exclusivity"
+        ],
+        "text": "(c) Third-Party Promotions: Neither party may solicit or enter into any agreement with any third party regarding third-party promotional opportunities with respect to the Wireless Products without the other party's prior written consent; provided that the foregoing will not limit Licensee's rights to market and promote the Wireless Products directly and through (i) CSPs, subject to any Fox approval rights set forth elsewhere in this Agreement, or (ii) Fox's right to engage in third party promotions for the Properties involving wireless content otherwise sourced or created."
+      },
+      {
+        "label": "Competitive Restriction Exception",
+        "kind": "false_positive",
+        "segment_id": "239_346",
+        "p": 0.0496474536867894,
+        "true": [],
+        "predicted": [
+          "Competitive Restriction Exception",
+          "Exclusivity",
+          "License Grant"
+        ],
+        "text": "ARTICLE X\n\nINTELLECTUAL PROPERTY MATTERS\n\nSection 10.1 Third Party Competition. Expressly excluding Article XIII of this Agreement, nothing in this Agreement shall limit or restrict Depomed's ability to grant non-exclusive patent licenses to patents and patent applications included within the Technology or otherwise covering the Product in connection with the settlement of any pending, threatened or contemplated patent litigation with respect to extended release metformin products commercialized in the Territory prior to the Effective Date, including any such litigation against marketers of metformin products (each such license, an \"AcuForm Patent License\"). However, in recognition of the parties' agreement to co-exclusively Promote Products, in accordance with the terms and conditions of this Agreement, Depomed agrees that if Depomed or any Affiliate thereof grants to any Affiliate or Third Party a license, covenant not to sue, right of reference, right of supply or other intellectual right (in any case, other than AcuForm Patent Licenses and covenants not to sue and other rights in connection with the grant of AcuForm Patent Licenses for extended release metformin products commercialized in the Territory prior to the Effective Date) related to the manufacture, use, offer for sale, sale, importation, marketing or promotion of any Product that uses Depomed's or its Affiliate's proprietary drug delivery technology currently referred to as the AcuForm technology and described in U.S. Patent Nos."
+      },
+      {
+        "label": "Competitive Restriction Exception",
+        "kind": "false_positive",
+        "segment_id": "239_371",
+        "p": 0.11773559184051223,
+        "true": [
+          "Rofr/Rofo/Rofn"
+        ],
+        "predicted": [
+          "Competitive Restriction Exception",
+          "Post-Termination Services",
+          "Rofr/Rofo/Rofn"
+        ],
+        "text": "If King is interested in obtaining the Metformin Product Rights, it shall so notify Depomed in writing prior to the expiration of the Evaluation Period, and upon Depomed's receipt of such notice King and Depomed shall promptly commence good-faith negotiations, for a period of 30 days and such longer period as may be mutually agreed upon by the parties in writing in the event the parties have made material progress in the negotiations (the \"Negotiation Period\"), regarding the commercially reasonable terms of an agreement pursuant to which King shall obtain the Metformin Product Rights. If Depomed and King fail to enter into an agreement for the Metformin Product Rights prior to the expiration of the Negotiation Period, then Depomed shall thereafter have the right to negotiate and enter into an agreement with a Third Party granting the Metformin Product Rights to a Third Party; provided that, for a period of 6 months, any such agreement may not be on terms and conditions materially more favorable to the Third Party than the terms and conditions last offered by King prior to the termination of discussions with Depomed."
+      },
+      {
+        "label": "Competitive Restriction Exception",
+        "kind": "false_positive",
+        "segment_id": "470_34",
+        "p": 0.04695376459887043,
+        "true": [],
+        "predicted": [
+          "Competitive Restriction Exception"
+        ],
+        "text": "(b) Provided the Agreement is not earlier terminated in accordance with its terms, *** shall have ***, from ***, to *** for the period ***. During such period, ***. The parties agree and acknowledge that ***. Nothing herein shall prevent Team from *** at any time, provided Team does not ***. Nothing herein shall prevent Team from ***, so long as such *** is limited to stating that the ***."
+      },
+      {
+        "label": "Most Favored Nation",
+        "kind": "false_negative",
+        "segment_id": "11_59",
+        "p": 0.11191714394963695,
+        "true": [
+          "Most Favored Nation"
+        ],
+        "predicted": [],
+        "text": "Page 7\n\nAirspan warrants that during the term of this Agreement, the prices at      which Airspan sells to Distributor products supplied under this Agreement      shall be no less favorable to the Distributor than those prices at which      Airspan sells, at substantially the same time in the United States, similar      products and pursuant to similar terms and conditions as those by which      Airspan sells Products to the Distributor under this Agreement.  Products      shall only be deemed similar if they provide like functionality.  The terms      and conditions shall only be deemed similar if the product is supplied      pursuant to an agreement or arrangement of similar duration and commitment,      provides for similar warranties and after service commitments, involves      similar spare part and support commitments, has the same payment and other      financial terms, and otherwise has similar terms and conditions."
+      },
+      {
+        "label": "Most Favored Nation",
+        "kind": "false_negative",
+        "segment_id": "51_228",
+        "p": 0.061043882634559794,
+        "true": [
+          "Most Favored Nation"
+        ],
+        "predicted": [],
+        "text": "(a) With respect to any [***], (i) there will be no increases from the per unit pricing set forth in Schedule 5.2.1 (Pricing Schedule) for at least the first [***] and (ii) the per unit pricing charged by BLI to Ginkgo at any time shall be no greater than the lowest of the (A) lowest price per unit charged by BLI or its Affiliates to any similarly situated Third Party customer (i.e. taking into account [***]) for such unit at any time in the [***] ([***]) months prior to the delivery of the applicable Purchase Order by Ginkgo or (B) the then- current List Price; provided, however, that in no event shall BLI be required to charge a price less than the cost of goods sold for such unit, as determined in accordance with United States generally accepted accounting principles, consistently applied."
+      },
+      {
+        "label": "Most Favored Nation",
+        "kind": "false_negative",
+        "segment_id": "131_54",
+        "p": 0.009310651750362171,
+        "true": [
+          "Most Favored Nation"
+        ],
+        "predicted": [],
+        "text": "5.4. Partial Shipments; Pro Rata Allocation. Vendor reserves the right to supply against a Purchase Order by making partial shipments of the Products. In the event that Vendor is forced to allocate the distribution of the Products due to limited supply, Distributor shall be treated no less favorably than any other distributor and shall receive its pro rata allocation of the Products."
+      },
+      {
+        "label": "Most Favored Nation",
+        "kind": "false_negative",
+        "segment_id": "169_105",
+        "p": 0.009292710275465037,
+        "true": [
+          "Most Favored Nation"
+        ],
+        "predicted": [],
+        "text": "7.2 Most Favored Nation. The Company shall immediately inform HOC and provide HOC with a copy of any other standstill provisions in any agreement pertaining to the matters set forth in this Article 6, entered into by the Company with another person subsequent to the date hereof, and notwithstanding delivery of such notice and a copy of any such provisions, HOC shall have the full benefit of any materially more favourable terms, in the opinion of HOC, contained in such standstill and Section 6.1 shall be deemed to be amended accordingly."
+      },
+      {
+        "label": "Most Favored Nation",
+        "kind": "false_negative",
+        "segment_id": "209_87",
+        "p": 0.019623924492637192,
+        "true": [
+          "Most Favored Nation",
+          "Rofr/Rofo/Rofn"
+        ],
+        "predicted": [],
+        "text": "8.3. If, after the date of this Agreement and continuing as long as a Party is a partner, member, or shareholder of the Operating Company, the Joint Venture develops or completes the development of, or discovers, or acquires proprietary rights over, a process or product which at, or after, the time of its development, discovery or acquisition has, or might have, some application outside of the Field of Agreement, then the appropriate entity of the Joint Venture shall offer to license the use of the process or product (or the production thereof) for such application to each of the Parties on reasonable commercial terms (including, without limitation, the possible payment of royalties at market rates) taking into account the time and money spent by the Joint Venture and taking into account other relevant commercial factors. The grant of licenses to any third parties shall be the prerogative of the Board provided that no such license shall be granted at terms more favorable to the third party than were offered to the member(s) of such Party."
+      },
+      {
+        "label": "No-Solicit Of Customers",
+        "kind": "false_negative",
+        "segment_id": "460_26",
+        "p": 0.0026638512900879732,
+        "true": [
+          "No-Solicit Of Customers",
+          "Non-Compete"
+        ],
+        "predicted": [],
+        "text": "4.01     RESTRICTIONS.  Affiliate shall not, without the express written consent of  Network  1: i.           Contact  or  otherwise  deal directly with, VISA, MasterCard or the Member  Bank;  or ii.     Make  any representations with respect to Network 1, VISA, MasterCard or the  Member  Bank;  or iii.     Make  contact  with  or  contract  with  any vendor of Network 1 or its subsidiaries  including other Affiliate's, direct sponsored ISO/MSP's of Network 1/Member  Bank,  or  any merchants currently processing with Network 1 or Member Bank. iv.     Network  1  expressly  understands  and gives permission to Affiliate to contact  any  organization  that  Affiliate deems necessary to implement its ISO program."
+      },
+      {
+        "label": "No-Solicit Of Customers",
+        "kind": "false_negative",
+        "segment_id": "460_34",
+        "p": 0.0028060597815390475,
+        "true": [
+          "No-Solicit Of Customers"
+        ],
+        "predicted": [
+          "Post-Termination Services"
+        ],
+        "text": "5.03     EFFECT  OF  TERMINATION.  Upon termination of this Agreement, except in the  event  of  termination  due  to an uncured default by Affiliate pursuant to Section  5.02  [TERMINATION]A, Network 1 shall continue to pay to the Affiliate the Affiliate's Fee  described  in  Section  3.01  [AMOUNT]B for so long as Network 1 continues to process transactions  of the Merchants in accordance with Schedule B attached hereto and Affiliate  continues  to maintain the merchant accounts, provided, however, that no such Affiliate's Fees shall be earned or paid for any calendar month in which the  Affiliate's  Fee  does not exceed $500.  Upon termination due to an uncured default  by  Affiliate,  or  termination for cause pursuant to Section 5.02  [TERMINATION]D all Affiliates  fees  shall  cease  to  be  accrued  and  paid  immediately upon the occurrence  of  said  event. Additionally, upon termination of this contract for any  reason, all merchants recruited by Affiliate on behalf of Network 1 for any product  offered  through  Network  1,  Affiliate  shall  not approach, rewrite, pursue,  or  contract  with any current client for the purpose of obtaining said client as a new customer for Affiliate or any competing entity the Affiliate may be  in  contract  with.  Such  restriction shall also apply to Affiliate's past, current  and future officers, directors, sales representatives, and Contractors."
+      },
+      {
+        "label": "Volume Restriction",
+        "kind": "false_negative",
+        "segment_id": "20_16",
+        "p": 0.003053926024533686,
+        "true": [
+          "Volume Restriction"
+        ],
+        "predicted": [],
+        "text": "2\n\n\n\n\n\n2.4 Selection of Lead Scaffolds. Within one year following completion of all activities under the Research Plan (the \"Selection Deadline\"), Anixa, in good faith consultation with OntoChem, will have the right to select up to two hundred (200) Hit Compounds (each, a \"Selected Hit Compound\"), by providing OntoChem with written notice of such Selected Hit Compound(s) (the \"Selection Notice\"), and each Selected Hit Compound, along with all Variants of such Selected Hit Compound referenced in the Selection Notice, is hereby designated as a \"Lead Scaffold\" under this Agreement. Commencing upon selection of a Selected Hit Compound, Anixa (itself and through its Affiliates and designees) will have sole authority over and control of the further development, manufacture, and commercialization of the corresponding Lead Scaffold and any product candidate or product incorporating a compound from such Lead Scaffold."
+      },
+      {
+        "label": "Volume Restriction",
+        "kind": "false_negative",
+        "segment_id": "51_233",
+        "p": 0.030081202015771975,
+        "true": [
+          "Volume Restriction"
+        ],
+        "predicted": [],
+        "text": "5.3 Purchase Orders; Delivery and Payment.\n\n5.3.1 Issuance. Ginkgo shall submit orders for Beacon Optofluidic Machines (including related Hardware and Software), Consumables (on a Consumable-by-Consumable basis) and Services pursuant to written purchase orders (each, a \"Purchase Order\") issued to BLI in a form consistent with this Agreement. Purchase Orders shall be provided by Ginkgo, shall specify (a) the quantity of Beacon Optofluidic Machines (including related Hardware and Software), Consumables (on a Consumable-by-Consumable basis) or Services ordered and (b) the requested delivery date or service date and location. The requested delivery dates or service dates set forth in a Purchase Order shall be no earlier than the Lead Time for such delivery or service. BLI shall not be obligated to supply in any [***] (i) a quantity of the [***] in excess of the amount designated in such [***] in the binding portion of the Rolling Forecast or (ii) a quantity of [***] that is greater than [***] percent ([***]%) of the amount designated for such item or service in such [***] in the binding portion of the Rolling Forecast (such amount, the \"Maximum Amount\"); provided that notwithstanding the provisions set forth in this Section 5.3.1 (Issuance) or Section 5.3.2 (Acceptance and Rejection) to the contrary, BLI shall use [***] to accept and fulfill Purchase Orders for quantities of [***] in excess of the Maximum Amount in any [***]."
+      },
+      {
+        "label": "Volume Restriction",
+        "kind": "false_negative",
+        "segment_id": "51_262",
+        "p": 0.004984753969941171,
+        "true": [
+          "Volume Restriction"
+        ],
+        "predicted": [],
+        "text": "(c) Short Supply. Without limiting anything to the contrary in this Agreement, in the event that any Beacon Optofluidic Machines (including related Hardware and Software), Consumables or the Services are in short supply, i.e., [***], BLI shall notify Ginkgo in writing of such circumstances as soon as possible, including the underlying reasons for such shortage, the date such inability is expected to end and the amount of Beacon Optofluidic Machines (including related Hardware and Software), Consumables or Services to be allocated to Ginkgo. BLI shall allocate Beacon Optofluidic Machines (including related Hardware and Software), Consumables and Services in short supply to Ginkgo [***], with such [***] allocation applicable only up to the number of units of such item set forth in the binding portions of the then-current Rolling Forecast."
+      },
+      {
+        "label": "Volume Restriction",
+        "kind": "false_negative",
+        "segment_id": "180_275",
+        "p": 0.05095736597637585,
+        "true": [
+          "Volume Restriction"
+        ],
+        "predicted": [],
+        "text": "\"TBD\" Wireless Products\n\nUp to:\n\n1 Java Game (2-D or 3-D to be mutually agreed provided that if the parties are unable to reach an agreement, Licensee's decision will prevail)"
+      },
+      {
+        "label": "Volume Restriction",
+        "kind": "false_negative",
+        "segment_id": "431_199",
+        "p": 0.006143876426459547,
+        "true": [
+          "Volume Restriction"
+        ],
+        "predicted": [],
+        "text": "The maximum amount of information downloaded from the Company's server to the counter manifest station will be 15 kilobytes or less per package processed."
+      },
+      {
+        "label": "Volume Restriction",
+        "kind": "false_positive",
+        "segment_id": "17_25",
+        "p": 0.9588898347010765,
+        "true": [],
+        "predicted": [
+          "Volume Restriction"
+        ],
+        "text": "3\n\n                  (b) USA Appearance. KI will make one (1) personal appearance per License Year during the period of this Agreement on behalf of Diplomat at the Vision Expo in New York, New York, subject to the terms of this paragraph. Such appearance shall be for the purpose of signing autographs, shall last for a period of up to three (3) hours, and shall be subject to KI's schedule and availability. Diplomat, at its own expense, shall provide KI with a hair and make-up assistant of KI's choosing for each personal or media appearance required under this Agreement."
+      }
+    ]
+  }
+}

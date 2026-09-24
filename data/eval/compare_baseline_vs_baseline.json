@@ -1,0 +1,223 @@
+{
+  "a": "baseline",
+  "b": "baseline",
+  "method": "2000 contract-level bootstrap resamples, stratified by contract type, percentile 95% intervals, seed 42",
+  "differences": {
+    "test | Rule A | macro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "test | Rule A | micro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "test | Rule A | macro_ap": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "test | Rule A | none_fp_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "test | all | macro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "test | all | micro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "test | all | macro_ap": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "test | all | none_fp_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "test | Rule C | macro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "test | Rule C | micro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "test | Rule C | macro_ap": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "test | Rule C | none_fp_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift | Rule C | macro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift | Rule C | micro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift | Rule C | macro_ap": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift | Rule C | none_fp_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift | all | macro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift | all | micro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift | all | macro_ap": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift | all | none_fp_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Franchise | Rule C | macro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Franchise | Rule C | micro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Franchise | Rule C | macro_ap": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Franchise | Rule C | none_fp_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Franchise | all | macro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Franchise | all | micro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Franchise | all | macro_ap": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Franchise | all | none_fp_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Transportation | Rule C | macro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Transportation | Rule C | micro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Transportation | Rule C | macro_ap": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Transportation | Rule C | none_fp_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Transportation | all | macro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Transportation | all | micro_f1": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Transportation | all | macro_ap": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    },
+    "shift:Transportation | all | none_fp_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 2000
+    }
+  }
+}
