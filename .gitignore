@@ -1,0 +1,30 @@
+# Secrets
+.env
+
+# Data
+data/raw/*
+!data/raw/.gitkeep
+
+# LLM response cache
+data/llm_cache/
+
+# Model binaries (metadata JSON/CSV stays tracked)
+models/**/*.joblib
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+
+# Regenerable from data/raw with src.data and src.build_segments (contain full contract text)
+data/processed/spans.parquet
+data/processed/segments.parquet

@@ -1,0 +1,30 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "cuad-clause-classifier"
+version = "0.1.0"
+description = "Contract clause classifier on the CUAD dataset"
+requires-python = ">=3.11"
+dependencies = [
+    "pandas",
+    "numpy",
+    "scikit-learn",
+    "fastapi",
+    "uvicorn",
+    "anthropic",
+    "google-genai",
+    "python-dotenv",
+    "pyarrow",
+    "joblib",
+]
+
+[project.optional-dependencies]
+dev = ["pytest"]
+
+[tool.setuptools]
+packages = ["src", "service"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
