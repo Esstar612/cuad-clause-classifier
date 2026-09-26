@@ -23,8 +23,12 @@ SCHEMA = pa.schema([
     ("model_version", pa.string()),
     ("latency_ms", pa.float64()),
     ("cost_usd", pa.float64()),
+    # Optional (added in Step 3); filled with defaults when a model does not produce them.
+    ("parse_failure", pa.bool_()),       # response could not be validated: empty prediction
+    ("call_latency_ms", pa.float64()),   # latency of the API call that produced the segment
 ])
-REQUIRED_COLUMNS = SCHEMA.names
+OPTIONAL_DEFAULTS = {"parse_failure": False, "call_latency_ms": float("nan")}
+REQUIRED_COLUMNS = [c for c in SCHEMA.names if c not in OPTIONAL_DEFAULTS]
 
 
 def to_prediction_frame(segments: pd.DataFrame, proba: np.ndarray, pred: np.ndarray,
@@ -64,7 +68,8 @@ def write_predictions(df: pd.DataFrame, path: Path, label_order: list[str],
     missing = [c for c in REQUIRED_COLUMNS if c not in df.columns]
     if missing:
         raise ValueError(f"prediction frame missing columns: {missing}")
-    table = pa.Table.from_pandas(df[REQUIRED_COLUMNS], schema=SCHEMA, preserve_index=False)
+    df = df.assign(**{c: v for c, v in OPTIONAL_DEFAULTS.items() if c not in df.columns})
+    table = pa.Table.from_pandas(df[SCHEMA.names], schema=SCHEMA, preserve_index=False)
     meta = dict(table.schema.metadata or {})
     meta[b"label_order"] = json.dumps(label_order).encode()
     meta[b"notes"] = json.dumps(notes or {}).encode()
@@ -74,3 +79,8 @@ def write_predictions(df: pd.DataFrame, path: Path, label_order: list[str],
 
 def read_label_order(path: Path) -> list[str]:
     return json.loads(pq.read_schema(path).metadata[b"label_order"])
+
+
+def read_notes(path: Path) -> dict:
+    meta = pq.read_schema(path).metadata or {}
+    return json.loads(meta.get(b"notes", b"{}"))

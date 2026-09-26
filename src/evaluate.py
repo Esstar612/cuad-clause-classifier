@@ -23,10 +23,10 @@ from src.bootstrap import (ap_metrics, f1_metrics, paired_difference, per_contra
 from src.calibration import ece_from_bins, per_contract_bins, reliability_table
 from src.labels import SHIFT_MEASURABLE_LABELS
 from src.metrics import contracts_per_label, per_label
-from src.predictions import read_label_order
+from src.predictions import read_label_order, read_notes
 
 FAIL_F1 = 0.30  # same failure rule as the baseline search: F1 below this, or zero recall
-SCOPE_METRICS = ("macro_f1", "micro_f1", "macro_ap", "none_fp_rate")
+SCOPE_METRICS = ("macro_f1", "micro_f1", "macro_ap", "none_fp_rate", "parse_failure_rate")
 METHOD = (f"{config.BOOTSTRAP_RESAMPLES} contract-level bootstrap resamples, stratified by "
           f"contract type, percentile {int(config.CI_LEVEL * 100)}% intervals, seed {config.SEED}")
 
@@ -47,7 +47,15 @@ def load_predictions(name: str, split: str):
     y_true = indicator(df["true_labels"], label_order)
     y_pred = indicator([[d["label"] for d in preds] for preds in df["pred_labels"]], label_order)
     proba = np.vstack(df["proba"].to_numpy())
+    if "parse_failure" not in df.columns:  # files written before Step 3 (baseline)
+        df = df.assign(parse_failure=False)
     return df, label_order, y_true, y_pred, proba
+
+
+def sparse_scores(name: str, split: str) -> bool:
+    """True when the model lists only plausible labels (unlisted score 0): AP is a lower bound."""
+    notes = read_notes(config.PREDICTIONS_DIR / f"{name}_{split}.parquet")
+    return str(notes.get("scores", "")).startswith("sparse")
 
 
 def _ci(point, samples) -> dict:
@@ -71,7 +79,8 @@ class Part:
         self.ones = np.ones((1, len(ids)))
         self.y_true, self.y_pred, self.proba = y_true, y_pred, proba
         self.n_contracts, self.n_segments = len(ids), len(df)
-        self.counts = per_contract_counts(y_true, y_pred, self.seg_pos, self.n_contracts)
+        self.counts = per_contract_counts(y_true, y_pred, self.seg_pos, self.n_contracts,
+                                          parse_failure=df["parse_failure"].to_numpy())
         all_idx = list(range(y_true.shape[1]))
         print(f"  bootstrapping AP for '{key}' ({self.n_contracts} contracts, "
               f"{self.n_segments} segments)...", flush=True)
@@ -87,9 +96,11 @@ class Part:
             ap_pt = np.nanmean(self.ap_point[label_idx])
             ap_bs = np.nanmean(self.ap_samples[:, label_idx], axis=1)
         points = {"macro_f1": pt["macro_f1"][0], "micro_f1": pt["micro_f1"][0],
-                  "macro_ap": ap_pt, "none_fp_rate": pt["none_fp_rate"][0]}
+                  "macro_ap": ap_pt, "none_fp_rate": pt["none_fp_rate"][0],
+                  "parse_failure_rate": pt["parse_failure_rate"][0]}
         samples = {"macro_f1": bs["macro_f1"], "micro_f1": bs["micro_f1"],
-                   "macro_ap": ap_bs, "none_fp_rate": bs["none_fp_rate"]}
+                   "macro_ap": ap_bs, "none_fp_rate": bs["none_fp_rate"],
+                   "parse_failure_rate": bs["parse_failure_rate"]}
         out = {"n_labels": int((~np.isnan(pt["per_f1"][0])).sum()),
                "contracts": self.n_contracts, "segments": self.n_segments}
         out.update({m: _ci(points[m], samples[m]) for m in SCOPE_METRICS})
@@ -209,8 +220,12 @@ def evaluate_model(name: str) -> None:
     sets = label_sets(label_order)
     print(f"Model: {name}   version: {test_loaded[0]['model_version'].iloc[0]}\nMethod: {METHOD}")
 
+    sparse = sparse_scores(name, "test")
     result = {"model": name, "model_version": test_loaded[0]["model_version"].iloc[0],
-              "method": METHOD, "scopes": {}}
+              "method": METHOD, "sparse_scores": sparse, "scopes": {}}
+    if sparse:
+        print("Scores are sparse (unlisted labels score 0): macro_ap is a lower bound, "
+              "not comparable to dense-score models (pre-registered 2026-09-24).")
     rule_c_samples = {}
     parts = build_parts(test_loaded, contracts, "test") + build_parts(shift_loaded, contracts, "shift")
     test_part = parts[0][1]
@@ -235,7 +250,8 @@ def evaluate_model(name: str) -> None:
     result["error_analysis_val"] = error_analysis(name)
     _dump(result, config.EVAL_DIR / f"{name}.json")
 
-    print("\n=== Scopes: point [95% CI] ===")
+    print("\n=== Scopes: point [95% CI]  (none_fp_rate on parsed segments only; "
+          "parse failures count as empty predictions for F1) ===")
     for scope, s in result["scopes"].items():
         print(f"{scope:32s} labels={s['n_labels']:2d} contracts={s['contracts']:3d}  "
               + "  ".join(f"{m}={_show(s[m])}" for m in SCOPE_METRICS))

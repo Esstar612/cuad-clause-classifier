@@ -34,17 +34,24 @@ def resample_weights(contracts: pd.DataFrame, stream: str,
     return c["contract_id"].to_numpy(), np.concatenate(blocks, axis=1)
 
 
-def per_contract_counts(y_true, y_pred, seg_pos: np.ndarray, n_contracts: int) -> dict:
-    """Additive per-contract statistics: tp, fp, fn as (C, L); none and none_fp as (C,).
-    seg_pos[i] is the column of segment i's contract in the weight matrix."""
+def per_contract_counts(y_true, y_pred, seg_pos: np.ndarray, n_contracts: int,
+                        parse_failure=None) -> dict:
+    """Additive per-contract statistics: tp, fp, fn as (C, L); none, none_fp, segments and
+    parse_failures as (C,). seg_pos[i] is the column of segment i's contract in the weight
+    matrix. Parse failures are empty predictions for F1 but are left out of the none
+    false-positive rate, which is measured on successfully parsed segments only."""
     y_true = np.asarray(y_true, dtype=bool)
     y_pred = np.asarray(y_pred, dtype=bool)
+    failed = (np.zeros(len(y_true), dtype=bool) if parse_failure is None
+              else np.asarray(parse_failure, dtype=bool))
     out = {}
     for name, arr in (("tp", y_true & y_pred), ("fp", ~y_true & y_pred), ("fn", y_true & ~y_pred)):
         m = np.zeros((n_contracts, y_true.shape[1]), dtype=np.int64)
         np.add.at(m, seg_pos, arr.astype(np.int64))
         out[name] = m
-    none_rows = ~y_true.any(axis=1)
+    none_rows = ~y_true.any(axis=1) & ~failed
+    out["segments"] = np.bincount(seg_pos, minlength=n_contracts).astype(float)
+    out["parse_failures"] = np.bincount(seg_pos, weights=failed, minlength=n_contracts)
     out["none"] = np.bincount(seg_pos, weights=none_rows, minlength=n_contracts)
     out["none_fp"] = np.bincount(seg_pos, weights=none_rows & y_pred.any(axis=1),
                                  minlength=n_contracts)
@@ -69,7 +76,9 @@ def f1_metrics(counts: dict, W: np.ndarray, label_idx) -> dict:
         macro = np.nanmean(np.where(keep.any(axis=1, keepdims=True), per_f1, 0.0), axis=1)
     macro = np.where(keep.any(axis=1), macro, np.nan)
     none = W @ counts["none"]
-    return {"per_f1": per_f1, "per_precision": precision, "per_recall": recall,
+    segments = W @ counts["segments"]
+    return {"parse_failure_rate": np.where(segments > 0, (W @ counts["parse_failures"]) / np.maximum(segments, 1), np.nan),
+            "per_f1": per_f1, "per_precision": precision, "per_recall": recall,
             "macro_f1": macro, "micro_f1": np.where(den > 0, 2 * mtp / np.maximum(den, 1), 0.0),
             "none_fp_rate": np.where(none > 0, (W @ counts["none_fp"]) / np.maximum(none, 1), np.nan)}
 

@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 import pytest
 
-from src.predictions import REQUIRED_COLUMNS, read_label_order, to_prediction_frame, write_predictions
+from src.predictions import SCHEMA, read_label_order, to_prediction_frame, write_predictions
 from src.thresholds import apply_thresholds
 
 LABELS = ["A", "B"]
@@ -23,7 +23,8 @@ def test_roundtrip_has_all_columns_and_label_order(tmp_path):
     path = tmp_path / "p.parquet"
     write_predictions(_frame(), path, LABELS, {"latency_ms": "batch-amortized"})
     back = pd.read_parquet(path)
-    assert list(back.columns) == REQUIRED_COLUMNS
+    assert list(back.columns) == SCHEMA.names
+    assert not back["parse_failure"].any()  # optional column defaulted
     assert read_label_order(path) == LABELS
     assert (back["cost_usd"] == 0.0).all()
 
