@@ -3,8 +3,8 @@
 # Usage: scripts/review.sh [BASE] [PATH...]   (BASE defaults to HEAD: uncommitted changes)
 set -euo pipefail
 
-# Auto because Cursor's free plan allows no named models; switch to gpt-5.6-sol-high (non-Claude) if the plan is upgraded.
-REVIEW_MODEL="auto"
+# Pinned to a non-Claude model so code review adds a perspective the Claude builder and plan reviewer lack.
+REVIEW_MODEL="gpt-5.6-sol-high"
 cd "$(git rev-parse --show-toplevel)"
 base="${1:-HEAD}"
 [ $# -gt 0 ] && shift
