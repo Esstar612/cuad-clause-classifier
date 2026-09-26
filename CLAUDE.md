@@ -8,7 +8,13 @@ Contract clause classifier on the CUAD dataset (commercial contracts labeled by 
 - Plan mode first. Show the plan, then wait for approval before editing.
 - Claude handles mechanical work directly: scaffolding, config, boilerplate, file moves, docs.
 - For core logic (data splitting, feature pipeline, model training, prompts, metrics, bootstrap, drift checks, rate limiting), Claude shows the code with a short explanation. The user decides whether to place it themselves or have Claude place it.
-- After each plan review, the review text is saved to `docs/reviews/<YYYY-MM-DD>-<step>.md`. The next plan must address every required change from the latest review.
+- Plan review loop, before any plan is shown to the user:
+  1. Every plan starts with its plan file path. Run `/plan-review` on that file.
+  2. Verify each finding against the code. Apply the confirmed ones; record the reason for each rejected one.
+  3. Re-run `/plan-review` on the revised plan until the reviewer approves, up to 3 rounds. If it has not approved after 3 rounds, stop and show the plan with the unresolved findings.
+  4. Stop and ask the user, without deciding, when a finding needs the user's decision, concerns what a clause type means or how labels overlap, or would change a pre-registered rule in `BUILD_LOG.md`.
+  5. Save every round's review verbatim to `docs/reviews/<YYYY-MM-DD>-<step>-r<round>.md`.
+  6. With the final plan, show the reviewer's final verdict verbatim, the findings applied, and the findings rejected with the reason for each.
 
 ### Execution
 - Never run tests, training, or evaluation scripts. Give the exact command; the user runs it and pastes the output back.
