@@ -123,7 +123,8 @@ def _run_one(call, model_key, namespace, version, label_order, classifier, ledge
     labels = set(label_order)
     target_local = [lid for lid, sid in local.items() if sid in set(call.targets)]
     attempts = list(record["attempts"]) if record else []
-    ok = bool(attempts) and not attempts[-1]["parse_errors"]
+    sent_before = len(attempts)
+    ok = bool(attempts) and parse_response(attempts[-1]["text"], attempts[-1]["finish"], target_local, labels).ok
     while len(attempts) < 2 and not ok:  # one retry for an invalid response
         worst = worst_case_cost(system, user, classifier.spec)
         try:
@@ -148,7 +149,7 @@ def _run_one(call, model_key, namespace, version, label_order, classifier, ledge
         ok = parsed.ok
     record = _record(call, model_key, namespace, version, local, attempts, labels)
     save_record(path, record)
-    return record, True
+    return record, len(attempts) > sent_before
 
 def run_calls(model_key, calls, version, namespace, label_order, max_cost=None,
               classifier=None, ledger=None, cache_root=config.LLM_CACHE_DIR,

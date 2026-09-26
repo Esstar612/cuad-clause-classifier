@@ -714,3 +714,62 @@ def test_frozen_run_refuses_changed_model_settings(tmp_path, monkeypatch):
     with pytest.raises(SystemExit):
         run.load_frozen("claude")
 
+
+# ----------------------------------------------------------------------------- review fixes (Step 3y)
+
+def _pending_record_path(tmp_path):
+    return next(p for p in tmp_path.rglob("*.json"))
+
+
+@needs_data
+def test_checkpoint_projects_calls_still_awaiting_their_retry(tmp_path):
+    from src.llm.run import run_calls, soft_checkpoint
+
+    calls = build_calls(_segments({7: 2}), WINDOW)
+    ledger_path = tmp_path / "l.jsonl"
+    run_calls("stub", calls, "v1", "v1", _label_order(), classifier=StubClassifier([("not json", "ok")]),
+              ledger=Ledger(ledger_path, cap_usd=1.0), cache_root=tmp_path, workers=1)
+    assert json.loads(_pending_record_path(tmp_path).read_text())["retry_pending"] is True
+    kw = dict(classifier=StubClassifier([]), ledger_path=ledger_path, cache_root=tmp_path)
+    assert soft_checkpoint("stub", [(calls, "v1", "v1")], _label_order(), approved=True, **kw) == pytest.approx(0.001)
+    good = _resp([{"id": "S1", "labels": []}, {"id": "S2", "labels": []}])
+    run_calls("stub", calls, "v1", "v1", _label_order(), classifier=StubClassifier([(good, "ok")]),
+              ledger=Ledger(ledger_path, cap_usd=1.0), cache_root=tmp_path, workers=1)
+    assert soft_checkpoint("stub", [(calls, "v1", "v1")], _label_order(), approved=True, **kw) == 0.0
+
+
+@needs_data
+def test_pending_record_that_now_parses_resumes_without_a_retry(tmp_path):
+    from src.llm.run import run_calls
+
+    calls = build_calls(_segments({7: 2}), WINDOW)
+    run_calls("stub", calls, "v1", "v1", _label_order(), classifier=StubClassifier([("not json", "ok")]),
+              ledger=Ledger(tmp_path / "l.jsonl", cap_usd=1.0), cache_root=tmp_path, workers=1)
+    path = _pending_record_path(tmp_path)
+    rec = json.loads(path.read_text())
+    rec["attempts"][0]["text"] = _resp([{"id": "S1", "labels": []}, {"id": "S2", "labels": []}])
+    assert rec["attempts"][0]["parse_errors"]
+    path.write_text(json.dumps(rec))
+    stub = StubClassifier([])
+    res = run_calls("stub", calls, "v1", "v1", _label_order(), classifier=stub,
+                    ledger=Ledger(tmp_path / "l.jsonl", cap_usd=1.0), cache_root=tmp_path, workers=1)
+    assert stub.sent == 0 and res.new_calls == 0
+    assert res.records[calls[0].key]["retry_pending"] is False
+
+
+@needs_baseline
+def test_retrieval_version_estimate_includes_the_examples():
+    from src.build_segments import load_segments
+    from src.llm.run import _messages, estimated_call_cost
+
+    val = load_segments()
+    val = val[val["split"] == "val"]
+    call = build_calls(val[val["contract_id"] == val["contract_id"].iloc[0]], WINDOW)[0]
+    spec, labels, cpt = config.LLM_MODELS["claude"], _label_order(), config.LLM_EST_CHARS_PER_TOKEN
+    s2, u2, _, _ = _messages(call, "v2", labels)
+    s3, u3, _, _ = _messages(call, "v3", labels)
+    assert "<examples>" in u3 and "<examples>" not in u2
+    expected = ((len(u3) - len(u2)) * spec["price_in"] + (len(s3) - len(s2)) * spec["price_cache_read"]) / cpt / 1e6
+    diff = estimated_call_cost(call, "v3", labels, spec) - estimated_call_cost(call, "v2", labels, spec)
+    assert diff == pytest.approx(expected)
+

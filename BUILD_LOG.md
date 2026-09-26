@@ -1843,3 +1843,34 @@ None.
 
 ### Resume-worthy
 Added an independent automated code review step for LLM pipeline changes and fixed its four findings, each first checked against the code and the cost ledger for real impact.
+
+---
+
+## 2026-09-26: Step 3y, second code-review round; plan review loop
+
+### What we built
+- `src/llm/run.py`, `_run_one`: on resume, whether a `retry_pending` call still needs its retry is decided by re-parsing the saved attempt with the current parser, not from the `parse_errors` stored at the time; a call counts toward `new_calls` only if a request was sent in that call (`sent_before`).
+- Tests: `test_checkpoint_projects_calls_still_awaiting_their_retry` (a pending record exists, the checkpoint projects its ledger rate of $0.001, and $0 after a successful resume); `test_pending_record_that_now_parses_resumes_without_a_retry` (0 requests sent, `retry_pending` False, no new call counted); `test_retrieval_version_estimate_includes_the_examples` (v3's offline estimate exceeds v2's by the example text priced as uncached input plus the longer prompt priced as a cache read).
+- `CLAUDE.md` (Process): a plan review loop before any plan is shown: plan file path at the top, `/plan-review`, each finding verified against the code, up to 3 rounds, a stop for questions of user decision, clause meaning or pre-registered rules, every round saved to `docs/reviews/`, and the final verdict with findings applied and rejected.
+
+### Decisions made
+- Second Cursor review of commit ac1169c (`scripts/review.sh HEAD~1`), four findings, all confirmed against the code:
+  1. Resume decision from stored `parse_errors`: fixed as above.
+  2. `_raw_entries` (probe only) reads the last attempt while scoring merges attempts: kept as is. `probe_windows` depends on it, so a change would alter which windows a rerun of the finished probe selects; the Step 3x check found no retried call where an earlier attempt parsed more targets than the final one (it compared counts, not target sets).
+  3. The checkpoint's handling of `retry_pending` records was untested: test added.
+  4. No test that a retrieval version's estimate includes the examples: test added.
+- Plan review of this step: three rounds (`docs/reviews/2026-09-26-3y-r1.md`, `-r2.md`, `-r3.md`), each "Approve with changes". Round 3's single change (the estimate test compares with `pytest.approx` and divides by 1e6) was applied without a fourth round, as the loop allows at most three.
+  - Rejected in part: round 2's point that the 0.6086 figure was not verifiable. It is from pasted output (below); the plan was reworded to state that source.
+
+### Numbers measured
+- After the Step 3x fixes: tests 111 passed; Claude v2 rebuilt from cache with merged scoring, identical to Step 3r (micro-F1 0.6086, macro-F1 0.5841, `new_calls_this_run: 0`), then committed as ac1169c.
+  - Commands: `pytest tests -v`; `python -m src.llm.run iterate --model claude --prompt v2 --batch-size 10 | tee data/processed/llm_iter_claude_v2_n10.txt`
+
+### Problems hit and how we solved them
+- See the four findings above.
+
+### Surprises in the data or results
+None.
+
+### Resume-worthy
+none
