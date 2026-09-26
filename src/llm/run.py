@@ -78,7 +78,7 @@ class RunResult:
     stopped: str | None = None
 
 
-def _request(call, version, label_order, classifier):
+def _messages(call, version, label_order):
     examples = None
     if version_spec(version).get("retrieval"):
         targets = set(call.targets)
@@ -87,42 +87,68 @@ def _request(call, version, label_order, classifier):
     user, local = user_message(call, examples)
     target_ids = [lid for lid, sid in local.items() if sid in set(call.targets)]
     system, schema = system_prompt(version, label_order), schema_for(version, label_order, target_ids)
+    return system, user, local, schema
+
+
+def _request(call, version, label_order, classifier):
+    system, user, local, schema = _messages(call, version, label_order)
     return system, user, local, classifier.payload(system, user, schema)
+
+
+def _merged_scores(attempts, local, targets, labels) -> dict[str, dict[str, float]]:
+    target_local = [lid for lid, sid in local.items() if sid in targets]
+    scores = {}
+    for a in attempts:  # a later attempt overrides an earlier one only for segments it parsed
+        parsed = parse_response(a["text"], a["finish"], target_local, labels)
+        scores.update({local[lid]: conf for lid, conf in parsed.scores.items()})
+    return scores
+
+
+def _record(call, model_key, namespace, version, local, attempts, labels, retry_pending=False) -> dict:
+    scores = _merged_scores(attempts, local, set(call.targets), labels)
+    return {"call_key": call.key, "model_key": model_key, "namespace": namespace,
+            "prompt_version": version, "segment_ids": list(call.segment_ids),
+            "targets": list(call.targets), "local_ids": local, "attempts": attempts,
+            "scores": scores, "parse_failures": [s for s in call.targets if s not in scores],
+            "created_utc": _now(), "worker": threading.current_thread().name,
+            "retry_pending": retry_pending}
 
 
 def _run_one(call, model_key, namespace, version, label_order, classifier, ledger, cache_root):
     system, user, local, payload = _request(call, version, label_order, classifier)
     path = cache_path(model_key, namespace, call.key, request_hash(payload), cache_root)
     record = load_record(path)
-    if record is not None:
+    if record is not None and not record.get("retry_pending"):
         return record, False
+    labels = set(label_order)
     target_local = [lid for lid, sid in local.items() if sid in set(call.targets)]
-    attempts = []
-    for _ in range(2):  # one retry for an invalid response
+    attempts = list(record["attempts"]) if record else []
+    ok = bool(attempts) and not attempts[-1]["parse_errors"]
+    while len(attempts) < 2 and not ok:  # one retry for an invalid response
         worst = worst_case_cost(system, user, classifier.spec)
-        ledger.reserve(worst)
+        try:
+            ledger.reserve(worst)
+        except BudgetExceeded:
+            if attempts:
+                save_record(path, _record(call, model_key, namespace, version, local, attempts, labels, True))
+            raise
         try:
             att = classifier.send(payload)
         except Exception:
             ledger.release(worst)
+            if attempts:  # keep the paid attempt so a resume sends only the retry
+                save_record(path, _record(call, model_key, namespace, version, local, attempts, labels, True))
             raise
         ledger.settle(worst, {"ts": _now(), "model_key": model_key, "namespace": namespace,
                               "call_key": call.key, "attempt": len(attempts) + 1,
                               "served_model": att.served_model, "usage": att.usage,
                               "cost_usd": att.cost_usd})
-        parsed = parse_response(att.text, att.finish, target_local, set(label_order))
+        parsed = parse_response(att.text, att.finish, target_local, labels)
         attempts.append({**att.to_dict(), "parse_errors": parsed.errors})
-        if parsed.ok:
-            break
-    scores = {local[lid]: conf for lid, conf in parsed.scores.items()}
-    record = {"call_key": call.key, "model_key": model_key, "namespace": namespace,
-              "prompt_version": version, "segment_ids": list(call.segment_ids),
-              "targets": list(call.targets), "local_ids": local, "attempts": attempts,
-              "scores": scores, "parse_failures": [s for s in call.targets if s not in scores],
-              "created_utc": _now(), "worker": threading.current_thread().name}
+        ok = parsed.ok
+    record = _record(call, model_key, namespace, version, local, attempts, labels)
     save_record(path, record)
     return record, True
-
 
 def run_calls(model_key, calls, version, namespace, label_order, max_cost=None,
               classifier=None, ledger=None, cache_root=config.LLM_CACHE_DIR,
@@ -160,22 +186,24 @@ def _batch_size(call) -> int:
     return int(re.search(r"_n(\d+)_", call.key).group(1))
 
 
-def measured_call_cost(model_key, batch_size, ledger_path=config.LLM_LEDGER) -> float | None:
+def measured_call_cost(model_key, namespace, batch_size, ledger_path=config.LLM_LEDGER) -> float | None:
     """Errs high for Claude: early calls include cache writes."""
     per_call = {}
     if ledger_path.exists():
         with open(ledger_path, encoding="utf-8") as f:
             for line in f:
                 e = json.loads(line) if line.strip() else {}
-                if e.get("model_key") == model_key and f"_n{batch_size}_" in e.get("call_key", ""):
+                if (e.get("model_key") == model_key and e.get("namespace") == namespace
+                        and f"_n{batch_size}_" in e.get("call_key", "")):
                     key = (e["namespace"], e["call_key"])
                     per_call[key] = per_call.get(key, 0.0) + e["cost_usd"]
     return sum(per_call.values()) / len(per_call) if per_call else None
 
 
 def estimated_call_cost(call, version, label_order, spec) -> float:
-    prefix = len(system_prompt(version, label_order)) / config.LLM_EST_CHARS_PER_TOKEN
-    user = len(user_message(call)[0]) / config.LLM_EST_CHARS_PER_TOKEN
+    system, user_text, _, _ = _messages(call, version, label_order)
+    prefix = len(system) / config.LLM_EST_CHARS_PER_TOKEN
+    user = len(user_text) / config.LLM_EST_CHARS_PER_TOKEN
     out = (len(call.targets) * config.LLM_EST_OUTPUT_TOKENS_PER_TARGET
            + config.LLM_EST_THINKING_TOKENS_PER_CALL)
     prefix_price = spec["price_cache_read"] if spec.get("provider") == "anthropic" else spec["price_in"]
@@ -192,14 +220,15 @@ def soft_checkpoint(model_key, jobs, label_order, approved, classifier=None,
     for calls, version, namespace in jobs:
         for call in calls:
             payload = _request(call, version, label_order, classifier)[3]
-            if cache_path(model_key, namespace, call.key, request_hash(payload), cache_root).exists():
+            cached = load_record(cache_path(model_key, namespace, call.key, request_hash(payload), cache_root))
+            if cached is not None and not cached.get("retry_pending"):
                 continue
-            rate = measured_call_cost(model_key, _batch_size(call), ledger_path)
+            rate = measured_call_cost(model_key, namespace, _batch_size(call), ledger_path)
             if rate is None:
                 rate = estimated_call_cost(call, version, label_order, classifier.spec)
-                bases.add(f"offline estimate (no N={_batch_size(call)} history)")
+                bases.add(f"offline estimate (no {namespace} N={_batch_size(call)} history)")
             else:
-                bases.add(f"ledger mean ${rate:.4f}/call at N={_batch_size(call)}")
+                bases.add(f"{namespace} ledger mean ${rate:.4f}/call at N={_batch_size(call)}")
             projected += rate
     total = spent + projected
     print(f"Checkpoint: spent ${spent:.2f} so far; this command projects ${projected:.2f} "
@@ -225,12 +254,8 @@ def complete_or_exit(result: RunResult, calls) -> None:
 # ----------------------------------------------------------------------------- predictions
 
 def record_scores(rec, labels) -> tuple[dict[str, dict[str, float]], list[str]]:
-    """Re-parse the final raw answer with the current parser; stored scores may predate parser rules."""
-    a = rec["attempts"][-1]
-    local, targets = rec["local_ids"], set(rec["targets"])
-    parsed = parse_response(a["text"], a["finish"],
-                            [lid for lid, sid in local.items() if sid in targets], labels)
-    scores = {local[lid]: conf for lid, conf in parsed.scores.items()}
+    """Re-parse the raw answers with the current parser; stored scores may predate parser rules."""
+    scores = _merged_scores(rec["attempts"], rec["local_ids"], set(rec["targets"]), labels)
     return scores, [sid for sid in rec["targets"] if sid not in scores]
 
 
@@ -570,7 +595,7 @@ def _cached_records(model_key, calls, version, namespace, label_order, classifie
         payload = _request(c, version, label_order, classifier)[3]
         rec = load_record(cache_path(model_key, namespace, c.key, request_hash(payload),
                                      config.LLM_CACHE_DIR))
-        if rec is not None:
+        if rec is not None and not rec.get("retry_pending"):
             out[c.key] = rec
     return out
 
@@ -727,6 +752,14 @@ def model_dir(model_key) -> Path:
     return config.MODELS_DIR / model_key
 
 
+RUN_SETTINGS = ("model_id", "effort", "thinking_level", "max_tokens")
+
+
+def run_settings(model_key) -> dict:
+    spec = config.LLM_MODELS[model_key]
+    return {k: spec[k] for k in RUN_SETTINGS if k in spec}
+
+
 def cmd_freeze(args) -> None:
     label_order = _label_order_cached()
     path = model_dir(args.model) / "prompt.json"
@@ -737,7 +770,7 @@ def cmd_freeze(args) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps({
         "model_key": args.model, "model_id": config.LLM_MODELS[args.model]["model_id"],
-        "version": args.prompt, "batch_size": args.batch_size,
+        "version": args.prompt, "batch_size": args.batch_size, "run_settings": run_settings(args.model),
         "prompt_hash": prompt_hash(args.prompt, label_order), "frozen_utc": _now(),
         "forced": bool(args.force), "system_prompt": system_prompt(args.prompt, label_order),
         "output_schema": schema_for(args.prompt, label_order)}, indent=2))
@@ -752,6 +785,9 @@ def load_frozen(model_key) -> dict:
     frozen = json.loads(path.read_text())
     if prompt_hash(frozen["version"], _label_order_cached()) != frozen["prompt_hash"]:
         raise SystemExit("the prompt text changed after freezing; refusing")
+    if frozen.get("run_settings") != run_settings(model_key):
+        raise SystemExit(f"model settings changed after freezing (frozen {frozen.get('run_settings')}, "
+                         f"now {run_settings(model_key)}); refusing")
     return frozen
 
 

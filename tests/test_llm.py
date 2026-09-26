@@ -653,3 +653,64 @@ def test_v1_and_v2_messages_unchanged_and_v3_examples_precede_the_window():
     v2, v3 = system_prompt("v2", labels), system_prompt("v3", labels)
     assert v3.replace(EXAMPLES_PARAGRAPH + "\n\n", "", 1) == v2
 
+
+# ----------------------------------------------------------------------------- review fixes (Step 3x)
+
+@needs_data
+def test_paid_attempt_survives_a_failed_retry_and_resume_sends_only_the_retry(tmp_path):
+    from src.llm.run import run_calls
+
+    calls = build_calls(_segments({7: 2}), WINDOW)
+    ledger_path = tmp_path / "l.jsonl"
+    first = StubClassifier([("not json", "ok")])
+    res = run_calls("stub", calls, "v1", "v1", _label_order(), classifier=first,
+                    ledger=Ledger(ledger_path, cap_usd=1.0), cache_root=tmp_path, workers=1)
+    assert first.sent == 2 and calls[0].key in res.failed
+    good = _resp([{"id": "S1", "labels": []}, {"id": "S2", "labels": []}])
+    second = StubClassifier([(good, "ok")])
+    res = run_calls("stub", calls, "v1", "v1", _label_order(), classifier=second,
+                    ledger=Ledger(ledger_path, cap_usd=1.0), cache_root=tmp_path, workers=1)
+    rec = res.records[calls[0].key]
+    assert second.sent == 1 and len(rec["attempts"]) == 2 and not rec["retry_pending"]
+    paid = [json.loads(line)["attempt"] for line in ledger_path.read_text().splitlines()]
+    assert paid == [1, 2]
+
+
+def test_a_worse_retry_keeps_segments_the_first_attempt_parsed():
+    from src.llm.run import record_scores
+
+    first = _resp([{"id": "S1", "labels": [{"label": "Governing Law", "confidence": 0.9}]}])
+    rec = _record(["7_0", "7_1"], "", extra_attempts=[{"text": first, "finish": "ok"}])
+    rec["attempts"][-1]["finish"] = "max_tokens"
+    scores, failures = record_scores(rec, LABELS)
+    assert scores == {"7_0": {"Governing Law": 0.9}} and failures == ["7_1"]
+
+
+@needs_data
+def test_checkpoint_projects_only_from_the_same_prompt_version(tmp_path):
+    from src.llm.run import estimated_call_cost, soft_checkpoint
+
+    ledger_path = tmp_path / "l.jsonl"
+    ledger_path.write_text(json.dumps({"model_key": "stub", "namespace": "v2", "call_key": "c1_w0_n10_1_0",
+                                       "cost_usd": 5.0}) + "\n")
+    calls = build_calls(_segments({7: 2}), WINDOW)
+    got = soft_checkpoint("stub", [(calls, "v1", "v1")], _label_order(), approved=True,
+                          classifier=StubClassifier([]), ledger_path=ledger_path, cache_root=tmp_path)
+    assert got == pytest.approx(sum(estimated_call_cost(c, "v1", _label_order(), StubClassifier.spec)
+                                    for c in calls))
+
+
+@needs_data
+def test_frozen_run_refuses_changed_model_settings(tmp_path, monkeypatch):
+    from src.llm import run
+
+    monkeypatch.setattr(config, "MODELS_DIR", tmp_path)
+    (tmp_path / "claude").mkdir()
+    (tmp_path / "claude" / "prompt.json").write_text(json.dumps({
+        "version": "v1", "prompt_hash": run.prompt_hash("v1", run._label_order_cached()),
+        "run_settings": run.run_settings("claude")}))
+    assert run.load_frozen("claude")["version"] == "v1"
+    monkeypatch.setitem(config.LLM_MODELS, "claude", {**config.LLM_MODELS["claude"], "effort": "medium"})
+    with pytest.raises(SystemExit):
+        run.load_frozen("claude")
+

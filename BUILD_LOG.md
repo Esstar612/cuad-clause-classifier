@@ -1814,3 +1814,32 @@ None new.
 
 ### Resume-worthy
 Reconciled a self-built LLM cost ledger with the provider's billing to the cent ($8.2943 against $8.29).
+
+---
+
+## 2026-09-26: Step 3x, first independent code review (Cursor CLI) and fixes
+
+### What we built
+- `scripts/review.sh`: a read-only review of a diff (`cursor-agent -p --mode ask`, no `--force`) against the rules in `CLAUDE.md`, reporting findings with file:line and a failure scenario.
+- Fixes in `src/llm/run.py` for all four findings of the first review (all Step 3 LLM code since commit 78f10a7):
+  1. Budget checkpoint: projects only from ledger history of the same namespace (prompt version); without history, the offline estimate is built from the real request, retrieved examples included (`_messages`). A cached record still awaiting its retry counts as not cached.
+  2. Paid attempt kept: if the retry fails (budget stop or transport failure) after a paid first attempt, the record is saved with `retry_pending`; a resume sends only the retry.
+  3. Best attempt kept: scores merge across attempts, a later attempt overriding an earlier one only for segments it parsed (`_merged_scores`, used by `_run_one` and `record_scores`).
+  4. Freeze pins run settings: `prompt.json` records `run_settings` (model_id, effort or thinking_level, max_tokens); `load_frozen` refuses if the current config differs.
+- Four tests, one per fix.
+
+### Decisions made
+- All four findings accepted: each was confirmed against the code before any change.
+
+### Numbers measured
+- Impact check before fixing (read-only): no ledger entry pays the same (model, namespace, call, attempt) twice, so finding 2 has not cost anything; of the 22 retried calls (all in Claude's original v1 run), none had an earlier attempt that parsed more targets than the final one, so finding 3 changes no existing result; nothing is frozen yet (finding 4); spend is $11.37, far below the $100 checkpoint (finding 1).
+  - Review command: `scripts/review.sh 78f10a7 src/llm src/baseline.py src/config.py tests/test_llm.py`
+
+### Problems hit and how we solved them
+- See the four findings above.
+
+### Surprises in the data or results
+None.
+
+### Resume-worthy
+Added an independent automated code review step for LLM pipeline changes and fixed its four findings, each first checked against the code and the cost ledger for real impact.

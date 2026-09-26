@@ -1,4 +1,4 @@
-Checkpoint: spent $4.66 so far; this command projects $2.63 (ledger mean $0.0074/call at N=10); total $7.29; soft checkpoint $100.00, hard cap $150.00
+Checkpoint: spent $11.37 so far; this command projects $0.00 (all calls cached); total $11.37; soft checkpoint $100.00, hard cap $150.00
 Model claude (claude-sonnet-5), prompt v2, batch size 10
 
 Validation iteration metrics at threshold 0.5:
@@ -12,7 +12,7 @@ Validation iteration metrics at threshold 0.5:
 
 Usage:
   calls: 345
-  new_calls_this_run: 354
+  new_calls_this_run: 0
   attempts: 345
   parse_retries: 0
   transport_retries: 0
