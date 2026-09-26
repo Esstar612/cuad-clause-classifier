@@ -1,0 +1,16 @@
+Probe: 24 of 62 iteration windows in which v1 listed a gold label below 0.1 (seeded, stream 'probe'). Selected for failures: diagnostic only, used to choose v2's contents; adoption comes only from `compare` on the full sample.
+
+Checkpoint: spent $4.58 so far; this command projects $0.00 (all calls cached); total $4.58; soft checkpoint $100.00, hard cap $150.00
+Checkpoint: spent $4.58 so far; this command projects $0.00 (all calls cached); total $4.58; soft checkpoint $100.00, hard cap $150.00
+Checkpoint: spent $4.58 so far; this command projects $0.00 (all calls cached); total $4.58; soft checkpoint $100.00, hard cap $150.00
+Checkpoint: spent $4.58 so far; this command projects $0.00 (all calls cached); total $4.58; soft checkpoint $100.00, hard cap $150.00
+Checkpoint: spent $4.58 so far; this command projects $0.00 (all calls cached); total $4.58; soft checkpoint $100.00, hard cap $150.00
+                                       recall  precision  gold_listed_below_0.1  any_listed_below_0.1  parse_failed_segments  input_tokens  output_tokens  thinking_blocks  cost_usd  below_floor_share  empty_set_share  mean_labels_listed
+v1 (cache), effort low                 0.1461     0.6500                   33.0                  63.0                    0.0      146056.0         7024.0              0.0    0.2055                1.0           0.8750              0.1292
+A: v1 text, effort medium              0.7528     0.6442                    0.0                   0.0                    0.0      124203.0         8090.0              3.0    0.2091                0.0           0.5583              0.6708
+B: v1 + reframing, effort low          0.7303     0.7065                    0.0                   0.0                    0.0      128019.0         6754.0              0.0    0.1898                0.0           0.5833              0.6083
+C: B + evidence quote, effort low      0.7640     0.5913                    0.0                   0.0                    0.0      129723.0        11641.0              0.0    0.2468                0.0           0.5708              0.6458
+D: B at effort medium                  0.7640     0.7312                    0.0                   0.0                    0.0      128019.0         8022.0              3.0    0.2024                0.0           0.5958              0.6042
+E: control: v1 rerun, fresh namespace  0.7640     0.7640                    0.0                   0.0                    0.0      124203.0         6849.0              0.0    0.1967                0.0           0.5625              0.6208
+
+Estimated thinking tokens (output tokens minus the same windows at effort low; also absorbs any change in answer length): A minus v1 1066, D minus B 1268.

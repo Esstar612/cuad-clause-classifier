@@ -1,0 +1,7 @@
+Examples per call (iteration): mean 17.2, max 20; labeled share 0.515; mean example characters 524
+claude: measured 2.92 characters per uncached user-message token on v2; v2 iteration cost $2.44 (345 calls)
+  v3 iteration: +$2.32 for examples, projected $4.76
+  if adopted, validation + test + shift (2667 calls): examples add $16.44 on top of about $18.90 at v2's measured cost per call
+gemini: measured 4.69 characters per prompt token on v2; v2 iteration cost $0.85 (345 calls)
+  v3 iteration: +$0.54 for examples, projected $1.39
+  if adopted, validation + test + shift (2667 calls): examples add $3.84 on top of about $6.59 at v2's measured cost per call

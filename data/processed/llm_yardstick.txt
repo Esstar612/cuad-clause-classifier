@@ -1,0 +1,34 @@
+
+Baseline tuned Rule B thresholds (optimistic):
+  segments: 3354
+  contracts: 23
+  micro_f1: 0.6182
+  macro_f1: 0.5512
+  macro_ap_sparse_lower_bound: 0.5815
+  none_fp_rate_parsed: 0.0317
+  parse_failure_rate: 0.0
+
+Baseline threshold 0.5:
+  segments: 3354
+  contracts: 23
+  micro_f1: 0.5831
+  macro_f1: 0.4941
+  macro_ap_sparse_lower_bound: 0.5815
+  none_fp_rate_parsed: 0.028
+  parse_failure_rate: 0.0
+
+claude v1 N=10 minus baseline (tuned), paired unstratified bootstrap:
+  a: 0.4062
+  b: 0.6182
+  difference: -0.2121
+  ci_low: -0.2634
+  ci_high: -0.1616
+  n_resamples: 2000
+
+gemini v1 N=10 minus baseline (tuned), paired unstratified bootstrap:
+  a: 0.5934
+  b: 0.6182
+  difference: -0.0248
+  ci_low: -0.0528
+  ci_high: 0.0198
+  n_resamples: 2000

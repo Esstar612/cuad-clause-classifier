@@ -1,0 +1,45 @@
+Checkpoint: spent $4.66 so far; this command projects $2.65 (ledger mean $0.0074/call at N=10); total $7.31; soft checkpoint $100.00, hard cap $150.00
+Model claude (claude-sonnet-5), prompt v1-r2, batch size 10
+
+Validation iteration metrics at threshold 0.5:
+  segments: 3354
+  contracts: 23
+  micro_f1: 0.5806
+  macro_f1: 0.5636
+  macro_ap_sparse_lower_bound: 0.5908
+  none_fp_rate_parsed: 0.0751
+  parse_failure_rate: 0.0
+
+Usage:
+  calls: 345
+  new_calls_this_run: 357
+  attempts: 345
+  parse_retries: 0
+  transport_retries: 0
+  tokens: {'cache_creation_input_tokens': 6226, 'cache_read_input_tokens': 1067759, 'input_tokens': 593748, 'output_tokens': 76512, 'thinking_blocks': 0}
+  cost_usd_all_calls: 2.1817
+  cost_per_1000_segments: 0.6505
+  latency_per_call_ms: {'median': 2523.933249991387, 'p95': 4185.598182934336}
+  latency_per_segment_ms_median: 259.6175
+  latency_label: 10 targets per call, call-amortized per segment
+  served_models: ['claude-sonnet-5']
+  record_window_utc: ['2026-09-25T17:26:56+00:00', '2026-09-25T17:33:52+00:00']
+  run_health: {'calls': 345, 'below_floor_calls': 0, 'below_floor_share': 0.0, 'unreadable_attempts': 0, 'empty_set_share': 0.7322599880739415, 'mean_labels_listed': 0.3580799045915325, 'parse_failed_segments': 0}
+
+Casebook (threshold 0.5; not a selection criterion):
+  [PASS] 11_59 | Most Favored Nation (Step 4a) | true=['Most Favored Nation'] | pred={'Most Favored Nation': 0.95}
+  [PASS] 51_228 | Most Favored Nation (Step 4a) | true=['Most Favored Nation'] | pred={'Most Favored Nation': 0.85}
+  [fail] 51_440 | Anti-Assignment misread as Change Of Control (baseline) | true=['Anti-Assignment'] | pred={'Anti-Assignment': 0.95, 'Change Of Control': 0.5}
+  [PASS] 56_97 | License Grant misread as Exclusivity (baseline) | true=['License Grant'] | pred={'License Grant': 0.7}
+  [fail] 56_143 | Anti-Assignment misread as Change Of Control (baseline) | true=['Anti-Assignment'] | pred={'Anti-Assignment': 0.9, 'Change Of Control': 0.85}
+  [fail] 71_83 | Anti-Assignment misread as Change Of Control (baseline) | true=['Anti-Assignment'] | pred={'Anti-Assignment': 0.9, 'Change Of Control': 0.9}
+  [PASS] 131_54 | Most Favored Nation (Step 4a) | true=['Most Favored Nation'] | pred={'Most Favored Nation': 0.5}
+  [PASS] 134_17 | License Grant misread as Exclusivity (baseline) | true=['License Grant', 'Non-Transferable License'] | pred={'License Grant': 0.9, 'Non-Transferable License': 0.9}
+  [PASS] 169_105 | Most Favored Nation (Step 4a) | true=['Most Favored Nation'] | pred={'Most Favored Nation': 0.9}
+  [fail] 199_51 | Anti-Assignment misread as Change Of Control (baseline) | true=['Anti-Assignment'] | pred={'Anti-Assignment': 0.85, 'Change Of Control': 0.6}
+  [fail] 239_122 | License Grant misread as Exclusivity (baseline) | true=['Affiliate License', 'License Grant'] | pred={'Affiliate License': 0.6, 'Exclusivity': 0.6, 'License Grant': 0.9}
+  [fail] 318_156 | Anti-Assignment misread as Change Of Control (baseline) | true=['Anti-Assignment'] | pred={'Anti-Assignment': 0.9, 'Change Of Control': 0.7}
+  [fail] 357_0 | License Grant misread as Exclusivity (baseline) | true=['Expiration Date', 'License Grant'] | pred={}
+  [PASS] 470_39 | License Grant misread as Exclusivity (baseline) | true=['License Grant'] | pred={'License Grant': 0.85}
+
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/data/predictions/iteration/claude_v1-r2_n10.parquet

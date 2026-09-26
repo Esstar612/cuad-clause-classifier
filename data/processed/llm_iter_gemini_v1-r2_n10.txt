@@ -1,0 +1,45 @@
+Checkpoint: spent $10.73 so far; this command projects $0.35 (ledger mean $0.0029/call at N=10); total $11.08; soft checkpoint $100.00, hard cap $150.00
+Model gemini (gemini-3.8-flash), prompt v1-r2, batch size 10
+
+Validation iteration metrics at threshold 0.5:
+  segments: 3354
+  contracts: 23
+  micro_f1: 0.5964
+  macro_f1: 0.5843
+  macro_ap_sparse_lower_bound: 0.5682
+  none_fp_rate_parsed: 0.0731
+  parse_failure_rate: 0.0
+
+Usage:
+  calls: 345
+  new_calls_this_run: 121
+  attempts: 345
+  parse_retries: 0
+  transport_retries: 790
+  tokens: {'cached_content_token_count': 0, 'candidates_token_count': 97699, 'prompt_token_count': 911400, 'thoughts_token_count': 0, 'total_token_count': 1009099}
+  cost_usd_all_calls: 1.0499
+  cost_per_1000_segments: 0.313
+  latency_per_call_ms: {'median': 3802.9101660940796, 'p95': 12459.594600182028}
+  latency_per_segment_ms_median: 391.1759
+  latency_label: 10 targets per call, call-amortized per segment
+  served_models: ['gemini-3.8-flash']
+  record_window_utc: ['2026-09-25T18:03:04+00:00', '2026-09-26T13:48:27+00:00']
+  run_health: {'calls': 345, 'below_floor_calls': 0, 'below_floor_share': 0.0, 'unreadable_attempts': 0, 'empty_set_share': 0.8002385211687537, 'mean_labels_listed': 0.2558139534883721, 'parse_failed_segments': 0}
+
+Casebook (threshold 0.5; not a selection criterion):
+  [PASS] 11_59 | Most Favored Nation (Step 4a) | true=['Most Favored Nation'] | pred={'Most Favored Nation': 0.99}
+  [PASS] 51_228 | Most Favored Nation (Step 4a) | true=['Most Favored Nation'] | pred={'Most Favored Nation': 0.95}
+  [fail] 51_440 | Anti-Assignment misread as Change Of Control (baseline) | true=['Anti-Assignment'] | pred={'Anti-Assignment': 1.0, 'Change Of Control': 0.85}
+  [PASS] 56_97 | License Grant misread as Exclusivity (baseline) | true=['License Grant'] | pred={'License Grant': 0.95}
+  [fail] 56_143 | Anti-Assignment misread as Change Of Control (baseline) | true=['Anti-Assignment'] | pred={'Anti-Assignment': 0.95, 'Change Of Control': 0.75}
+  [fail] 71_83 | Anti-Assignment misread as Change Of Control (baseline) | true=['Anti-Assignment'] | pred={'Anti-Assignment': 0.99, 'Change Of Control': 0.95}
+  [PASS] 131_54 | Most Favored Nation (Step 4a) | true=['Most Favored Nation'] | pred={'Most Favored Nation': 0.75}
+  [PASS] 134_17 | License Grant misread as Exclusivity (baseline) | true=['License Grant', 'Non-Transferable License'] | pred={'License Grant': 0.95, 'Non-Transferable License': 0.95}
+  [PASS] 169_105 | Most Favored Nation (Step 4a) | true=['Most Favored Nation'] | pred={'Most Favored Nation': 0.95}
+  [fail] 199_51 | Anti-Assignment misread as Change Of Control (baseline) | true=['Anti-Assignment'] | pred={'Anti-Assignment': 0.95, 'Change Of Control': 0.75}
+  [fail] 239_122 | License Grant misread as Exclusivity (baseline) | true=['Affiliate License', 'License Grant'] | pred={'Affiliate License': 0.9, 'Exclusivity': 0.85, 'License Grant': 0.95}
+  [PASS] 318_156 | Anti-Assignment misread as Change Of Control (baseline) | true=['Anti-Assignment'] | pred={'Anti-Assignment': 0.99}
+  [PASS] 357_0 | License Grant misread as Exclusivity (baseline) | true=['Expiration Date', 'License Grant'] | pred={'Expiration Date': 0.95, 'License Grant': 0.85}
+  [PASS] 470_39 | License Grant misread as Exclusivity (baseline) | true=['License Grant'] | pred={'License Grant': 0.95}
+
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/data/predictions/iteration/gemini_v1-r2_n10.parquet

@@ -1,0 +1,83 @@
+Iteration sample: 23 validation contracts, 3354 segments (saved to /Users/owner/Dropbox/My Resume/Code/CCC/data/processed/llm_iteration_contracts.csv)
+
+Contracts per type:
+contract_type
+Affiliate                                   1
+Agency                                      1
+Co-Branding                                 1
+Collaboration/Cooperation                   1
+Consulting                                  1
+Development                                 1
+Distributor                                 1
+Endorsement                                 1
+Hosting                                     1
+IP                                          1
+Joint Venture                               1
+License                                     1
+Maintenance                                 1
+Manufacturing                               1
+Marketing                                   1
+Non-Compete/No-Solicit/Non-Disparagement    1
+Outsourcing                                 1
+Promotion                                   1
+Reseller                                    1
+Service                                     1
+Sponsorship                                 1
+Strategic Alliance                          1
+Supply                                      1
+
+Positive segments per label in the iteration sample (total positive label instances 474; segments with any label 358):
+                                    segments  contracts  too_thin_to_judge
+labels                                                                    
+Third Party Beneficiary                    1          1               True
+Most Favored Nation                        1          1               True
+Non-Disparagement                          2          1               True
+No-Solicit Of Customers                    2          1               True
+Volume Restriction                         3          2               True
+Joint Ip Ownership                         3          2               True
+Notice Period To Terminate Renewal         4          4               True
+No-Solicit Of Employees                    6          4              False
+Renewal Term                               7          7              False
+Covenant Not To Sue                        9          6              False
+Non-Compete                                9          5              False
+Ip Ownership Assignment                    9          7              False
+Warranty Duration                         10          3              False
+Uncapped Liability                        10          6              False
+Affiliate License                         12          4              False
+Liquidated Damages                        13          4              False
+Rofr/Rofo/Rofn                            13          6              False
+Minimum Commitment                        13          7              False
+Non-Transferable License                  14          7              False
+Irrevocable Or Perpetual License          14          4              False
+Termination For Convenience               14         11              False
+Competitive Restriction Exception         16          8              False
+Change Of Control                         19          9              False
+Insurance                                 20         12              False
+Governing Law                             22         22              False
+Expiration Date                           22         19              False
+Audit Rights                              22         11              False
+Revenue/Profit Sharing                    23          7              False
+Anti-Assignment                           23         18              False
+Exclusivity                               25         11              False
+Post-Termination Services                 29         12              False
+Cap On Liability                          29         14              False
+License Grant                             55         12              False
+
+Labels too thin to judge (< 5 segments): 7 of 33
+
+Casebook (reported separately, never used for selection):
+segment_id                                                    case  in_iteration_sample
+   169_105                           Most Favored Nation (Step 4a)                False
+    131_54                           Most Favored Nation (Step 4a)                False
+     11_59                           Most Favored Nation (Step 4a)                False
+    51_228                           Most Favored Nation (Step 4a)                False
+    134_17         License Grant misread as Exclusivity (baseline)                False
+   239_122         License Grant misread as Exclusivity (baseline)                False
+     357_0         License Grant misread as Exclusivity (baseline)                False
+    470_39         License Grant misread as Exclusivity (baseline)                False
+     56_97         License Grant misread as Exclusivity (baseline)                 True
+    199_51 Anti-Assignment misread as Change Of Control (baseline)                False
+   318_156 Anti-Assignment misread as Change Of Control (baseline)                False
+    51_440 Anti-Assignment misread as Change Of Control (baseline)                False
+    56_143 Anti-Assignment misread as Change Of Control (baseline)                 True
+     71_83 Anti-Assignment misread as Change Of Control (baseline)                False

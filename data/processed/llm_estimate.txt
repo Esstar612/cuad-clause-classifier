@@ -1,0 +1,13 @@
+Assumptions: 4.0 characters/token; prefix ~1,823 tokens (v1 system prompt); 25 output tokens per target; 300 thinking tokens per call. Offline: no API calls.
+                      phase  segments  calls  runs  claude_usd  gemini_usd
+iteration, 5 versions, N=10      3354    345     5       14.35        7.50
+ casebook, 5 versions, N=10       120     12     5        0.55        0.27
+  batch-size check, v1, N=1      3354   3354     1       20.75       11.91
+          casebook, v1, N=1        12     12     1        0.08        0.04
+            full validation     11656   1212     1        9.77        5.15
+                       test      9378    985     1        8.01        4.21
+                      shift      4584    470     1        3.96        2.06
+ repeat check, 2 extra runs       295     30     2        0.53        0.27
+
+Totals: claude $58.00, gemini $31.41; combined $89.41; cap $100.00
+Validation reuses cached iteration calls for the frozen version at the same batch size, so the full-validation figure is an overestimate.
