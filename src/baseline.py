@@ -43,6 +43,15 @@ def preprocess(text: str) -> str:
     return REDACTION.sub(" redactedtoken ", text.lower())
 
 
+def load_frozen_pipeline(path=None) -> Pipeline:
+    import __main__
+
+    # model.joblib was pickled under `python -m src.baseline`, so it names __main__.preprocess
+    if not hasattr(__main__, "preprocess"):
+        __main__.preprocess = preprocess
+    return joblib.load(path or config.MODELS_DIR / "baseline" / "model.joblib")
+
+
 def indicator(label_lists, label_order: list[str]) -> np.ndarray:
     col = {lab: j for j, lab in enumerate(label_order)}
     y = np.zeros((len(label_lists), len(label_order)), dtype=bool)

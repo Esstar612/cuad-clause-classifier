@@ -59,3 +59,41 @@ BOOTSTRAP_RESAMPLES = 2000  # contract-level, stratified by contract type; perce
 CI_LEVEL = 0.95
 CALIBRATION_BINS = 10
 ERROR_SAMPLES_PER_LABEL = 5  # per failing label and error kind, on validation only
+
+# Human-readable split file (tracked in git)
+SPLITS_CSV = DATA_DIR / "splits" / "contract_splits.csv"
+
+# LLM classifiers (Step 3). Prices are USD per 1M tokens. Gemini prices are the paid tier,
+# Standard, confirmed by the user on ai.google.dev/gemini-api/docs/pricing (page dated
+# 2026-09-24). They hold through 2026-12-31 and double on 2027-01-01 (1.50 / 7.50 / 0.15):
+# any Gemini run after 2026 needs these updated.
+LLM_MODELS = {
+    "claude": {"provider": "anthropic", "model_id": "claude-sonnet-5",
+               "price_in": 2.00, "price_out": 10.00, "price_cache_read": 0.20,
+               "price_cache_write": 2.50, "effort": "low", "max_tokens": 8000},
+    "gemini": {"provider": "google", "model_id": "gemini-3.8-flash",
+               "price_in": 0.75, "price_out": 3.75, "price_cache_read": 0.075,
+               "price_cache_write": 0.0, "thinking_level": "low", "max_tokens": 8000},
+}
+LLM_WINDOW_SIZE = 10             # fixed context window; batch size is 10 (whole window) or 1
+LLM_CONFIDENCE_FLOOR = 0.1       # models list every label with confidence >= this; others score 0
+LLM_ITERATION_MIN_SEGMENTS = 1500
+LLM_ITERATION_CONTRACTS = PROCESSED_DIR / "llm_iteration_contracts.csv"
+LLM_ITERATION_DIR = PREDICTIONS_DIR / "iteration"
+LLM_THIN_LABEL_SEGMENTS = 5      # iteration-sample labels below this are "too thin to judge"
+LLM_MAX_PROMPT_VERSIONS = 5
+LLM_PROBE_WINDOWS = 24           # Step 3i diagnostic probe: failing v1 windows sampled (stream "probe")
+LLM_HEALTH_MAX_SHARE = 0.05       # held-out split above this below-floor share is redone once (BUILD_LOG 3n)
+LLM_REPEAT_WINDOWS = 30          # repeat check: first 30 windows of the iteration sample
+LLM_REPEAT_RUNS = 2              # extra cache-bypassed runs, on top of the original
+LLM_BUDGET_USD = 150.0           # hard cap across all LLM runs, enforced from the ledger
+LLM_SOFT_CHECKPOINT_USD = 100.0  # a phase that would pass this total needs --past-checkpoint (Rule E)
+LLM_LEDGER = LLM_CACHE_DIR / "ledger.jsonl"
+LLM_WORKERS = 4
+LLM_RPM = 50                     # request starts per minute, per model
+LLM_MAX_ATTEMPTS = 8             # transport retries (429, 5xx, timeouts, connection errors)
+LLM_TIMEOUT_S = 120.0
+# Offline estimate assumptions (replaced by measured tokens after the smoke test)
+LLM_EST_CHARS_PER_TOKEN = 4.0
+LLM_EST_OUTPUT_TOKENS_PER_TARGET = 25
+LLM_EST_THINKING_TOKENS_PER_CALL = 300
