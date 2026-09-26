@@ -1,0 +1,38 @@
+claude: micro precision 0.5799, micro recall 0.6582
+baseline: micro precision 0.6362, micro recall 0.6013
+                                   support    claude                          baseline                        
+                                           predicted precision recall     f1 predicted precision recall     f1
+label                                                                                                         
+License Grant                           55        38     0.868  0.600  0.710        42     0.786  0.600  0.680
+Post-Termination Services               29        52     0.192  0.345  0.247        39     0.308  0.414  0.353
+Cap On Liability                        29        22     0.864  0.655  0.745        26     0.808  0.724  0.764
+Exclusivity                             25        20     0.600  0.480  0.533        21     0.333  0.280  0.304
+Anti-Assignment                         23        27     0.815  0.957  0.880        23     0.913  0.913  0.913
+Revenue/Profit Sharing                  23        25     0.560  0.609  0.583        21     0.429  0.391  0.409
+Expiration Date                         22        19     0.737  0.636  0.683        19     0.842  0.727  0.780
+Governing Law                           22        24     0.917  1.000  0.957        23     0.913  0.955  0.933
+Audit Rights                            22        39     0.513  0.909  0.656        36     0.583  0.955  0.724
+Insurance                               20        19     0.789  0.750  0.769        20     0.800  0.800  0.800
+Change Of Control                       19        24     0.417  0.526  0.465        19     0.368  0.368  0.368
+Competitive Restriction Exception       16        13     0.462  0.375  0.414        10     0.400  0.250  0.308
+Termination For Convenience             14        15     0.800  0.857  0.828        18     0.500  0.643  0.562
+Non-Transferable License                14        15     0.733  0.786  0.759        11     0.909  0.714  0.800
+Irrevocable Or Perpetual License        14        13     0.846  0.786  0.815        17     0.706  0.857  0.774
+Rofr/Rofo/Rofn                          13        13     0.615  0.615  0.615         8     0.750  0.462  0.571
+Liquidated Damages                      13        10     0.900  0.692  0.783         3     1.000  0.231  0.375
+Minimum Commitment                      13        14     0.643  0.692  0.667         7     0.571  0.308  0.400
+Affiliate License                       12         7     1.000  0.583  0.737        14     0.643  0.750  0.692
+Uncapped Liability                      10         8     0.625  0.500  0.556         7     0.857  0.600  0.706
+Warranty Duration                       10         9     0.667  0.600  0.632         7     0.857  0.600  0.706
+Non-Compete                              9        24     0.208  0.556  0.303         6     0.500  0.333  0.400
+Ip Ownership Assignment                  9        25     0.200  0.556  0.294         6     0.667  0.444  0.533
+Covenant Not To Sue                      9        11     0.545  0.667  0.600        15     0.400  0.667  0.500
+Renewal Term                             7        10     0.700  1.000  0.824        10     0.700  1.000  0.824
+No-Solicit Of Employees                  6         6     1.000  1.000  1.000         5     1.000  0.833  0.909
+Notice Period To Terminate Renewal       4         6     0.500  0.750  0.600         6     0.500  0.750  0.600
+Joint Ip Ownership                       3         3     0.667  0.667  0.667         3     0.333  0.333  0.333
+Volume Restriction                       3         6     0.000  0.000  0.000         3     0.667  0.667  0.667
+Non-Disparagement                        2         1     0.000  0.000  0.000         0     0.000  0.000  0.000
+No-Solicit Of Customers                  2         2     0.500  0.500  0.500         0     0.000  0.000  0.000
+Most Favored Nation                      1         7     0.143  1.000  0.250         0     0.000  0.000  0.000
+Third Party Beneficiary                  1        11     0.091  1.000  0.167         3     0.333  1.000  0.500

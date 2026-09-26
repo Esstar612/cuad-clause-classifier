@@ -4,6 +4,7 @@
   python -m src.llm.run estimate                            offline cost estimate (no API)
   python -m src.llm.run yardstick                           baseline on the iteration sample (no API)
   python -m src.llm.run estimate-version --prompt V --base B  retrieval version cost from B's measured run (no API)
+  python -m src.llm.run gate-v4                             v4 cost gate from the smoke runs (no API)
   python -m src.llm.run breakdown --model M --prompt V [--batch-size N]   per-label P/R/F1 vs baseline (no API)
   python -m src.llm.run probe [--max-cost X]                Step 3i diagnostic probe (Claude; 4 variants)
   python -m src.llm.run iterate --model M --prompt V --batch-size N [--limit K] [--max-cost X] [--rerun TAG]
@@ -95,17 +96,17 @@ def _request(call, version, label_order, classifier):
     return system, user, local, classifier.payload(system, user, schema)
 
 
-def _merged_scores(attempts, local, targets, labels) -> dict[str, dict[str, float]]:
+def _merged_scores(attempts, local, targets, labels, dense) -> dict[str, dict[str, float]]:
     target_local = [lid for lid, sid in local.items() if sid in targets]
     scores = {}
     for a in attempts:  # a later attempt overrides an earlier one only for segments it parsed
-        parsed = parse_response(a["text"], a["finish"], target_local, labels)
+        parsed = parse_response(a["text"], a["finish"], target_local, labels, dense=dense)
         scores.update({local[lid]: conf for lid, conf in parsed.scores.items()})
     return scores
 
 
 def _record(call, model_key, namespace, version, local, attempts, labels, retry_pending=False) -> dict:
-    scores = _merged_scores(attempts, local, set(call.targets), labels)
+    scores = _merged_scores(attempts, local, set(call.targets), labels, not is_sparse(version))
     return {"call_key": call.key, "model_key": model_key, "namespace": namespace,
             "prompt_version": version, "segment_ids": list(call.segment_ids),
             "targets": list(call.targets), "local_ids": local, "attempts": attempts,
@@ -120,11 +121,12 @@ def _run_one(call, model_key, namespace, version, label_order, classifier, ledge
     record = load_record(path)
     if record is not None and not record.get("retry_pending"):
         return record, False
-    labels = set(label_order)
+    labels, dense = set(label_order), not is_sparse(version)
     target_local = [lid for lid, sid in local.items() if sid in set(call.targets)]
     attempts = list(record["attempts"]) if record else []
     sent_before = len(attempts)
-    ok = bool(attempts) and parse_response(attempts[-1]["text"], attempts[-1]["finish"], target_local, labels).ok
+    ok = bool(attempts) and parse_response(attempts[-1]["text"], attempts[-1]["finish"], target_local, labels,
+                                           dense=dense).ok
     while len(attempts) < 2 and not ok:  # one retry for an invalid response
         worst = worst_case_cost(system, user, classifier.spec)
         try:
@@ -144,12 +146,13 @@ def _run_one(call, model_key, namespace, version, label_order, classifier, ledge
                               "call_key": call.key, "attempt": len(attempts) + 1,
                               "served_model": att.served_model, "usage": att.usage,
                               "cost_usd": att.cost_usd})
-        parsed = parse_response(att.text, att.finish, target_local, labels)
+        parsed = parse_response(att.text, att.finish, target_local, labels, dense=dense)
         attempts.append({**att.to_dict(), "parse_errors": parsed.errors})
         ok = parsed.ok
     record = _record(call, model_key, namespace, version, local, attempts, labels)
     save_record(path, record)
     return record, len(attempts) > sent_before
+
 
 def run_calls(model_key, calls, version, namespace, label_order, max_cost=None,
               classifier=None, ledger=None, cache_root=config.LLM_CACHE_DIR,
@@ -256,7 +259,8 @@ def complete_or_exit(result: RunResult, calls) -> None:
 
 def record_scores(rec, labels) -> tuple[dict[str, dict[str, float]], list[str]]:
     """Re-parse the raw answers with the current parser; stored scores may predate parser rules."""
-    scores = _merged_scores(rec["attempts"], rec["local_ids"], set(rec["targets"]), labels)
+    scores = _merged_scores(rec["attempts"], rec["local_ids"], set(rec["targets"]), labels,
+                            not is_sparse(rec["prompt_version"]))
     return scores, [sid for sid in rec["targets"] if sid not in scores]
 
 
@@ -309,6 +313,30 @@ def is_sparse(version: str) -> bool:
     return version_spec(version).get("output", "sparse") == "sparse"
 
 
+def scores_note(version: str) -> str:
+    return SCORES_NOTE if is_sparse(version) else "dense, every label scored"
+
+
+def dense_health(records, version: str, labels: set[str]) -> dict:
+    """Descriptive only (Rule E, 3aa): no label-free signal flags an obvious clause scored 0 in dense output."""
+    if is_sparse(version):
+        raise ValueError(f"dense health is for dense output only; {version} is sparse")
+    degenerate = zeros = scored = failed = 0
+    at_half = []
+    for rec in records:
+        scores, failures = record_scores(rec, labels)
+        failed += len(failures)
+        values = [v for per in scores.values() for v in per.values()]
+        degenerate += bool(values) and len(set(values)) == 1
+        zeros += sum(v == 0 for v in values)
+        scored += len(values)
+        at_half += [sum(v >= 0.5 for v in scores[sid].values()) for sid in rec["targets"] if sid not in failures]
+    n = len(records)
+    return {"calls": n, "degenerate_call_share": degenerate / max(n, 1),
+            "zero_confidence_share": zeros / max(scored, 1),
+            "mean_labels_at_0.5": sum(at_half) / max(len(at_half), 1), "parse_failed_segments": failed}
+
+
 def run_health(records, version: str, labels: set[str], floor: float = config.LLM_CONFIDENCE_FLOOR) -> dict:
     """Pre-registered in BUILD_LOG 3n; raw text only, no gold labels."""
     if not is_sparse(version):
@@ -339,7 +367,7 @@ def run_health(records, version: str, labels: set[str], floor: float = config.LL
 
 
 def _health_or_note(records, version, labels):
-    return run_health(records, version, labels) if is_sparse(version) else "not defined for dense output"
+    return run_health(records, version, labels) if is_sparse(version) else dense_health(records, version, labels)
 
 
 def usage_report(result, calls, batch_size, version, labels) -> dict:
@@ -364,7 +392,7 @@ def usage_report(result, calls, batch_size, version, labels) -> dict:
             "run_health": _health_or_note(recs, version, labels)}
 
 
-def score(frame, label_order) -> dict:
+def score(frame, label_order, sparse=True) -> dict:
     """Point metrics with the evaluator's conventions (none FP on parsed segments only)."""
     y = indicator(frame["true_labels"], label_order)
     pred = indicator([[d["label"] for d in ps] for ps in frame["pred_labels"]], label_order)
@@ -376,7 +404,7 @@ def score(frame, label_order) -> dict:
     ap = per_label(y, pred, proba, label_order)["ap"]
     return {"segments": len(frame), "contracts": len(ids),
             "micro_f1": float(m["micro_f1"][0]), "macro_f1": float(m["macro_f1"][0]),
-            "macro_ap_sparse_lower_bound": float(np.nanmean(ap)),
+            "macro_ap_sparse_lower_bound" if sparse else "macro_ap": float(np.nanmean(ap)),
             "none_fp_rate_parsed": float(m["none_fp_rate"][0]),
             "parse_failure_rate": float(m["parse_failure_rate"][0])}
 
@@ -528,13 +556,13 @@ def cmd_iterate(args) -> None:
     print(f"Model {args.model} ({', '.join(served)}), prompt {run_label}, batch size "
           f"{args.batch_size}{' (SMOKE TEST: partial sample, not saved)' if args.limit else ''}")
     print("\nValidation iteration metrics at threshold 0.5:")
-    _print(score(frame, label_order), "  ")
+    _print(score(frame, label_order, is_sparse(args.prompt)), "  ")
     print("\nUsage:")
     _print(usage_report(result, calls, args.batch_size, args.prompt, set(label_order)), "  ")
     if args.limit:
         return
     path = iteration_path(args.model, run_label, args.batch_size)
-    write_predictions(frame, path, label_order, {"scores": SCORES_NOTE, "threshold": "0.5 (iteration)",
+    write_predictions(frame, path, label_order, {"scores": scores_note(args.prompt), "threshold": "0.5 (iteration)",
                                                  "latency_ms": "call-amortized"})
     if case_calls and all(c.key in result.records for c in case_calls):
         cf = build_frame(segments, case_calls, result, label_order, {}, args.model, "casebook")
@@ -563,9 +591,9 @@ def cmd_yardstick(_args) -> None:
                                         for lab, p in zip(label_order, row) if p >= 0.5] for row in proba])
     for name, frame in (("tuned Rule B thresholds (optimistic)", base), ("threshold 0.5", at_half)):
         print(f"\nBaseline {name}:")
-        _print(score(frame, label_order), "  ")
+        _print(score(frame, label_order, sparse=False), "  ")
     for m in config.LLM_MODELS:
-        for f in sorted(config.LLM_ITERATION_DIR.glob(f"{m}_v1*_n{WINDOW}.parquet")):
+        for f in sorted(config.LLM_ITERATION_DIR.glob(f"{m}_v*_n{WINDOW}.parquet")):
             run_label = f.stem.removeprefix(f"{m}_").removesuffix(f"_n{WINDOW}")
             print(f"\n{m} {run_label} N={WINDOW} minus baseline (tuned), paired unstratified bootstrap:")
             _print(paired_micro_f1(pd.read_parquet(f), base, label_order)["micro_f1"], "  ")
@@ -602,6 +630,8 @@ def _cached_records(model_key, calls, version, namespace, label_order, classifie
 
 
 def _raw_entries(rec, labels) -> dict[str, dict[str, float]]:
+    if not is_sparse(rec["prompt_version"]):
+        raise ValueError("the probe only reads sparse answers")
     a = rec["attempts"][-1]
     local_targets = [lid for lid, sid in rec["local_ids"].items() if sid in set(rec["targets"])]
     parsed = parse_response(a["text"], a["finish"], local_targets, labels, floor=0.0)
@@ -805,11 +835,11 @@ def cmd_val(args) -> None:
     frame = build_frame(segments, calls, result, label_order, {}, args.model,
                         _version_tag(args.model, frozen["version"], served_models(result)))
     write_predictions(frame, config.PREDICTIONS_DIR / f"{args.model}_val.parquet", label_order,
-                      {"scores": SCORES_NOTE, "thresholds": "provisional 0.5; run `thresholds`",
+                      {"scores": scores_note(frozen["version"]), "thresholds": "provisional 0.5; run `thresholds`",
                        "latency_ms": "call-amortized", "prompt_version": frozen["version"],
                        "batch_size": frozen["batch_size"]})
     print(f"Full validation, frozen prompt {frozen['version']} (threshold 0.5, provisional):")
-    _print(score(frame, label_order), "  ")
+    _print(score(frame, label_order, is_sparse(frozen["version"])), "  ")
     print("Usage:")
     _print(usage_report(result, calls, frozen["batch_size"], frozen["version"], set(label_order)), "  ")
 
@@ -828,7 +858,7 @@ def cmd_thresholds(args) -> None:
     served = val["model_version"].iloc[0].split("|")[0].split("/")
     val["model_version"] = _version_tag(args.model, frozen["version"], served, thresholds)
     write_predictions(val, path, label_order,
-                      {"scores": SCORES_NOTE, "thresholds": "Rule B, tuned on validation",
+                      {"scores": scores_note(frozen["version"]), "thresholds": "Rule B, tuned on validation",
                        "latency_ms": "call-amortized", "prompt_version": frozen["version"],
                        "batch_size": frozen["batch_size"]})
     print(f"Rule B pooled labels ({len(pooled)}): {pooled}")
@@ -838,7 +868,7 @@ def cmd_thresholds(args) -> None:
         if lab not in pooled:
             print(f"  {lab}: {thresholds[lab]}")
     print("Validation with Rule B thresholds (tuned on this set, so optimistic):")
-    _print(score(val, label_order), "  ")
+    _print(score(val, label_order, is_sparse(frozen["version"])), "  ")
 
 
 def cmd_repeat(args) -> None:
@@ -935,6 +965,19 @@ def record_health(state: dict, split: str, health: dict) -> str:
     return "ok"
 
 
+def heldout_health(records, version, labels, state, split) -> tuple[str, dict, dict]:
+    """(status, health, file notes); dense runs have no invalidation rule, so record_health is skipped."""
+    if is_sparse(version):
+        health = run_health(records, version, labels)
+        status = record_health(state, split, health)
+        return status, health, {"run_health_status": status,
+                                "run_health_below_floor_share": f"{health['below_floor_share']:.4f}"}
+    health = dense_health(records, version, labels)
+    status = "not applicable (dense)"
+    return status, health, {"run_health_status": status,
+                            **{f"dense_health_{k}": f"{v:.4f}" for k, v in health.items() if isinstance(v, float)}}
+
+
 def cmd_heldout(args) -> None:
     load_dotenv()
     frozen = load_frozen(args.model)
@@ -959,20 +1002,20 @@ def cmd_heldout(args) -> None:
         calls = split_calls[split]
         result = run_calls(args.model, calls, version, namespaces[split], label_order, max_cost=args.max_cost)
         complete_or_exit(result, calls)  # an incomplete run can be resumed; no metrics were shown
-        health = run_health([result.records[c.key] for c in calls], version, labels)
-        status = record_health(state, split, health)
+        status, health, health_notes = heldout_health([result.records[c.key] for c in calls], version, labels,
+                                                      state, split)
         marker.write_text(json.dumps(state))
         frame = build_frame(segments, calls, result, label_order, thresholds, args.model,
                             _version_tag(args.model, version, served_models(result), thresholds))
         path = config.PREDICTIONS_DIR / f"{args.model}_{split}{'_invalid' if status == 'invalid' else ''}.parquet"
         write_predictions(frame, path, label_order,
-                          {"scores": SCORES_NOTE, "thresholds": "Rule B, tuned on validation",
+                          {"scores": scores_note(version), "thresholds": "Rule B, tuned on validation",
                            "latency_ms": "call-amortized", "prompt_version": version,
                            "batch_size": frozen["batch_size"], "cache_namespace": namespaces[split],
-                           "run_health_status": status,
-                           "run_health_below_floor_share": f"{health['below_floor_share']:.4f}"})
+                           **health_notes})
         print(f"{split}: {len(frame)} segments written to {path.name}; parse failures "
-              f"{int(frame['parse_failure'].sum())}; run health {status}")
+              f"{int(frame['parse_failure'].sum())}; run health {status}"
+              f"{'' if is_sparse(version) else ' (no invalidation rule for dense output)'}")
         print("  usage:")
         _print(usage_report(result, calls, frozen["batch_size"], version, labels), "    ")
         if status == "invalid":
@@ -987,12 +1030,157 @@ def cmd_heldout(args) -> None:
     marker.write_text(json.dumps(state))
     print(f"Done. Score with: python -m src.evaluate model {args.model}")
 
+TIMEOUT_PREFIXES = ("connection:", "408", "504")
+
+
+def is_timeout(error: str) -> bool:
+    return error.startswith(TIMEOUT_PREFIXES)
+
+
+def _output_tokens(usage: dict) -> int:
+    return (usage.get("output_tokens", 0) + usage.get("candidates_token_count", 0)
+            + usage.get("thoughts_token_count", 0))
+
+
+def _input_cost(usage: dict, spec: dict) -> float:
+    if spec["provider"] == "anthropic":
+        prefix = usage.get("cache_creation_input_tokens", 0) + usage.get("cache_read_input_tokens", 0)
+        return (prefix * spec["price_cache_read"] + usage.get("input_tokens", 0) * spec["price_in"]) / 1e6
+    return usage.get("prompt_token_count", 0) * spec["price_in"] / 1e6
+
+
+def _run_stats(records) -> dict:
+    attempts = [a for r in records for a in r["attempts"]]
+    targets = sum(len(r["targets"]) for r in records)
+    return {"calls": len(records), "targets": targets,
+            "cost_per_call": sum(a["cost_usd"] for a in attempts) / max(len(records), 1),
+            "out_per_target": sum(_output_tokens(a["usage"]) for a in attempts) / max(targets, 1)}
+
+
+def smoke_check(records, expected, labels) -> list[str]:
+    """Reasons the model fails the v4 stop condition; empty when it passes."""
+    reasons = []
+    if len(records) < expected:
+        reasons.append(f"{len(records)} of {expected} smoke records")
+    for rec in records:
+        for a in rec["attempts"]:
+            if _output_tokens(a["usage"]) > config.LLM_V4_STOP_OUTPUT_TOKENS:
+                reasons.append(f"{rec['call_key']}: output {_output_tokens(a['usage'])} tokens")
+            if a["latency_ms"] > config.LLM_V4_STOP_LATENCY_S * 1000:
+                reasons.append(f"{rec['call_key']}: latency {a['latency_ms']:.0f} ms")
+            reasons += [f"{rec['call_key']}: timeout {e!r}" for e in a.get("retry_errors", []) if is_timeout(e)]
+        _, failures = record_scores(rec, labels)
+        reasons += [f"{rec['call_key']}: {sid} unparsed after retry" for sid in failures]
+    return reasons
+
+
+def dense_call_cost(v3: dict, input_diff: float, dense_out_per_target: float, price_out: float) -> float:
+    targets_per_call = v3["targets"] / v3["calls"]
+    return (v3["cost_per_call"] + input_diff
+            + (dense_out_per_target - v3["out_per_target"]) * targets_per_call * price_out / 1e6)
+
+
+def n1_call_cost(base: dict, input_diff: float, out_per_target: float, price_out: float) -> float:
+    input_per_call = base["cost_per_call"] - base["out_per_target"] * base["targets"] / base["calls"] * price_out / 1e6
+    return input_per_call + input_diff + out_per_target * price_out / 1e6
+
+
+def project(call_cost: float, n1_cost: float, n1_calls: int, iteration_calls: int = 357,
+            final_calls: int = 2310, repeat_calls: int = config.LLM_REPEAT_RUNS * config.LLM_REPEAT_WINDOWS) -> dict:
+    """Remaining spend for one model; iteration_calls is 0 for a model staying on its incumbent."""
+    parts = {"iteration": call_cost * iteration_calls, "val_test_shift": call_cost * final_calls,
+             "n1_upper_bound": n1_cost * n1_calls, "repeat": call_cost * repeat_calls}
+    return {**parts, "total": sum(parts.values())}
+
+
+def gate_branch(spent, combined, gemini_only, claude_ok, gemini_ok,
+                soft=config.LLM_SOFT_CHECKPOINT_USD, cap=config.LLM_BUDGET_USD) -> str:
+    if not gemini_ok:
+        return "neither: Gemini failed the smoke, so no v4 for either model"
+    both = spent + combined if claude_ok else None
+    solo = spent + gemini_only
+    if both is not None and both <= cap:
+        if both <= soft:
+            return "both"
+        fallback = ("gemini-only" if solo <= soft else
+                    f"gemini-only is also above ${soft:.0f}: decide on it; if declined too, Rule E fallback (no v4)")
+        return f"both, above ${soft:.0f}: decide now; if declined, {fallback}"
+    if solo <= cap:
+        return "gemini-only" if solo <= soft else f"gemini-only, above ${soft:.0f}: decide now; if declined, Rule E fallback (no v4)"
+    return "neither: no option fits under the hard cap"
+
+
+V4_ITERATION_CALLS = 357
+
+
+def iteration_calls_left(v4_smoke) -> int:
+    return V4_ITERATION_CALLS - len(v4_smoke)
+
+
+def _complete(records: dict, calls, what: str) -> list:
+    if len(records) < len(calls):
+        raise SystemExit(f"gate-v4: {what} has {len(records)} of {len(calls)} cached calls; complete it first")
+    return list(records.values())
+
+
+def cmd_gate_v4(_args) -> None:
+    load_dotenv()
+    segments, _, label_order = load_inputs()
+    labels = set(label_order)
+    calls = build_calls(_iteration_segments(segments), WINDOW)
+    smoke_calls = calls[:3]
+    sample = pd.read_csv(config.LLM_ITERATION_CONTRACTS)
+    n1_calls = int(sample["segments"].nlargest(-(-len(sample) // 2)).sum())
+    spent = Ledger(config.LLM_LEDGER).prior_total
+    rows, ok = {}, {}
+    for model, spec in config.LLM_MODELS.items():
+        clf = make_classifier(model)
+        v4_smoke = list(_cached_records(model, smoke_calls, "v4", "v4", label_order, clf).values())
+        v3_smoke = {r["call_key"]: r for r in _complete(_cached_records(model, smoke_calls, "v3", "v3", label_order, clf),
+                                                        smoke_calls, f"{model} v3 smoke")}
+        v3 = _run_stats(_complete(_cached_records(model, calls, "v3", "v3", label_order, clf), calls,
+                                  f"{model} v3 iteration run"))
+        reasons = smoke_check(v4_smoke, len(smoke_calls), labels)
+        ok[model] = not reasons
+        matched = [(r, v3_smoke[r["call_key"]]) for r in v4_smoke if r["call_key"] in v3_smoke]
+        input_diff = sum(sum(_input_cost(a["usage"], spec) for a in r4["attempts"])
+                         - sum(_input_cost(a["usage"], spec) for a in r3["attempts"])
+                         for r4, r3 in matched) / max(len(matched), 1)
+        dense_out = _run_stats(v4_smoke)["out_per_target"] if v4_smoke else float("nan")
+        call_cost = dense_call_cost(v3, input_diff, dense_out, spec["price_out"])
+        rows[model] = project(call_cost, n1_call_cost(v3, input_diff, dense_out, spec["price_out"]), n1_calls,
+                              iteration_calls=iteration_calls_left(v4_smoke))
+        attempts = [a for r in v4_smoke for a in r["attempts"]]
+        print(f"{model}: smoke {'PASS' if ok[model] else 'FAIL'} {reasons or ''}")
+        print(f"  max output tokens {max((_output_tokens(a['usage']) for a in attempts), default=0)} "
+              f"(stop {config.LLM_V4_STOP_OUTPUT_TOKENS}, max_tokens {spec['max_tokens']}); max latency "
+              f"{max((a['latency_ms'] for a in attempts), default=0):.0f} ms (stop {config.LLM_V4_STOP_LATENCY_S * 1000:.0f}, "
+              f"timeout {config.LLM_TIMEOUT_S * 1000:.0f}); transport retries {sum(a['transport_retries'] for a in attempts)}")
+        print(f"  dense output {dense_out:.0f} tokens per target (v3 {v3['out_per_target']:.0f}); input difference "
+              f"${input_diff:.5f} per call; dense cost ${call_cost:.5f} per call; projection "
+              f"{ {k: round(v, 2) for k, v in rows[model].items()} }")
+    claude_v2 = _run_stats(_complete(_cached_records("claude", calls, "v2", "v2", label_order, make_classifier("claude")),
+                                     calls, "claude v2 iteration run"))
+    price = config.LLM_MODELS["claude"]["price_out"]
+    claude_stay = project(claude_v2["cost_per_call"], n1_call_cost(claude_v2, 0.0, claude_v2["out_per_target"], price),
+                          n1_calls, iteration_calls=0)
+    combined = rows["claude"]["total"] + rows["gemini"]["total"]
+    gemini_only = rows["gemini"]["total"] + claude_stay["total"]
+    print(f"\nN=1 check sized as an upper bound: {n1_calls} calls (segments of the {-(-len(sample) // 2)} "
+          f"largest iteration contracts), per model.")
+    print(f"Spent so far ${spent:.2f}. Combined: ${spent + combined:.2f}. Gemini-only (Claude on v2): "
+          f"${spent + gemini_only:.2f}. Soft checkpoint ${config.LLM_SOFT_CHECKPOINT_USD:.0f}, hard cap "
+          f"${config.LLM_BUDGET_USD:.0f}.")
+    print(f"Rule E branch: {gate_branch(spent, combined, gemini_only, ok['claude'], ok['gemini'])}")
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="cmd", required=True)
     sub.add_parser("sample")
     sub.add_parser("estimate")
     sub.add_parser("yardstick")
+    sub.add_parser("gate-v4")
     p = sub.add_parser("estimate-version")
     p.add_argument("--prompt", required=True)
     p.add_argument("--base", required=True)
@@ -1038,6 +1226,7 @@ def main() -> None:
     args = parser.parse_args()
     {"sample": cmd_sample, "estimate": cmd_estimate, "yardstick": cmd_yardstick,
      "breakdown": cmd_breakdown, "probe": cmd_probe, "estimate-version": cmd_estimate_version,
+     "gate-v4": cmd_gate_v4,
      "iterate": cmd_iterate, "compare": cmd_compare,
      "freeze": cmd_freeze, "val": cmd_val, "thresholds": cmd_thresholds, "repeat": cmd_repeat,
      "heldout": cmd_heldout}[args.cmd](args)

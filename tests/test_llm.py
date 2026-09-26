@@ -403,7 +403,7 @@ def _probe_record(call, listed):
     back = {sid: lid for lid, sid in local.items()}
     text = _resp([{"id": back[sid], "labels": [{"label": lab, "confidence": v} for lab, v in listed.get(sid, {}).items()]}
                   for sid in call.targets])
-    return {"targets": list(call.targets), "local_ids": local, "parse_failures": [],
+    return {"targets": list(call.targets), "local_ids": local, "parse_failures": [], "prompt_version": "v1",
             "attempts": [{"text": text, "finish": "ok", "usage": {}, "cost_usd": 0.0}],
             "scores": {sid: {lab: v for lab, v in listed.get(sid, {}).items() if v >= 0.1}
                        for sid in call.targets}}
@@ -429,7 +429,7 @@ def test_probe_windows_pick_only_failures_and_are_seeded():
 
 def _record(targets, answer, stored_scores=None, extra_attempts=()):
     local = {f"S{i + 1}": sid for i, sid in enumerate(targets)}
-    return {"targets": list(targets), "local_ids": local, "parse_failures": [],
+    return {"targets": list(targets), "local_ids": local, "parse_failures": [], "prompt_version": "v1",
             "scores": stored_scores if stored_scores is not None else {},
             "created_utc": "2026-09-25T00:00:00+00:00",
             "attempts": [*extra_attempts, {"text": answer, "finish": "ok", "latency_ms": 10.0,
@@ -772,4 +772,179 @@ def test_retrieval_version_estimate_includes_the_examples():
     expected = ((len(u3) - len(u2)) * spec["price_in"] + (len(s3) - len(s2)) * spec["price_cache_read"]) / cpt / 1e6
     diff = estimated_call_cost(call, "v3", labels, spec) - estimated_call_cost(call, "v2", labels, spec)
     assert diff == pytest.approx(expected)
+
+
+# ----------------------------------------------------------------------------- v4 dense output and its gate (Step 3aa)
+
+def test_v4_is_v3_with_exactly_the_four_edits():
+    from src.llm.prompt import V3_INSTRUCTIONS, V4_EDITS, V4_INSTRUCTIONS, _edit
+
+    expected = V3_INSTRUCTIONS
+    for old, new in V4_EDITS:
+        assert V3_INSTRUCTIONS.count(old) == 1
+        expected = expected.replace(old, new)
+    assert len(V4_EDITS) == 4 and V4_INSTRUCTIONS == expected
+    assert "0.1" not in V4_INSTRUCTIONS.split("Rules:")[0]
+    with pytest.raises(ValueError):
+        _edit("abc", "missing", "x")
+
+
+@needs_data
+def test_v4_schema_is_dense_and_earlier_hashes_are_unchanged():
+    from src.llm.prompt import output_schema, prompt_hash, schema_for
+
+    labels = _label_order()
+    segs = schema_for("v4", labels, ["S1", "S2"])["properties"]["segments"]
+    assert list(segs["properties"]) == ["S1", "S2"] and segs["required"] == ["S1", "S2"]
+    per = segs["properties"]["S1"]
+    assert per["required"] == sorted(labels) and per["additionalProperties"] is False
+    assert all(v == {"type": "number"} for v in per["properties"].values())
+    with pytest.raises(ValueError):
+        output_schema(labels, dense=True)
+    assert prompt_hash("v4", labels) != prompt_hash("v3", labels)
+    for model in ("claude", "gemini"):
+        for version in ("v1", "v2", "v3"):
+            frame = pd.read_parquet(config.LLM_ITERATION_DIR / f"{model}_{version}_n10.parquet")
+            assert prompt_hash(version, labels) in frame["model_version"].iloc[0]
+
+
+def test_dense_parser_keeps_every_score_and_needs_every_label():
+    full = {"S1": {"Governing Law": 0.02, "Anti-Assignment": 0.9}}
+    p = parse_response(json.dumps({"segments": full}), "ok", ["S1"], LABELS, dense=True)
+    assert p.ok and p.scores == {"S1": {"Governing Law": 0.02, "Anti-Assignment": 0.9}}
+    missing = parse_response(json.dumps({"segments": {"S1": {"Governing Law": 0.5}}}), "ok", ["S1"], LABELS, dense=True)
+    assert not missing.ok and missing.scores == {}
+    unknown = {"S1": {"Governing Law": 0.5, "Anti-Assignment": 0.1, "Made Up": 0.2}}
+    assert not parse_response(json.dumps({"segments": unknown}), "ok", ["S1"], LABELS, dense=True).ok
+
+
+@needs_baseline
+def test_stub_v4_run_stores_every_label(tmp_path):
+    from src.llm.run import run_calls
+
+    labels = _label_order()
+    calls = build_calls(_segments({7: 2}), WINDOW)
+    answer = json.dumps({"segments": {s: {lab: 0.01 for lab in labels} for s in ("S1", "S2")}})
+    res = run_calls("stub", calls, "v4", "v4", labels, classifier=StubClassifier([(answer, "ok")]),
+                    ledger=Ledger(tmp_path / "l.jsonl", cap_usd=1.0), cache_root=tmp_path, workers=1)
+    rec = res.records[calls[0].key]
+    assert rec["parse_failures"] == [] and all(len(rec["scores"][s]) == len(labels) for s in ("7_0", "7_1"))
+
+
+def _dense_record(targets, per_target):
+    rec = _record(targets, json.dumps({"segments": per_target}))
+    rec["prompt_version"] = "v4"
+    return rec
+
+
+def test_dense_health_counts():
+    from src.llm.run import dense_health, run_health
+
+    zero = _dense_record(["1_0"], {"S1": {"Governing Law": 0.0, "Anti-Assignment": 0.0}})
+    mixed = _dense_record(["2_0", "2_1"], {"S1": {"Governing Law": 0.9, "Anti-Assignment": 0.0},
+                                           "S2": {"Governing Law": 0.6, "Anti-Assignment": 0.7}})
+    h = dense_health([zero, mixed], "v4", LABELS)
+    assert h["degenerate_call_share"] == 0.5 and h["zero_confidence_share"] == 0.5
+    assert h["mean_labels_at_0.5"] == 1.0 and h["parse_failed_segments"] == 0
+    with pytest.raises(ValueError):
+        run_health([zero], "v4", LABELS)
+    with pytest.raises(ValueError):
+        dense_health([zero], "v1", LABELS)
+
+
+@needs_data
+def test_heldout_dense_branch_writes_its_own_notes(tmp_path):
+    from src.llm.run import RunResult, build_frame, heldout_health
+    from src.predictions import read_notes, write_predictions
+
+    labels = _label_order()
+    seg = _segments({7: 2}).assign(start=0, end=1, labels=[[], []])
+    call = build_calls(seg, WINDOW)[0]
+    rec = _dense_record(call.targets, {s: {lab: 0.0 for lab in labels} for s in ("S1", "S2")})
+    state = {}
+    status, _, notes = heldout_health([rec], "v4", set(labels), state, "test")
+    assert status == "not applicable (dense)" and state == {}
+    frame = build_frame(seg, [call], RunResult(records={call.key: rec}), labels, {}, "stub", "t")
+    path = tmp_path / "p.parquet"
+    write_predictions(frame, path, labels, {"scores": "dense, every label scored", **notes})
+    written = read_notes(path)
+    assert written["run_health_status"] == "not applicable (dense)"
+    assert "dense_health_degenerate_call_share" in written and "run_health_below_floor_share" not in written
+
+
+def test_scores_note_by_version_and_probe_refuses_dense():
+    from src.llm.run import SCORES_NOTE, _raw_entries, scores_note
+
+    assert scores_note("v2") == SCORES_NOTE and scores_note("v4") == "dense, every label scored"
+    with pytest.raises(ValueError):
+        _raw_entries(_dense_record(["1_0"], {}), LABELS)
+
+
+@pytest.mark.parametrize("error,expected", [("connection: Request timed out.", True), ("connection: ", True),
+                                            ("408: ...", True), ("504: ...", True), ("429: ...", False)])
+def test_timeout_strings(error, expected):
+    from src.llm.run import is_timeout
+
+    assert is_timeout(error) is expected
+
+
+def _smoke_record(key, output_tokens=100, latency_ms=1000.0, retry_errors=()):
+    rec = _dense_record(["1_0"], {"S1": {"Governing Law": 0.1, "Anti-Assignment": 0.0}})
+    rec["call_key"] = key
+    rec["attempts"][-1].update(usage={"output_tokens": output_tokens}, latency_ms=latency_ms,
+                               retry_errors=list(retry_errors))
+    return rec
+
+
+def test_smoke_check_stop_condition():
+    from src.llm.run import smoke_check
+
+    clean = [_smoke_record(f"k{i}") for i in range(3)]
+    assert smoke_check(clean, 3, LABELS) == []
+    assert smoke_check(clean[:2], 3, LABELS)
+    assert smoke_check(clean[:2] + [_smoke_record("t", retry_errors=["connection: Request timed out."])], 3, LABELS)
+    assert smoke_check(clean[:2] + [_smoke_record("o", output_tokens=6001)], 3, LABELS)
+    assert smoke_check(clean[:2] + [_smoke_record("l", latency_ms=90001.0)], 3, LABELS)
+    unparsed = _smoke_record("u")
+    unparsed["attempts"][-1]["text"] = json.dumps({"segments": {}})
+    assert smoke_check(clean[:2] + [unparsed], 3, LABELS)
+
+
+def test_gate_arithmetic_and_branches():
+    from src.llm.run import dense_call_cost, gate_branch, n1_call_cost, project
+
+    v3 = {"calls": 10, "targets": 100, "cost_per_call": 0.01, "out_per_target": 10}
+    assert dense_call_cost(v3, 0.002, 210, 10.0) == pytest.approx(0.01 + 0.002 + 200 * 10 * 10.0 / 1e6)
+    assert n1_call_cost(v3, 0.002, 210, 10.0) == pytest.approx(0.01 - 100 * 10.0 / 1e6 + 0.002 + 210 * 10.0 / 1e6)
+    p = project(0.032, 0.0131, 100, iteration_calls=357, final_calls=2310, repeat_calls=60)
+    assert p["total"] == pytest.approx(0.032 * (357 + 2310 + 60) + 0.0131 * 100)
+    assert gate_branch(20, 50, 40, True, True) == "both"
+    assert gate_branch(20, 100, 60, True, True).endswith("if declined, gemini-only")
+    assert "decide on it" in gate_branch(20, 100, 90, True, True)
+    assert gate_branch(20, 200, 60, True, True) == "gemini-only"
+    assert gate_branch(20, 200, 100, True, True).startswith("gemini-only, above")
+    assert gate_branch(20, 50, 40, False, True) == "gemini-only"
+    assert gate_branch(20, 50, 40, True, False).startswith("neither")
+    assert gate_branch(20, 200, 200, True, True).startswith("neither")
+
+
+def test_gate_refuses_partial_references_and_skips_paid_smoke_calls():
+    from src.llm.run import _complete, iteration_calls_left
+
+    with pytest.raises(SystemExit):
+        _complete({"a": 1}, ["a", "b"], "v3 iteration run")
+    assert _complete({"a": 1, "b": 2}, ["a", "b"], "v3 iteration run") == [1, 2]
+    assert iteration_calls_left([object()] * 3) == 354
+
+
+def test_score_names_the_ap_by_output_type():
+    from src.llm.run import score
+
+    frame = pd.DataFrame({"contract_id": [1, 1], "true_labels": [["Governing Law"], []],
+                          "pred_labels": [[{"label": "Governing Law", "confidence": 0.9}], []],
+                          "proba": [[0.9, 0.0], [0.1, 0.2]], "parse_failure": [False, False]})
+    order = ["Governing Law", "Anti-Assignment"]
+    assert "macro_ap_sparse_lower_bound" in score(frame, order)
+    dense = score(frame, order, sparse=False)
+    assert "macro_ap" in dense and "macro_ap_sparse_lower_bound" not in dense
 

@@ -32,7 +32,7 @@ def _valid_confidence(c) -> bool:
 
 
 def parse_response(text: str | None, finish: str, target_ids: list[str], labels: set[str],
-                   floor: float = config.LLM_CONFIDENCE_FLOOR) -> Parsed:
+                   floor: float = config.LLM_CONFIDENCE_FLOOR, dense: bool = False) -> Parsed:
     targets = set(target_ids)
     if finish != "ok":  # max_tokens, refusal, or anything unexpected
         return Parsed({}, [f"finish={finish}"])
@@ -58,6 +58,18 @@ def parse_response(text: str | None, finish: str, target_ids: list[str], labels:
             bad.add(sid)
             continue
         seen.add(sid)
+        if dense:
+            if not isinstance(items, dict) or set(items) != labels:
+                errors.append(f"{sid}: dense answer must score exactly the {len(labels)} labels")
+                bad.add(sid)
+                continue
+            invalid = [lab for lab, c in items.items() if not _valid_confidence(c)]
+            if invalid:
+                errors.append(f"{sid}: confidence {items[invalid[0]]!r} for {invalid[0]}")
+                bad.add(sid)
+                continue
+            scores[sid] = {lab: float(c) for lab, c in items.items()}
+            continue
         if not isinstance(items, list):
             errors.append(f"{sid}: labels is not a list")
             bad.add(sid)

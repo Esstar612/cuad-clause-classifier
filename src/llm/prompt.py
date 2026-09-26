@@ -104,6 +104,36 @@ PROMPT_VERSIONS["v3"] = {"instructions": V3_INSTRUCTIONS, "schema": "keyed", "re
                          "notes": "v2 + per target the nearest labeled and nearest overall train segment"}
 
 
+def _edit(text: str, old: str, new: str) -> str:
+    if text.count(old) != 1:
+        raise ValueError(f"expected exactly one occurrence of {old[:50]!r}")
+    return text.replace(old, new)
+
+
+V4_EDITS = (
+    ("For each target segment, list every category below that you judge at least somewhat likely to apply "
+     "to that segment itself (confidence 0.1 or higher), each with your confidence from 0 to 1 that it "
+     "applies. A segment can have several categories. Most segments in a contract have none of these "
+     "categories; for those, return an empty list.",
+     "For each target segment, give every category below your confidence from 0 to 1 that it applies to "
+     "that segment itself. A segment can have several categories. Most segments in a contract have none "
+     "of these categories; for those, every confidence should be low."),
+    (" Do not list a category you have ruled out. Never list a category with confidence below 0.1.", ""),
+    ("gets an empty list unless it also contains one of the categories",
+     "gets a low confidence for every category unless it also contains one of the categories"),
+    ('Return JSON only: "segments" has one key per target id, exactly as given, holding that segment\'s '
+     "list of categories (an empty list if none), with category names exactly as listed below.",
+     'Return JSON only: "segments" has one key per target id, exactly as given, each holding a confidence '
+     "for every category, with category names exactly as listed below."),
+)
+V4_INSTRUCTIONS = V3_INSTRUCTIONS
+for _old, _new in V4_EDITS:
+    V4_INSTRUCTIONS = _edit(V4_INSTRUCTIONS, _old, _new)
+
+PROMPT_VERSIONS["v4"] = {"instructions": V4_INSTRUCTIONS, "schema": "keyed", "retrieval": True,
+                         "output": "dense", "notes": "v3 with a confidence for every label (dense output)"}
+
+
 def version_spec(version: str) -> dict:
     return PROMPT_VERSIONS[version] if version in PROMPT_VERSIONS else PROBE_VARIANTS[version]
 
@@ -146,8 +176,18 @@ def system_prompt(version: str, label_order: list[str]) -> str:
     return _system_prompt(version, tuple(label_order))
 
 
-def output_schema(label_order: list[str], evidence: bool = False, target_ids: list[str] | None = None) -> dict:
+def output_schema(label_order: list[str], evidence: bool = False, target_ids: list[str] | None = None,
+                  dense: bool = False) -> dict:
     """Confidence bounds are checked in parse.py: Claude's structured outputs lack numeric min/max."""
+    if dense:
+        if target_ids is None:
+            raise ValueError("dense output needs target ids")
+        confidences = {"type": "object", "properties": {lab: {"type": "number"} for lab in sorted(label_order)},
+                       "required": sorted(label_order), "additionalProperties": False}
+        segments = {"type": "object", "properties": {t: confidences for t in target_ids},
+                    "required": list(target_ids), "additionalProperties": False}
+        return {"type": "object", "properties": {"segments": segments},
+                "required": ["segments"], "additionalProperties": False}
     props = {"label": {"type": "string", "enum": sorted(label_order)}}
     if evidence:
         props["evidence"] = {"type": "string"}
@@ -187,7 +227,8 @@ def schema_for(version: str, label_order: list[str], target_ids: list[str] | Non
     ids = None
     if spec.get("schema") == "keyed":
         ids = target_ids or [f"S{i + 1}" for i in range(config.LLM_WINDOW_SIZE)]  # full-window template for the prompt hash
-    return output_schema(label_order, evidence=spec.get("evidence", False), target_ids=ids)
+    return output_schema(label_order, evidence=spec.get("evidence", False), target_ids=ids,
+                         dense=spec.get("output") == "dense")
 
 
 def prompt_hash(version: str, label_order: list[str]) -> str:

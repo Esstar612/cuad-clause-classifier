@@ -1874,3 +1874,112 @@ None.
 
 ### Resume-worthy
 none
+
+---
+
+## 2026-09-26: Step 3z, clean code review; v3 smoke test
+
+### What we built
+- `scripts/review.sh`: `REVIEW_MODEL` variable passed as `--model`. Set to `auto` because Cursor's free plan allows no named models; the intended non-Claude model is `gpt-5.6-sol-high` once the plan allows it. Under Auto the reviewer may be a Claude model, so for now the code review is independent but not necessarily a different model family.
+- `.claude/agents/plan-reviewer.md`: `model: claude-fable-5-1` (the building session runs on Claude Opus 5.5; the Claude Code subagent docs accept a full model ID in this field).
+
+### Decisions made
+None new.
+
+### Numbers measured
+- Tests: 114 passed. Command: `pytest tests -v`
+- Code review of the Step 3y fix and the script changes (`scripts/review.sh HEAD~4 src tests scripts`, Auto): no findings.
+- v3 smoke, `--limit 3` (the first three windows of contract 15, no gold labels), threshold 0.5:
+  - Claude: 3 new calls, 0 parse retries, 0 transport retries; tokens input 16,156 (v2 on the same calls: 6,232), cache_creation 17,366, cache_read 8,683, output 210; cost $0.0796; latency per call median 2,192 ms; health 0 of 3 below floor, empty-set share 1.0, parse-failed segments 0. Checkpoint projected $0.04 from the offline estimate (no v3 history), spent $11.37 before.
+  - Gemini: 3 new calls, 0 transport retries; prompt tokens 16,133 for the 3 calls; c15_w0 prompt tokens 5,457 (v2: 3,285); candidates 249; cost $0.0130; latency per call median 1,850 ms; health 0 of 3 below floor, empty-set share 1.0. Checkpoint projected $0.02, spent $11.44 before.
+  - Commands: `python -m src.llm.run iterate --model {claude,gemini} --prompt v3 --batch-size 10 --limit 3 --max-cost 1`; c15_w0 read from `data/llm_cache/gemini/v3/c15_w0_n10_15_0_*.json`.
+- Examples reached the request: Claude's uncached input rose by 9,924 tokens over 3 calls (about 3,300 per call; Step 3w implied about 3,000); Gemini's c15_w0 prompt rose by 2,172 tokens.
+
+### Problems hit and how we solved them
+- The checkpoint's offline estimate ($0.04) was about half Claude's actual smoke cost ($0.0796): the estimate assumes 4 characters per token and a cached prefix, while Claude runs at about 2.92 characters per user token and the first calls of a new version write the prefix cache. From now on v3 has its own ledger history, which the checkpoint uses in preference.
+
+### Surprises in the data or results
+- On these label-free opening windows neither model labeled anything despite every target being shown a labeled example (empty-set share 1.0 on 30 segments); too small to say anything about priming.
+
+### Resume-worthy
+none
+
+---
+
+## 2026-09-26: Step 3aa, v3 results; v4 (dense) rules fixed before any v4 call
+
+### What we built
+- `docs/plan.md` Rule E: the v4 gate amendment (below), dated.
+- `cmd_yardstick` now compares every iteration run with the baseline (`{model}_v*_n10.parquet`).
+- Plan review of this step: four rounds (`docs/reviews/2026-09-26-3aa-r1.md` to `-r4.md`). Rounds 1 to 3 "approve with changes"; rounds beyond the 3-round limit were authorised as an exception (up to 3 more); round 4 "approve".
+
+### Decisions made
+- Adoption (pre-registered rule):
+  - Claude v3 not adopted: v3 minus v2, micro-F1, +0.0080 [-0.0193, +0.0335]; macro-F1 -0.0012 [-0.0208, +0.0277]. Claude's incumbent stays v2.
+  - Gemini v3 adopted: v3 minus v1-r2, micro-F1, +0.0480 [+0.0140, +0.0798]; macro-F1 +0.0276 [-0.0003, +0.0599]. Gemini's incumbent becomes v3. Secondary v3 minus v2: +0.0227 [-0.0039, +0.0491]; the win cannot separate the retrieved examples from v2's changes (recorded in 3u).
+- Priming risk (3u) did not materialise, so the similarity-cutoff candidate is not triggered: mean labels listed fell (Claude v2 0.3160 to v3 0.2743; Gemini v1-r2 0.2558 and v2 0.2305 to v3 0.2105); precision Claude 0.5790 to 0.5799, Gemini v1-r2 0.5240 and v2 0.5589 to v3 0.6029.
+- v4 ("v3 with dense output", Rule E) handled by its pre-registered cost gate, with these rules fixed before any v4 call:
+  - A `--limit 3` gate smoke on both models.
+  - Gate applied per model: both options fit, v4 for both; only Gemini-only fits, v4 for Gemini and Claude stays on v2; neither fits, no v4. Reason: Gemini's v4 against its incumbent v3 changes one variable (dense output); Claude's v4 against v2 changes two (examples and dense output), and Claude's v4 would also be compared against v3 as a secondary.
+  - A model whose smoke fails is excluded (schema rejected; fewer than 3 smoke records; output above 6,000 tokens or latency above 90 s on any call; any `retry_errors` entry starting `connection:`, `408` or `504`; a segment unparsed after its retry). Gemini excluded means no v4 for either model; Claude excluded leaves Gemini-only at most.
+  - Above $100 and under $150: decided when the gate prints, before any full v4 run. If the combined option is declined and Gemini-only is under $100, fall back to Gemini-only; if Gemini-only is also above $100 and declined, the Rule E fallback applies (removes v4).
+  - Dense health is descriptive only (degenerate-call share, zero-confidence share, mean labels at or above 0.5 per segment), with no held-out invalidation rule, because no label-free signal separates an obvious clause scored 0 from a window with no clause when every label is scored.
+  - Alternatives considered: skip v4 and freeze now; an all-or-nothing gate; an invalidation rule on degenerate dense calls; a Claude-only branch. Rejected because they depart from the pre-registered roadmap, lose the one-variable Gemini test, or would raise false alarms on legitimately empty windows.
+
+### Numbers measured
+All on the 23 iteration contracts (3,354 segments), threshold 0.5.
+- Claude v3: micro-F1 0.6166, macro-F1 0.5829, macro-AP sparse 0.5897, none FP 0.0607, parse failures 0.0. 345 calls, 0 parse retries, 0 transport retries; tokens cache_creation 83,032, cache_read 2,857,691, input 1,738,961, output 43,577; cost $4.6928 ($1.3992 per 1,000 segments); latency per call median 2,019 ms, p95 3,378 ms. Record window 2026-09-26T16:55:26 (smoke) to 20:13:44 UTC. Health 0 of 345 below floor; empty-set share 0.7826; mean labels listed 0.2743. Checkpoint before: spent $11.46, projected $9.39 (v3 ledger mean $0.0265 per call, inflated by the smoke's cache writes).
+  - Command: `python -m src.llm.run iterate --model claude --prompt v3 --batch-size 10 --max-cost 7 > data/processed/llm_iter_claude_v3_n10.txt 2>&1 &`
+  - Files: `data/processed/llm_iter_claude_v3_n10.txt`, `data/predictions/iteration/claude_v3_n10.parquet`
+- Gemini v3: micro-F1 0.6444, macro-F1 0.6118, macro-AP sparse 0.5921, none FP 0.0561, parse failures 0.0. 345 calls, 0 parse retries, 181 transport retries; tokens prompt 1,745,430, cached 387,100, candidates 47,967, thoughts 0; cost $1.2277 ($0.3660 per 1,000 segments); latency per call median 3,475 ms, p95 11,223 ms. Record window 2026-09-26T16:55:35 (smoke) to 20:20:37 UTC. Health 0 of 345 below floor; empty-set share 0.8342; mean labels listed 0.2105. Checkpoint before: projected $1.54.
+  - Command: `python -m src.llm.run iterate --model gemini --prompt v3 --batch-size 10 --max-cost 3 > data/processed/llm_iter_gemini_v3_n10.txt 2>&1 &`
+  - Files: `data/processed/llm_iter_gemini_v3_n10.txt`, `data/predictions/iteration/gemini_v3_n10.parquet`
+- Casebook (not a selection criterion): Claude v3 Most Favored Nation 4 of 4, License Grant misread as Exclusivity 4 of 5, Anti-Assignment misread as Change Of Control 1 of 5; Gemini v3 4 of 4, 4 of 5, 3 of 5.
+- Comparisons: commands `python -m src.llm.run compare --model claude --a v3:10 --b v2:10`, `--model gemini --a v3:10 --b v1-r2:10`, `--model gemini --a v3:10 --b v2:10`; files in `data/eval/llm_selection/`.
+- Breakdowns: Claude v3 micro precision 0.5799, recall 0.6582; Gemini v3 0.6029, 0.6920 (baseline 0.6362, 0.6013). Change Of Control (19 gold): Claude v3 24 predicted, precision 0.417, recall 0.526; Gemini v3 18 predicted, 0.556, 0.526. Gemini Third Party Beneficiary 8 predicted, 0 correct.
+  - Commands: `python -m src.llm.run breakdown --model {claude,gemini} --prompt v3 | tee data/processed/llm_breakdown_{claude,gemini}_v3.txt`
+- Yardstick (paired, against the baseline at tuned thresholds 0.6182): Claude v1-r2 -0.0376 [-0.0666, +0.0021]; Gemini v1-r2 -0.0219 [-0.0527, +0.0241]; v1 figures unchanged. Incumbent runs are not yet in this file (the glob change above adds them on the next run, written to a new file).
+  - Command: `python -m src.llm.run yardstick | tee data/processed/llm_yardstick.txt`
+
+### Problems hit and how we solved them
+- The first launch of the Step 3aa plan review read the previous plan because the plan file had not been saved; that review was stopped and restarted on the saved file.
+
+### Surprises in the data or results
+- Retrieved examples lowered the number of labels each model listed rather than raising it, the opposite of the recorded priming risk.
+
+### Resume-worthy
+Showed that retrieved training examples raised Gemini's micro-F1 by 0.048 [+0.014, +0.080] over a same-period incumbent while cutting over-labeling, and kept a pre-registered cost gate in front of the next, more expensive prompt variant.
+
+---
+
+## 2026-09-26: Step 3ab, v4 code in place; code review and pre-smoke verification
+
+### What we built
+- v4 as approved in 3aa: `V4_INSTRUCTIONS` (v3 with four checked edits), the dense schema through `schema_for`, the dense parser (exactly the 33 labels, no floor), dense-aware scoring at every parse site (`_merged_scores`, `_record`, `_run_one`, `record_scores`), `_raw_entries` refusing dense records, `scores_note`, descriptive `dense_health`, `heldout_health` (no invalidation for dense), and `gate-v4` with `smoke_check`, `dense_call_cost`, `n1_call_cost`, `project` and `gate_branch`.
+- `src/config.py`: `LLM_V4_STOP_OUTPUT_TOKENS = 6000`, `LLM_V4_STOP_LATENCY_S = 90.0`.
+- `scripts/review.sh`: reviewer pinned to `gpt-5.6-sol-high` (Cursor plan upgraded); the review prompt ends with an optional "Simplification" section (at most 3 items; nothing touching results or cache keys without a test proving identical output; never blocking).
+- Tests: 16 new (v4 prompt edits, dense schema and unchanged v1 to v3 hashes, dense parser, stub v4 run, dense health, the heldout dense notes, scores notes, timeout strings, smoke stop condition, gate arithmetic and branches, reference completeness, AP naming).
+
+### Decisions made
+- Code review of the v4 diff (`scripts/review.sh HEAD src tests`, gpt-5.6-sol-high), three findings, each confirmed against the code and fixed:
+  1. The three v4 smoke calls were counted in spend and again in the iteration projection: the projection now charges `iteration_calls_left(v4_smoke)` (357 minus smoke calls).
+  2. `gate-v4` did not check that its reference runs were complete (a partial cache biased means, a missing smoke match zeroed the input difference, an empty cache divided by zero): `_complete` now stops the gate unless the v3 iteration run (345), the v3 smoke (3) and Claude's v2 iteration run (345) are fully cached.
+  3. `score()` labelled every AP as "sparse lower bound", false for dense output and for the baseline: `score(..., sparse=)` names it `macro_ap` for dense scores; the yardstick passes `sparse=False` for the baseline.
+  - Re-review: "No correctness findings." Two optional simplifications deferred to the next change to `gate-v4`, since neither alters a result: the 357-call total is defined twice (`V4_ITERATION_CALLS` and `project()`'s default); the v3 smoke records are loaded separately from the full v3 cache.
+
+### Numbers measured
+- Tests: 130 passed. Command: `pytest tests -v`
+- Guarded rebuilds from cache (`--max-cost 0.01`, no paid calls; spend $17.52 before and after):
+  - Claude v2: micro-F1 0.6086, macro-F1 0.5841, `new_calls_this_run: 0`; identical to the logged file (no diff).
+    - Command: `python -m src.llm.run iterate --model claude --prompt v2 --batch-size 10 --max-cost 0.01 | tee data/processed/llm_rebuild_claude_v2_n10.txt`
+  - Gemini v3: micro-F1 0.6444, macro-F1 0.6118; the only difference from the logged file is `new_calls_this_run` (354 in the original run, 0 from cache), as expected.
+    - Command: `python -m src.llm.run iterate --model gemini --prompt v3 --batch-size 10 --max-cost 0.01 | tee data/processed/llm_rebuild_gemini_v3_n10.txt`
+
+### Problems hit and how we solved them
+- See the three review findings above.
+
+### Surprises in the data or results
+None.
+
+### Resume-worthy
+none

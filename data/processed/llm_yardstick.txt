@@ -17,12 +17,28 @@ Baseline threshold 0.5:
   none_fp_rate_parsed: 0.028
   parse_failure_rate: 0.0
 
+claude v1-r2 N=10 minus baseline (tuned), paired unstratified bootstrap:
+  a: 0.5806
+  b: 0.6182
+  difference: -0.0376
+  ci_low: -0.0666
+  ci_high: 0.0021
+  n_resamples: 2000
+
 claude v1 N=10 minus baseline (tuned), paired unstratified bootstrap:
   a: 0.4062
   b: 0.6182
   difference: -0.2121
   ci_low: -0.2634
   ci_high: -0.1616
+  n_resamples: 2000
+
+gemini v1-r2 N=10 minus baseline (tuned), paired unstratified bootstrap:
+  a: 0.5964
+  b: 0.6182
+  difference: -0.0219
+  ci_low: -0.0527
+  ci_high: 0.0241
   n_resamples: 2000
 
 gemini v1 N=10 minus baseline (tuned), paired unstratified bootstrap:
