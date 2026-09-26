@@ -33,4 +33,11 @@ Look for:
 2. Violations of the project rules in CLAUDE.md, especially: every source of randomness uses the seed in src/config.py; the test set is touched once per model; tuning, prompt choices and thresholds use validation data only; no leakage between train, validation, test and the shift set; no invented numbers in docs; no em dashes; comments only where the reason is not obvious.
 3. New behaviour without a test.
 
-Do not report style preferences or restate what the code does. If there is nothing to report, answer exactly: No findings."
+Do not report style preferences or restate what the code does. If there are no correctness findings, write exactly: No findings.
+
+After all correctness findings, add a final section titled \"Simplification (optional)\":
+- At most 3 items: redundant code, duplicated logic, or functions that can be made shorter or clearer without changing behavior.
+- Never suggest changes to anything that affects results or cache keys (prompt text and prompt construction, request payloads, schemas, splits, seeds, bootstrap, metrics, thresholds) unless the change comes with a test proving identical output.
+- Skip pure speed optimizations unless the code is in a hot path that matters for run time.
+- If nothing is worth changing, write: none.
+These items never block an approval."
