@@ -2,6 +2,9 @@
 # Read-only Cursor review of a diff against the project rules.
 # Usage: scripts/review.sh [BASE] [PATH...]   (BASE defaults to HEAD: uncommitted changes)
 set -euo pipefail
+
+# Pinned to a non-Claude model so code review adds a perspective the Claude builder and plan reviewer lack.
+REVIEW_MODEL="gpt-5.6-sol-high"
 cd "$(git rev-parse --show-toplevel)"
 base="${1:-HEAD}"
 [ $# -gt 0 ] && shift
@@ -17,9 +20,9 @@ if [ ! -s "$diff_file" ]; then
   echo "Nothing to review against $base."
   exit 0
 fi
-echo "Reviewing $(grep -c '^diff --git' "$diff_file") changed files against $base ..."
+echo "Reviewing $(grep -c '^diff --git' "$diff_file") changed files against $base with $REVIEW_MODEL ..."
 
-cursor-agent -p --mode ask --trust --output-format text "You are reviewing a change to a contract clause classifier built on the CUAD dataset. This is a review only: do not edit any file and do not run commands that change anything.
+cursor-agent -p --mode ask --trust --model "$REVIEW_MODEL" --output-format text "You are reviewing a change to a contract clause classifier built on the CUAD dataset. This is a review only: do not edit any file and do not run commands that change anything.
 
 Read the diff at $diff_file, then read CLAUDE.md and whichever files the diff touches.
 
