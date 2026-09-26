@@ -29,6 +29,7 @@ Contract clause classifier on the CUAD dataset (commercial contracts labeled by 
 
 ## Logging
 - After every completed step, append a dated entry to `BUILD_LOG.md` using the template at the top of that file.
+- `BUILD_LOG.md` entries describe decisions, numbers and problems without recording who made, wrote, placed or approved anything.
 - Ambiguous labeling cases go in `docs/labeling_schema.md`.
 - Final result tables go in `docs/results.md`, using only pasted figures.
 

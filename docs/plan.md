@@ -26,7 +26,7 @@ Numbering follows the user's prompts (BUILD_LOG uses the same numbers).
 
 1. **Data (complete).** Load CUAD, choose the label set, hold out a shift set, split 60/20/20 by contract, stratified by type; segment text with the standalone `segment_text()` and label segments from spans (thresholds frozen from train-contract stats). The segment dataset (Step 1g) completes this step.
 2. **Baseline (complete).** TF-IDF plus one-vs-rest logistic regression; per-class thresholds (Rule B) tuned on validation; two-round validation-only search; one-time test and shift run.
-3. **LLM classifiers.** Claude and Gemini, with prompts iterated on validation only, a response cache in `data/llm_cache/`, and rate limiting. Error analysis feeding prompt design uses validation only.
+3. **LLM classifiers (in progress).** `claude-sonnet-5` and `gemini-3.8-flash`, prompts iterated on validation only, a response cache in `data/llm_cache/`, a persistent spend ledger with a $100 cap, and rate limiting. Design and rules: BUILD_LOG Step 3a.
 4. **Evaluation.**
    - 4a (complete): model-agnostic harness `src/evaluate.py`; contract-level bootstrap CIs; paired comparison function (self-comparison exactly zero); baseline calibration on test; baseline error analysis on validation.
    - 4b: pairwise model comparisons once the LLM prediction files exist; calibration analysis across models.
@@ -41,6 +41,16 @@ Numbering follows the user's prompts (BUILD_LOG uses the same numbers).
      - Known item: check segment length in tokens against the model's input limit before training. Segments reach 1,500 characters and more (max_chars is not a hard cap). Report how many are truncated, or use a sliding window.
    - An open model served on Fireworks.
    - Both use the shared prediction format; dependencies are added to `pyproject.toml` and the lock file is regenerated.
+7. **Service.** FastAPI, accepting text or PDF.
+   - PDF path: extract the text layer first, fall back to OCR, run `segment_text()`, then classify.
+   - CUAD ships each contract as both PDF and gold text, so text-extraction and OCR quality can be measured against the gold text and reported as its own source of degradation.
+8. **Deployment.** Docker image, deployed to GKE and Vercel from the same code.
+   - All config comes from environment variables: API keys, model artifact location, enabled models, rate limits.
+   - Constraint to verify when we get there: Vercel's Python functions have bundle size limits, so the PyTorch transformer may be GKE-only while Vercel serves the baseline and API-backed models. Record the outcome in BUILD_LOG.
+
+## Limitations
+- **Possible training-data contamination (LLMs).** CUAD and its labels have been public since 2021, so Claude and Gemini may have seen them in training. Their scores may therefore be optimistic relative to unseen contracts. The shift set does not avoid this: Franchise and Transportation contracts are part of the same public release. This caveat goes next to every LLM score in the results.
+- **No sampling control on current LLMs.** Claude Sonnet 5 rejects temperature; Gemini 3 guidance is to keep the default temperature of 1.0. Run-to-run variation is measured by the Step 3 repeat check and reported, not assumed away.
 
 ## Pre-registered evaluation rules (fixed 2026-09-23, before any model output existed)
 - **Rule A, per-label test reporting.**
@@ -54,12 +64,25 @@ Numbering follows the user's prompts (BUILD_LOG uses the same numbers).
   - Every model implements this identically.
 - **Rule C, shift reporting.** Per-label shift results only for labels with at least `PER_LABEL_MIN_SHIFT_CONTRACTS` (10) shift contracts (`SHIFT_MEASURABLE_LABELS`).
 - **Bootstrap.** All bootstrap CIs resample whole contracts, using `config.SEED`.
-7. **Service.** FastAPI, accepting text or PDF.
-   - PDF path: extract the text layer first, fall back to OCR, run `segment_text()`, then classify.
-   - CUAD ships each contract as both PDF and gold text, so text-extraction and OCR quality can be measured against the gold text and reported as its own source of degradation.
-8. **Deployment.** Docker image, deployed to GKE and Vercel from the same code.
-   - All config comes from environment variables: API keys, model artifact location, enabled models, rate limits.
-   - Constraint to verify when we get there: Vercel's Python functions have bundle size limits, so the PyTorch transformer may be GKE-only while Vercel serves the baseline and API-backed models. Record the outcome in BUILD_LOG.
+- **Rule D, LLM scores (fixed 2026-09-24, before any LLM output existed).**
+  - LLMs return sparse scores: every label with confidence of at least 0.1, with unlisted labels scored 0.
+  - The primary cross-model metric is therefore F1 under Rule B thresholds: Rule A labels on test, Rule C labels on shift.
+  - LLM AP is reported but flagged "sparse scores, lower bound, not comparable to the baseline's AP".
+  - Parse failures count as empty predictions for F1. The none false-positive rate uses successfully parsed segments only. The parse-failure rate is reported as its own line.
+- **Rule E, LLM iteration sample and budget fallback (fixed 2026-09-24, before any API call).**
+  - Iteration sample: whole validation contracts in the seeded round-robin order, taken until the sample has at least `LLM_ITERATION_MIN_SEGMENTS` (1,500) segments **and** at least one contract from every validation type. Replaces the segment floor alone, which stopped at 9 contracts covering 9 of 23 types.
+  - Budget (amended 2026-09-24, after the smoke test and before any labeled output): hard cap $150 (`LLM_BUDGET_USD`), enforced from the ledger. Soft checkpoint at $100 (`LLM_SOFT_CHECKPOINT_USD`): before each paid command, if the ledger total plus that command's projected cost would pass $100, the command stops before any call, prints spend so far and the projection, and runs only after the user approves (`--past-checkpoint`).
+  - Budget fallback: applies only if the user declines to continue past the $100 checkpoint. Then these are applied in order, re-projecting after each, until the remaining plan fits under $100:
+    1. Maximum prompt versions per model goes from 5 to 3.
+    2. The N=1 batch-size check runs on a seeded half of the iteration contracts, rounded up (whole contracts, unstratified), and the N=10 side of that comparison is restricted to the same contracts so the pair stays matched. Logged as a reduced-power check.
+    3. Only then, the contract sample of test: whole contracts, stratified by type, saved to `data/processed/llm_eval_contracts.csv`, with every model evaluated on those contracts.
+  - Prompt versions (fixed 2026-09-24, after v1 and before any later version ran), each through the adoption rule against the incumbent:
+    - v2: per-call output schema, `segments` an object with one required key per target id (S1..Sn) and `additionalProperties: false`; instructions to list only labels at or above 0.1; a Change Of Control note.
+    - v3: v2 plus retrieved few-shot examples, the most similar train segments to each window by the frozen baseline TF-IDF vectorizer, with their gold labels. Train only.
+    - v4: v3 with dense output (a confidence for all 33 labels per segment).
+    - Each version's cost is estimated before it runs; the $100 checkpoint applies.
+  - v4 cost gate: before the v4 iteration run, a `--limit 3` smoke test measures its tokens and the remaining plan is re-projected with validation, test and shift run in v4's dense format. If that total cannot fit under the $150 hard cap, v4 is not run at all (rather than run with a result that could not be adopted). The decision is logged either way.
+  - Batch-size outcome (fixed 2026-09-24, before any N=1 output): validation, test and shift run at N=10 whatever the N=1 check shows, because running them at N=1 would cost roughly $250 more by the offline estimate's per-segment rates. If N=1 beats N=10 on the iteration sample (paired unstratified bootstrap, 95% interval excluding zero), that gain is reported as a measured accuracy/cost trade-off on validation, not acted on.
 
 ## Design rules that follow from later steps
 - `segment_text(text)` takes plain text and returns character-offset segments, with no dependency on CUAD's span format.
