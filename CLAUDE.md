@@ -8,6 +8,7 @@ Contract clause classifier on the CUAD dataset (commercial contracts labeled by 
 - Plan mode first. Show the plan, then wait for approval before editing.
 - Claude handles mechanical work directly: scaffolding, config, boilerplate, file moves, docs.
 - For core logic (data splitting, feature pipeline, model training, prompts, metrics, bootstrap, drift checks, rate limiting), Claude shows the code with a short explanation. The user decides whether to place it themselves or have Claude place it.
+- After each plan review, the review text is saved to `docs/reviews/<YYYY-MM-DD>-<step>.md`. The next plan must address every required change from the latest review.
 
 ### Execution
 - Never run tests, training, or evaluation scripts. Give the exact command; the user runs it and pastes the output back.
