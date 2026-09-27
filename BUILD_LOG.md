@@ -2174,3 +2174,49 @@ None.
 
 ### Resume-worthy
 - Measured LLM run-to-run variation directly: three runs of the frozen prompts on the same windows gave 97.6% exact label-set agreement for Claude (no sampling control available) and 100% for Gemini with a fixed seed.
+
+## 2026-09-27: Step 3ah, one-time held-out run and evaluation of Claude v2 and Gemini v3 (Step 3 complete)
+
+### What we built
+Nothing new. The held-out run used the frozen prompts and Rule B thresholds committed in 3ag; `src/evaluate.py` unchanged.
+
+### Decisions made
+None. Everything was frozen before this run. Test and shift were each run once per model; neither held-out marker was forced.
+
+### Numbers measured
+- Held-out run (N=10, frozen prompts, Rule B thresholds):
+  - Claude v2, test: 985 calls, 0 parse retries, 0 transport retries, 1 thinking block; cost $6.4095 ($0.6835 per 1,000 segments); latency per call median 2,017 ms, p95 3,445 ms. Health 1 of 985 below floor (0.10%), ok; parse-failed segments 0. Record window 2026-09-27T09:52:47 to 10:12:26 UTC.
+  - Claude v2, shift: 470 calls, 0 retries, 4 thinking blocks; cost $3.2500 ($0.7090 per 1,000); latency median 2,171 ms, p95 3,860 ms. Health 1 of 470 below floor (0.21%), ok; parse-failed segments 0. Window 10:12:28 to 10:21:51 UTC.
+  - Gemini v3, test: 985 calls, 0 parse retries, 1 transport retry; cost $3.0320 ($0.3233 per 1,000); latency median 1,242 ms, p95 1,844 ms. Health 0 below floor, ok; parse-failed segments 0. Window 09:54:40 to 10:14:22 UTC.
+  - Gemini v3, shift: 470 calls, 1 parse retry, 0 transport retries; cost $1.4930 ($0.3257 per 1,000); latency median 1,394 ms, p95 3,429 ms. Health 0 below floor, ok; 2 unreadable attempts; parse-failed segments 10 (one call, below). Window 10:14:24 to 10:23:49 UTC.
+  - Checkpoint projections: Claude $9.50, Gemini $4.77; spend before $39.52, about $53.70 after.
+  - Commands: `python -m src.llm.run heldout --model claude --max-cost 15`, `--model gemini --max-cost 8`; files `data/processed/llm_heldout_{claude,gemini}.txt`, `data/predictions/{claude,gemini}_{test,shift}.parquet`, `models/{claude,gemini}/heldout_run.json`.
+- Evaluation (2,000 contract-level bootstrap resamples, stratified by type, percentile 95% intervals, seed 42; sparse scores, so macro-AP is a lower bound):
+  - Claude v2, test, Rule A (26 labels): macro-F1 0.6754 [0.6476, 0.7019], micro-F1 0.7156 [0.6920, 0.7404], macro-AP 0.6489 [0.6213, 0.6870], none FP 0.0304 [0.0261, 0.0352], parse failures 0.
+  - Claude v2, test, all 33: macro-F1 0.6440 [0.6080, 0.6746], micro-F1 0.7060 [0.6837, 0.7306].
+  - Claude v2, shift, Rule C (17): macro-F1 0.5246 [0.4749, 0.5853], micro-F1 0.5688 [0.5254, 0.6224], none FP 0.0521 [0.0392, 0.0649]. Franchise Rule C macro-F1 0.4988 [0.4658, 0.5693]; Transportation Rule C (16) 0.4744 [0.4122, 0.6025].
+  - Claude v2, test minus shift, Rule C: macro-F1 +0.1787 [+0.1109, +0.2366], micro-F1 +0.1666 [+0.1081, +0.2172].
+  - Gemini v3, test, Rule A: macro-F1 0.7237 [0.6997, 0.7455], micro-F1 0.7506 [0.7273, 0.7757], macro-AP 0.6840 [0.6590, 0.7196], none FP 0.0315 [0.0260, 0.0380], parse failures 0.
+  - Gemini v3, test, all 33: macro-F1 0.6804 [0.6470, 0.7056], micro-F1 0.7412 [0.7181, 0.7667].
+  - Gemini v3, shift, Rule C: macro-F1 0.5753 [0.5349, 0.6278], micro-F1 0.5843 [0.5453, 0.6364], none FP 0.0497 [0.0379, 0.0613], parse-failure rate 0.0022 [0.0000, 0.0073]. Franchise Rule C macro-F1 0.5642 [0.5371, 0.6293]; Transportation Rule C 0.5178 [0.4313, 0.6453].
+  - Gemini v3, test minus shift, Rule C: macro-F1 +0.1580 [+0.1006, +0.2035], micro-F1 +0.1775 [+0.1213, +0.2225].
+  - Weakest main-table test labels: Volume Restriction (Claude F1 0.118, Gemini 0.065), Minimum Commitment (0.370, 0.531), Post-Termination Services (0.404, 0.453). Strongest: Governing Law (0.983, 0.989), Renewal Term (0.944, 0.958), Insurance (0.903, 0.907).
+  - Largest shift failures (Rule C): Volume Restriction (Claude 0.062, Gemini 0.000), Minimum Commitment (0.257, 0.342), Post-Termination Services (0.190, 0.371).
+  - Calibration on test: pooled ECE Claude 0.0021 [0.0018, 0.0024], Gemini 0.0022 [0.0019, 0.0025]. In the top bins Gemini overstates: 0.8 to 0.9 has mean predicted 0.8365 against observed 0.4713 (401 pairs), 0.7 to 0.8 has 0.7385 against 0.3248; Claude's corresponding bins are 0.8314 against 0.8137 and 0.7029 against 0.6310.
+  - Commands: `python -m src.evaluate model claude | tee data/processed/eval_claude.txt` and the Gemini equivalent; files `data/eval/{claude,gemini}.json`.
+- For reference only, the baseline's held-out point estimates (Step 2, BUILD_LOG above): test Rule A macro-F1 0.6311, micro-F1 0.6659; shift Rule C macro-F1 0.4740, micro-F1 0.5027. Paired comparisons with intervals are Step 4b; no difference between models is claimed here.
+
+### Problems hit and how we solved them
+- Gemini refused one shift window: contract 130, window 5 (segments 130_50 to 130_59). Both attempts returned finish reason `refusal` with 0 output tokens in under 200 ms (read-only check of the cached record). Under the rules fixed in 3a and Rule D, a refusal is an invalid response; after its one retry the 10 segments are empty predictions with `parse_failure=True`, counted as misses for F1, excluded from the none false-positive rate, and reported in the parse-failure rate (shift 0.0022, Transportation 0.0053).
+
+### Surprises in the data or results
+- Pooled ECE is near zero for both models because about 99% of segment-label pairs sit in the [0, 0.1) bin (Claude 306,360 and Gemini 307,333 of 309,474) (sparse output, unlisted labels at 0). It hides Gemini's overconfidence above 0.7, visible in the reliability table; Gemini's Rule B thresholds (19 of 28 above 0.5, 3ag) are consistent with it.
+- Both LLMs lose about 0.16 to 0.18 F1 from test to shift (Rule C), with intervals excluding zero.
+
+### Caveats
+- Possible training-data contamination (docs/plan.md Limitations): CUAD has been public since 2021, so both models may have seen its contracts and labels; the shift set is part of the same release. This caveat goes next to every LLM score.
+- Macro-AP is a sparse-score lower bound and is not comparable to the baseline's AP (Rule D).
+- Test and shift were run on 2026-09-27; Rule B thresholds were tuned on validation records spanning 2026-09-25 to 2026-09-27.
+
+### Resume-worthy
+- Evaluated two frozen LLM classifiers (Claude Sonnet 5, Gemini 3.8 Flash) once on held-out and distribution-shifted contracts with contract-level bootstrap intervals: Gemini reached test Rule A micro-F1 0.7506 [0.7273, 0.7757] at about $0.32 per 1,000 segments, and both models lost 0.16 to 0.18 F1 on unseen contract types.

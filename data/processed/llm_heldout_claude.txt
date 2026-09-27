@@ -1,0 +1,34 @@
+Checkpoint: spent $39.52 so far; this command projects $9.50 (v2 ledger mean $0.0065/call at N=10); total $49.02; soft checkpoint $100.00, hard cap $150.00
+test: 9378 segments written to claude_test.parquet; parse failures 0; run health ok
+  usage:
+    calls: 985
+    new_calls_this_run: 985
+    attempts: 985
+    parse_retries: 0
+    transport_retries: 0
+    tokens: {'cache_creation_input_tokens': 87336, 'cache_read_input_tokens': 8121560, 'input_tokens': 1614147, 'output_tokens': 133853, 'thinking_blocks': 1}
+    cost_usd_all_calls: 6.4095
+    cost_per_1000_segments: 0.6835
+    latency_per_call_ms: {'median': 2016.9452080735937, 'p95': 3444.6086915908377}
+    latency_per_segment_ms_median: 211.8459
+    latency_label: 10 targets per call, call-amortized per segment
+    served_models: ['claude-sonnet-5']
+    record_window_utc: ['2026-09-27T09:52:47+00:00', '2026-09-27T10:12:26+00:00']
+    run_health: {'calls': 985, 'below_floor_calls': 1, 'below_floor_share': 0.0010152284263959391, 'unreadable_attempts': 0, 'empty_set_share': 0.7599701428876093, 'mean_labels_listed': 0.33205374280230326, 'parse_failed_segments': 0}
+shift: 4584 segments written to claude_shift.parquet; parse failures 0; run health ok
+  usage:
+    calls: 470
+    new_calls_this_run: 470
+    attempts: 470
+    parse_retries: 0
+    transport_retries: 0
+    tokens: {'cache_creation_input_tokens': 32200, 'cache_read_input_tokens': 3947208, 'input_tokens': 850308, 'output_tokens': 67940, 'thinking_blocks': 4}
+    cost_usd_all_calls: 3.25
+    cost_per_1000_segments: 0.709
+    latency_per_call_ms: {'median': 2170.774916477967, 'p95': 3860.2296213677573}
+    latency_per_segment_ms_median: 222.5707
+    latency_label: 10 targets per call, call-amortized per segment
+    served_models: ['claude-sonnet-5']
+    record_window_utc: ['2026-09-27T10:12:28+00:00', '2026-09-27T10:21:51+00:00']
+    run_health: {'calls': 470, 'below_floor_calls': 1, 'below_floor_share': 0.002127659574468085, 'unreadable_attempts': 0, 'empty_set_share': 0.7268760907504364, 'mean_labels_listed': 0.35580279232111695, 'parse_failed_segments': 0}
+Done. Score with: python -m src.evaluate model claude

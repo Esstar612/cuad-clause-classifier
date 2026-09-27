@@ -1,0 +1,34 @@
+Checkpoint: spent $39.52 so far; this command projects $4.77 (v3 ledger mean $0.0033/call at N=10); total $44.29; soft checkpoint $100.00, hard cap $150.00
+test: 9378 segments written to gemini_test.parquet; parse failures 0; run health ok
+  usage:
+    calls: 985
+    new_calls_this_run: 985
+    attempts: 985
+    parse_retries: 0
+    transport_retries: 1
+    tokens: {'cached_content_token_count': 1594123, 'candidates_token_count': 138971, 'prompt_token_count': 4782502, 'thoughts_token_count': 0, 'total_token_count': 4921473}
+    cost_usd_all_calls: 3.032
+    cost_per_1000_segments: 0.3233
+    latency_per_call_ms: {'median': 1241.5863749338314, 'p95': 1844.164941390045}
+    latency_per_segment_ms_median: 130.4076
+    latency_label: 10 targets per call, call-amortized per segment
+    served_models: ['gemini-3.8-flash']
+    record_window_utc: ['2026-09-27T09:54:40+00:00', '2026-09-27T10:14:22+00:00']
+    run_health: {'calls': 985, 'below_floor_calls': 0, 'below_floor_share': 0.0, 'unreadable_attempts': 0, 'empty_set_share': 0.828001706120708, 'mean_labels_listed': 0.22830027724461505, 'parse_failed_segments': 0}
+shift: 4584 segments written to gemini_shift.parquet; parse failures 10; run health ok
+  usage:
+    calls: 470
+    new_calls_this_run: 470
+    attempts: 471
+    parse_retries: 1
+    transport_retries: 0
+    tokens: {'cached_content_token_count': 805441, 'candidates_token_count': 70424, 'prompt_token_count': 2363395, 'thoughts_token_count': 0, 'total_token_count': 2433819}
+    cost_usd_all_calls: 1.493
+    cost_per_1000_segments: 0.3257
+    latency_per_call_ms: {'median': 1393.5380004695617, 'p95': 3428.9035149442484}
+    latency_per_segment_ms_median: 142.8802
+    latency_label: 10 targets per call, call-amortized per segment
+    served_models: ['gemini-3.8-flash']
+    record_window_utc: ['2026-09-27T10:14:24+00:00', '2026-09-27T10:23:49+00:00']
+    run_health: {'calls': 470, 'below_floor_calls': 0, 'below_floor_share': 0.0, 'unreadable_attempts': 2, 'empty_set_share': 0.7988631394840402, 'mean_labels_listed': 0.24857892435505027, 'parse_failed_segments': 10}
+Done. Score with: python -m src.evaluate model gemini
