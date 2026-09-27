@@ -1,0 +1,29 @@
+Checkpoint: spent $17.52 so far; this command projects $9.17 (offline estimate (no v2 N=1 history)); total $26.69; soft checkpoint $100.00, hard cap $150.00
+Model claude (claude-sonnet-5), prompt v2, batch size 1
+
+Validation iteration metrics at threshold 0.5:
+  segments: 1467
+  contracts: 12
+  micro_f1: 0.61
+  macro_f1: 0.582
+  macro_ap_sparse_lower_bound: 0.6271
+  none_fp_rate_parsed: 0.1032
+  parse_failure_rate: 0.0
+
+Usage:
+  calls: 1467
+  new_calls_this_run: 1467
+  attempts: 1467
+  parse_retries: 0
+  transport_retries: 27
+  tokens: {'cache_creation_input_tokens': 512080, 'cache_read_input_tokens': 4563740, 'input_tokens': 2488544, 'output_tokens': 35900, 'thinking_blocks': 0}
+  cost_usd_all_calls: 7.529
+  cost_per_1000_segments: 5.1323
+  latency_per_call_ms: {'median': 1393.9447499578819, 'p95': 1937.508528714534}
+  latency_per_segment_ms_median: 1393.9447
+  latency_label: one target per call, full window context
+  served_models: ['claude-sonnet-5']
+  record_window_utc: ['2026-09-27T01:50:38+00:00', '2026-09-27T07:01:17+00:00']
+  run_health: {'calls': 1467, 'below_floor_calls': 0, 'below_floor_share': 0.0, 'unreadable_attempts': 0, 'empty_set_share': 0.7055214723926381, 'mean_labels_listed': 0.3940013633265167, 'parse_failed_segments': 0}
+
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/data/predictions/iteration/claude_v2-n1half_n1.parquet

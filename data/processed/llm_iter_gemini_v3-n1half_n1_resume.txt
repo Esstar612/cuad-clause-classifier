@@ -1,0 +1,29 @@
+Checkpoint: spent $30.75 so far; this command projects $0.00 (v3 ledger mean $0.0039/call at N=1); total $30.75; soft checkpoint $100.00, hard cap $150.00
+Model gemini (gemini-3.8-flash), prompt v3, batch size 1
+
+Validation iteration metrics at threshold 0.5:
+  segments: 1467
+  contracts: 12
+  micro_f1: 0.668
+  macro_f1: 0.6173
+  macro_ap_sparse_lower_bound: 0.5944
+  none_fp_rate_parsed: 0.077
+  parse_failure_rate: 0.0
+
+Usage:
+  calls: 1467
+  new_calls_this_run: 1
+  attempts: 1467
+  parse_retries: 0
+  transport_retries: 599
+  tokens: {'cached_content_token_count': 132374, 'candidates_token_count': 39271, 'prompt_token_count': 7531335, 'thoughts_token_count': 0, 'total_token_count': 7570606}
+  cost_usd_all_calls: 5.7064
+  cost_per_1000_segments: 3.8899
+  latency_per_call_ms: {'median': 2757.4134590104222, 'p95': 9011.27267051489}
+  latency_per_segment_ms_median: 2757.4135
+  latency_label: one target per call, full window context
+  served_models: ['gemini-3.8-flash']
+  record_window_utc: ['2026-09-27T01:54:50+00:00', '2026-09-27T07:41:15+00:00']
+  run_health: {'calls': 1467, 'below_floor_calls': 0, 'below_floor_share': 0.0, 'unreadable_attempts': 0, 'empty_set_share': 0.787321063394683, 'mean_labels_listed': 0.26925698704839807, 'parse_failed_segments': 0}
+
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/data/predictions/iteration/gemini_v3-n1half_n1.parquet

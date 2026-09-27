@@ -1,0 +1,10 @@
+claude: smoke FAIL ['0 of 3 smoke records']
+  max output tokens 0 (stop 6000, max_tokens 8000); max latency 0 ms (stop 90000, timeout 120000); transport retries 0
+  dense output nan tokens per target (v3 13); input difference $0.00000 per call; dense cost $nan per call; projection {'iteration': nan, 'val_test_shift': nan, 'n1_upper_bound': nan, 'repeat': nan, 'total': nan}
+gemini: smoke FAIL ['0 of 3 smoke records']
+  max output tokens 0 (stop 6000, max_tokens 8000); max latency 0 ms (stop 90000, timeout 120000); transport retries 0
+  dense output nan tokens per target (v3 14); input difference $0.00000 per call; dense cost $nan per call; projection {'iteration': nan, 'val_test_shift': nan, 'n1_upper_bound': nan, 'repeat': nan, 'total': nan}
+
+N=1 check sized as an upper bound: 2658 calls (segments of the 12 largest iteration contracts), per model.
+Spent so far $17.52. Combined: $nan. Gemini-only (Claude on v2): $nan. Soft checkpoint $100, hard cap $150.
+Rule E branch: neither: Gemini failed the smoke, so no v4 for either model

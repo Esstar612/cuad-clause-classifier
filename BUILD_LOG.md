@@ -2049,3 +2049,46 @@ None.
 
 ### Resume-worthy
 none
+
+## 2026-09-27: Step 3ae, N=1 batch-size check results (validation only; reported, not acted on)
+
+### What we built
+Nothing new. The N=1 runs used the Step 3ad code (commit 0d02646).
+
+### Decisions made
+- Batch size stays at 10 for the freeze, validation, test and shift, as pre-registered (docs/plan.md:90, 3f). N=1 did not beat N=10 for either model; the point estimates favor N=10, but neither interval excludes zero.
+
+### Numbers measured
+- Claude v2, N=1 against N=10 on the 12 drawn contracts (1,467 segments; unstratified paired contract bootstrap, 2,000 resamples, seed 42, stream "iteration"):
+  - micro-F1: N=1 0.6100, N=10 0.6364, difference -0.0264 [-0.0561, +0.0052]
+  - macro-F1 (reported only): N=1 0.5820, N=10 0.5990, difference -0.0170 [-0.0432, +0.0474]
+  - Command: `python -m src.llm.run compare --model claude --a v2-n1half:1 --b v2:10 --restrict-b-to-a`
+  - File: `data/eval/llm_selection/claude_v2-n1halfn1_vs_v2n10.json`
+- Gemini v3, same design:
+  - micro-F1: N=1 0.6680, N=10 0.6876, difference -0.0197 [-0.0486, +0.0080]
+  - macro-F1 (reported only): N=1 0.6173, N=10 0.6375, difference -0.0203 [-0.0448, +0.0478]
+  - Command: `python -m src.llm.run compare --model gemini --a v3-n1half:1 --b v3:10 --restrict-b-to-a`
+  - File: `data/eval/llm_selection/gemini_v3-n1halfn1_vs_v3n10.json`
+- Claude v2 N=1 run: 1,467 calls, 0 parse retries, 27 transport retries; tokens cache_creation 512,080, cache_read 4,563,740, input 2,488,544, output 35,900, thinking blocks 0; cost $7.529 ($5.1323 per 1,000 segments); latency per call median 1,394 ms, p95 1,938 ms (one target per call, full window context). Record window 2026-09-27T01:50:38 to 07:01:17 UTC. Health 0 of 1,467 below floor; empty-set share 0.7055; mean labels listed 0.3940; parse-failed segments 0. Checkpoint before: spent $17.52, projected $9.17 (offline estimate).
+  - Command: `python -m src.llm.run iterate --model claude --prompt v2 --batch-size 1 --subset n1-half --max-cost 18`
+  - File: `data/processed/llm_iter_claude_v2-n1half_n1.txt`
+- Gemini v3 N=1 run: 1,467 calls, 0 parse retries, 599 transport retries; tokens prompt 7,531,335, cached 132,374, candidates 39,271, thoughts 0; cost $5.7064 ($3.8899 per 1,000 segments); latency per call median 2,757 ms, p95 9,011 ms (one target per call, full window context). Record window 2026-09-27T01:54:50 to 07:41:15 UTC. Health 0 of 1,467 below floor; empty-set share 0.7873; mean labels listed 0.2693; parse-failed segments 0. Checkpoint before the first attempt projected $8.46 (offline estimate); before the resume, spent $30.75.
+  - Command: the Gemini equivalent with `--prompt v3 --max-cost 10`, then the same command again to resume
+  - Files: `data/processed/llm_iter_gemini_v3-n1half_n1.txt` (first attempt), `data/processed/llm_iter_gemini_v3-n1half_n1_resume.txt` (resume and final metrics)
+- For reference, the N=10 iteration runs over all 23 iteration contracts (not restricted to the 12): Claude v2 $0.7289 per 1,000 segments, latency per call median 2,203 ms (227 ms per segment, call-amortized); Gemini v3 $0.366 per 1,000 segments, latency per call median 3,475 ms (357 ms per segment, call-amortized).
+  - Files: `data/processed/llm_iter_claude_v2_n10.txt`, `data/processed/llm_iter_gemini_v3_n10.txt`
+
+### Problems hit and how we solved them
+- Gemini's first N=1 run finished 1,466 of 1,467 calls; `c300_w7_n1_300_79` returned 503 "high demand" on all 8 attempts. The resume sent only that call (`new_calls_this_run: 1`); the other 1,466 came from cache.
+
+### Surprises in the data or results
+- Both models score lower at N=1 than at N=10 on the same windows, with the same context and, for Gemini, the same examples. The intervals include zero, so this is a direction, not a finding. Claude at N=1 lists more labels per segment (0.3940) and has a higher none false-positive rate (0.1032) than its full N=10 iteration run (0.3160 and 0.0594); those N=10 figures cover all 23 contracts, so this is indicative only.
+
+### Caveats
+- Reduced power: 12 contracts.
+- Not contemporaneous: the N=10 runs are from 2026-09-25 (Claude v2) and 2026-09-26 (Gemini v3); the N=1 runs are from 2026-09-27.
+- The contract bootstrap resamples contracts, not reruns, so healthy run-to-run variance is not in the intervals.
+- The N=10 cost and latency figures above cover all 23 iteration contracts, not the 12.
+
+### Resume-worthy
+- Measured the batch-size trade-off on matched windows: one target per call cost about 7 times (Claude) and 11 times (Gemini) as much per segment as ten targets per call, with no accuracy gain.
