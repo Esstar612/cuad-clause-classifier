@@ -26,10 +26,10 @@ Numbering follows the user's prompts (BUILD_LOG uses the same numbers).
 
 1. **Data (complete).** Load CUAD, choose the label set, hold out a shift set, split 60/20/20 by contract, stratified by type; segment text with the standalone `segment_text()` and label segments from spans (thresholds frozen from train-contract stats). The segment dataset (Step 1g) completes this step.
 2. **Baseline (complete).** TF-IDF plus one-vs-rest logistic regression; per-class thresholds (Rule B) tuned on validation; two-round validation-only search; one-time test and shift run.
-3. **LLM classifiers (in progress).** `claude-sonnet-5` and `gemini-3.8-flash`, prompts iterated on validation only, a response cache in `data/llm_cache/`, a persistent spend ledger with a $100 cap, and rate limiting. Design and rules: BUILD_LOG Step 3a.
+3. **LLM classifiers (complete).** `claude-sonnet-5` and `gemini-3.8-flash`, prompts iterated on validation only, a response cache in `data/llm_cache/`, a persistent spend ledger with a $150 hard cap and a $100 soft checkpoint (Rule E, amended 2026-09-24), and rate limiting. Frozen Claude v2 and Gemini v3, one held-out run each (BUILD_LOG 3ag, 3ah). Design and rules: BUILD_LOG Step 3a.
 4. **Evaluation.**
    - 4a (complete): model-agnostic harness `src/evaluate.py`; contract-level bootstrap CIs; paired comparison function (self-comparison exactly zero); baseline calibration on test; baseline error analysis on validation.
-   - 4b: pairwise model comparisons once the LLM prediction files exist; calibration analysis across models.
+   - 4b (complete): pairwise model comparisons (co-primary micro- and macro-F1, Bonferroni family of 12, 10,000 paired resamples); calibration analysis across models; results in `docs/results.md`, generated tables in `data/processed/results_tables.md` (`python -m src.report`).
    - Known item for the calibration analysis: the frozen baseline (version 9692b04f03fb) uses no none downsampling, but class_weight="balanced" inflates positive-class probabilities relative to the real none rate. Step 4a confirmed it on test: in the top bin, mean predicted 0.9753 against observed 0.7439 (`data/eval/baseline.json`).
 5. **Drift monitoring.** Evaluate on the held-out contract-type shift set; define and test drift checks.
    - Shift set: Franchise (15) and Transportation (13), 28 contracts. No model trains or tunes on them.

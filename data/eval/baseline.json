@@ -2,6 +2,7 @@
   "model": "baseline",
   "model_version": "9692b04f03fb",
   "method": "2000 contract-level bootstrap resamples, stratified by contract type, percentile 95% intervals, seed 42",
+  "sparse_scores": false,
   "scopes": {
     "test | Rule A": {
       "n_labels": 26,
@@ -29,6 +30,12 @@
         "point": 0.025468348230684463,
         "ci_low": 0.021788321647418157,
         "ci_high": 0.02958666119902406,
+        "n_resamples": 2000
+      },
+      "parse_failure_rate": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
         "n_resamples": 2000
       }
     },
@@ -59,6 +66,12 @@
         "ci_low": 0.021788321647418157,
         "ci_high": 0.02958666119902406,
         "n_resamples": 2000
+      },
+      "parse_failure_rate": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n_resamples": 2000
       }
     },
     "test | Rule C": {
@@ -87,6 +100,12 @@
         "point": 0.025468348230684463,
         "ci_low": 0.021788321647418157,
         "ci_high": 0.02958666119902406,
+        "n_resamples": 2000
+      },
+      "parse_failure_rate": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
         "n_resamples": 2000
       }
     },
@@ -117,6 +136,12 @@
         "ci_low": 0.025614716370293892,
         "ci_high": 0.04151372509944822,
         "n_resamples": 2000
+      },
+      "parse_failure_rate": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n_resamples": 2000
       }
     },
     "shift | all": {
@@ -145,6 +170,12 @@
         "point": 0.033996474439687736,
         "ci_low": 0.025614716370293892,
         "ci_high": 0.04151372509944822,
+        "n_resamples": 2000
+      },
+      "parse_failure_rate": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
         "n_resamples": 2000
       }
     },
@@ -175,6 +206,12 @@
         "ci_low": 0.03590091017816945,
         "ci_high": 0.05491031917036458,
         "n_resamples": 2000
+      },
+      "parse_failure_rate": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n_resamples": 2000
       }
     },
     "shift:Franchise | all": {
@@ -203,6 +240,12 @@
         "point": 0.04433497536945813,
         "ci_low": 0.03590091017816945,
         "ci_high": 0.05491031917036458,
+        "n_resamples": 2000
+      },
+      "parse_failure_rate": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
         "n_resamples": 2000
       }
     },
@@ -233,6 +276,12 @@
         "ci_low": 0.005801483730382198,
         "ci_high": 0.03516161624124318,
         "n_resamples": 2000
+      },
+      "parse_failure_rate": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
+        "n_resamples": 2000
       }
     },
     "shift:Transportation | all": {
@@ -261,6 +310,12 @@
         "point": 0.020713463751438434,
         "ci_low": 0.005801483730382198,
         "ci_high": 0.03516161624124318,
+        "n_resamples": 2000
+      },
+      "parse_failure_rate": {
+        "point": 0.0,
+        "ci_low": 0.0,
+        "ci_high": 0.0,
         "n_resamples": 2000
       }
     }
@@ -1275,6 +1330,12 @@
       "difference": -0.008528126209003273,
       "ci_low": -0.017117322976893102,
       "ci_high": 0.0007855083109483251,
+      "n_resamples": 2000
+    },
+    "parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
       "n_resamples": 2000
     }
   },

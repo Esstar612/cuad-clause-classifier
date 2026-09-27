@@ -2246,7 +2246,8 @@ Fixed 2026-09-27, before any paired interval was computed. Each model's marginal
 - Paired comparisons use 10,000 resamples, a change to the 4a decision of 2,000 for this use only: at 99.583% each tail holds 0.208% of resamples, about 4 of 2,000 against about 21 of 10,000. Marginal intervals stay at 2,000. A and B share identical resamples (same contracts, stream, seed and count).
 
 ### Numbers measured
-- Tests: to be recorded from pasted output. Command: `pytest tests -v`
+- Tests: 146 passed. Command: `pytest tests -v`
+- `data/eval/baseline.json` regenerated (`python -m src.evaluate model baseline`, printout in `data/processed/eval_baseline_rerun.txt`): the git diff against the 4a file is 61 lines added, 0 removed, so every 4a value is unchanged. The additions are `sparse_scores: false` and `parse_failure_rate` in all 9 scopes and in test minus shift, each 0.0 [0.0, 0.0].
 
 ### Problems hit and how we solved them
 - Code review found twenty issues over seven rounds; sixteen were fixed, two in part, before any compare run: `compare` gave primary rows and claims to any pair, not only the three pre-registered ones; the report's rows carry keys such as `test | Rule A | micro_f1`, whose unescaped `|` split the markdown cells; the report printed the configured family size instead of the one saved in the compare JSON; compare files recorded no model versions, so a stale comparison could be reported beside regenerated model results; the scope tables left out the parse-failure rate (Gemini has parse failures on shift); pairing checked segment ids but not contract, split or true labels; the saved version came from the test file only and was not checked to be uniform; the report took the family size and adjusted level from the first compare file only, labelled every non-baseline macro-AP as sparse without reading the sparse-score flag, and asserted that the lowest calibration bin dominates pooled ECE without deriving it. The same one-file assumption was then fixed where the review had not flagged it: the scope list, method strings and calibration bin names are now checked across all files, and the label count is shown per model. Pairing now also checks segment boundaries, segment-id uniqueness and that every row belongs to the split loaded; the report's interval headings come from the configured level and rendering stops unless every method string states it. `evaluate model` now stops unless the test and shift files share one model version, since the version it records, and the report checks, came from the test file alone.
@@ -2260,3 +2261,42 @@ None.
 
 ### Resume-worthy
 none
+
+## 2026-09-27: Step 4b, pairwise model comparisons and calibration across models (Step 4b complete)
+
+### What we built
+Nothing new. The runs used the code committed in 967d892. `docs/results.md` gained the setup, the LLM validation rows, the three-model test and shift tables, the model comparisons, calibration across models, LLM cost, latency and repeatability, the LLM validation error analysis, and an appendix with every paired difference. Its tables are copied from the generated `data/processed/results_tables.md`. `docs/plan.md` marks Steps 3 and 4b complete and corrects the Step 3 cap to $150 hard, $100 soft checkpoint.
+
+### Decisions made
+None. The comparison rules were fixed in the Step 4b pre-registration entry above, before any paired interval existed.
+
+### Numbers measured
+- Self-check at 10,000 resamples: every difference, 95% bound and adjusted bound exactly 0 (`python -m src.evaluate compare baseline baseline | tee data/processed/eval_compare_self_10k.txt`).
+- Primary comparisons, A minus B: difference [95% CI] [99.583% adjusted CI], claim.
+  - Claude minus baseline, test Rule A: macro-F1 +0.0443 [+0.0148, +0.0767] [+0.0004, +0.0919] Claude higher; micro-F1 +0.0496 [+0.0287, +0.0713] [+0.0180, +0.0819] Claude higher.
+  - Claude minus baseline, shift Rule C: macro-F1 +0.0506 [+0.0010, +0.1003] [-0.0215, +0.1230] none; micro-F1 +0.0661 [+0.0223, +0.1118] [+0.0016, +0.1323] Claude higher.
+  - Gemini minus baseline, test Rule A: macro-F1 +0.0926 [+0.0618, +0.1250] [+0.0466, +0.1432] Gemini higher; micro-F1 +0.0847 [+0.0600, +0.1091] [+0.0484, +0.1208] Gemini higher.
+  - Gemini minus baseline, shift Rule C: macro-F1 +0.1013 [+0.0558, +0.1527] [+0.0365, +0.1736] Gemini higher; micro-F1 +0.0817 [+0.0373, +0.1267] [+0.0173, +0.1460] Gemini higher.
+  - Gemini minus Claude, test Rule A: macro-F1 +0.0483 [+0.0305, +0.0655] [+0.0218, +0.0753] Gemini higher; micro-F1 +0.0350 [+0.0202, +0.0498] [+0.0140, +0.0571] Gemini higher.
+  - Gemini minus Claude, shift Rule C: macro-F1 +0.0508 [+0.0184, +0.0838] [+0.0018, +0.0966] Gemini higher; micro-F1 +0.0155 [-0.0101, +0.0439] [-0.0203, +0.0577] none.
+  - 10 of 12 claimed. Verdicts: on test Rule A, Claude over the baseline, Gemini over the baseline and Gemini over Claude on both co-primary metrics; on shift Rule C, Gemini over the baseline on both, and the other two pairs per metric (Claude over the baseline on micro-F1 only, Gemini over Claude on macro-F1 only).
+  - Commands: `python -m src.evaluate compare claude baseline`, `compare gemini baseline`, `compare gemini claude`; files `data/processed/eval_compare_{claude_baseline,gemini_baseline,gemini_claude}.txt`, `data/eval/compare_*.json`.
+- Notable secondary rows (95%, no claims): both LLMs have a higher none false-positive rate than the baseline on shift (Claude minus baseline +0.0181 [+0.0059, +0.0299], Gemini minus baseline +0.0157 [+0.0072, +0.0247]); Claude minus baseline on Transportation Rule C includes zero on both F1 metrics (macro +0.0453 [-0.0185, +0.1156], micro +0.0913 [-0.0055, +0.1750]).
+- Calibration on test (`python -m src.report | tee data/processed/results_tables.md`): share of pairs in the [0.0, 0.1) bin 99.17% (baseline), 98.99% (Claude), 99.31% (Gemini). Gemini [0.7, 0.8) 0.7385 predicted against 0.3248 observed, [0.8, 0.9) 0.8365 against 0.4713; Claude [0.8, 0.9) 0.8314 against 0.8137, [0.9, 1.0] 0.9139 against 0.9513, [0.2, 0.3) 0.2000 against 0.0329; baseline [0.9, 1.0] 0.9753 against 0.7439.
+- LLM validation error analysis (`data/eval/{claude,gemini}.json`): false negatives on segments with no label listed at all, 437 of 599 (Claude) and 358 of 514 (Gemini).
+
+### Problems hit and how we solved them
+None in the runs. The report and compare code went through seven code-review rounds before the commit (pre-registration entry above).
+
+### Surprises in the data or results
+- Claude's reliability-bin means fall on exact tenths (0.2000, 0.4000, 0.5000, 0.6000), consistent with rounded verbal confidences.
+- Three claims rest on adjusted lower bounds within 0.002 of zero (Claude minus baseline test macro-F1 +0.0004 and shift micro-F1 +0.0016; Gemini minus Claude shift macro-F1 +0.0018). They meet the rule; with about 21 resamples in each adjusted tail they are reported as marginal.
+- Claude trails the baseline on some test labels (descriptive, outside the family): Ip Ownership Assignment 0.4286 against 0.6349, Uncapped Liability 0.4490 against 0.6531, Post-Termination Services 0.4035 against 0.4973.
+
+### Caveats
+- Possible training-data contamination for both LLMs (docs/plan.md Limitations), stated next to every LLM table in `docs/results.md`.
+- The comparison rules were fixed after each model's marginal results were known.
+- LLM macro-AP is a sparse lower bound (Rule D) and was not compared.
+
+### Resume-worthy
+- Compared three contract clause classifiers with a pre-registered, Bonferroni-adjusted paired bootstrap (12 comparisons, 10,000 contract-level resamples): Gemini 3.8 Flash beat a TF-IDF baseline by +0.0847 micro-F1 on test and +0.0817 on unseen contract types, and beat Claude Sonnet 5 on test at under half the cost per segment.
