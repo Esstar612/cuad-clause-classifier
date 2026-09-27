@@ -2220,3 +2220,43 @@ None. Everything was frozen before this run. Test and shift were each run once p
 
 ### Resume-worthy
 - Evaluated two frozen LLM classifiers (Claude Sonnet 5, Gemini 3.8 Flash) once on held-out and distribution-shifted contracts with contract-level bootstrap intervals: Gemini reached test Rule A micro-F1 0.7506 [0.7273, 0.7757] at about $0.32 per 1,000 segments, and both models lost 0.16 to 0.18 F1 on unseen contract types.
+
+## 2026-09-27: Step 4b, pairwise comparison rules pre-registered and code placed (before any paired comparison)
+
+### What we built
+- `src/config.py`: `BOOTSTRAP_RESAMPLES_COMPARE = 10_000`, `COMPARE_PAIRS` (the three pre-registered pairs), `COMPARE_PRIMARY_SCOPES`, `COMPARE_PRIMARY_METRICS`, `COMPARE_FAMILY_SIZE = 12`.
+- `src/evaluate.py`:
+  - `Part` takes `n_resamples` (default 2,000, as in 4a) and `with_ap` (default on); `scope()` reports macro-AP only when AP was bootstrapped; `per_label` refuses a Part built without AP.
+  - `paired_row`: the paired difference with its 95% interval, plus, for the primary rows, a Bonferroni-adjusted interval and a claim ("A higher", "B higher" or "none") from that interval.
+  - `scope_verdict`: the per-scope verdict from the two co-primary claims, named with the models.
+  - `compare`: 10,000 resamples, no AP, primary rows and verdicts printed first, secondary rows after; it refuses duplicate segment ids, files that disagree on contract, split, segment boundaries or true labels, and a model whose name or version differs between test and shift; the JSON carries both models' versions, `COMPARE_METHOD`, the family size and the verdicts; the self-check covers the adjusted bounds. Primary rows and verdicts exist only for the three pairs in `COMPARE_PAIRS` and for the self-comparison; any other pair, including a reversed one, gets secondary rows only.
+- `src/report.py`: markdown tables for `docs/results.md` generated from `data/eval/{baseline,claude,gemini}.json` and the three cross-model compare files, read by name. It composes no claims, takes the family size from the compare JSON, escapes `|` inside table cells, shows the parse-failure rate per scope, marks macro-AP as a sparse lower bound only for models whose evaluation file records sparse scores, shows the share of calibration pairs in the lowest bin next to pooled ECE instead of asserting that bin dominates, refuses to render when the method, family size, adjusted level, scope list or calibration bins differ between files, and refuses to render when a compare file's model versions differ from the model evaluation files.
+- `tests/test_evaluate.py`: `paired_row` (primary rows only, adjusted interval containing the 95% one, the three claims, exact zeros on identical samples); `scope_verdict`; `Part` defaults and the AP switch; `compare` on toy prediction files (4 primary rows, 2 verdicts, no AP rows, no NaN, self-comparison all zero, a reversed pair with no primary rows or verdicts, model versions recorded), `compare` refusing mixed names or versions, mismatched true labels or boundaries, and duplicate segment ids, and the report's comparison table and version check built from it.
+
+### Decisions made
+Fixed 2026-09-27, before any paired interval was computed. Each model's marginal test and shift results (4a, 3ah) were already known when these rules were set.
+- Micro-F1 and macro-F1 under Rule B thresholds are co-primary (Rule D named F1 without choosing between them).
+- Primary family: 3 pairs (Claude minus baseline, Gemini minus baseline, Gemini minus Claude) x 2 scopes (test Rule A, shift Rule C) x 2 metrics = 12 comparisons. Each gets a Bonferroni-adjusted percentile interval at 1 - 0.05/12 (99.583%); a difference is claimed only if that interval excludes zero.
+  - Alternatives considered: unadjusted 95% intervals with the number of comparisons stated; Holm on bootstrap p-values.
+  - Why rejected: the first leaves 12 chances at a false claim; the second needs p-values that percentile intervals do not give directly.
+- Verdicts are per scope, never across test and shift (different contract populations): "A higher on both co-primary metrics" only when micro and macro adjusted intervals both exclude zero in the same direction; otherwise stated per metric.
+- The family covers cross-model comparisons only. Within-model test minus shift intervals (4a, 3ah) stay at 95%.
+- Secondary, unadjusted 95%, reported without claims: test all labels and Rule C; shift all labels, Franchise, Transportation; none false-positive rate; parse-failure rate.
+- Macro-AP is not compared. Under Rule D no AP difference can support a claim (LLM AP is a sparse-score lower bound, and the baseline's AP is not comparable to it), and bootstrapping AP at 10,000 resamples would take about 2.6 million sklearn calls per compare. Each model's marginal macro-AP stays in its own evaluation file, LLM values labelled as sparse lower bounds.
+- Paired comparisons use 10,000 resamples, a change to the 4a decision of 2,000 for this use only: at 99.583% each tail holds 0.208% of resamples, about 4 of 2,000 against about 21 of 10,000. Marginal intervals stay at 2,000. A and B share identical resamples (same contracts, stream, seed and count).
+
+### Numbers measured
+- Tests: to be recorded from pasted output. Command: `pytest tests -v`
+
+### Problems hit and how we solved them
+- Code review found twenty issues over seven rounds; sixteen were fixed, two in part, before any compare run: `compare` gave primary rows and claims to any pair, not only the three pre-registered ones; the report's rows carry keys such as `test | Rule A | micro_f1`, whose unescaped `|` split the markdown cells; the report printed the configured family size instead of the one saved in the compare JSON; compare files recorded no model versions, so a stale comparison could be reported beside regenerated model results; the scope tables left out the parse-failure rate (Gemini has parse failures on shift); pairing checked segment ids but not contract, split or true labels; the saved version came from the test file only and was not checked to be uniform; the report took the family size and adjusted level from the first compare file only, labelled every non-baseline macro-AP as sparse without reading the sparse-score flag, and asserted that the lowest calibration bin dominates pooled ECE without deriving it. The same one-file assumption was then fixed where the review had not flagged it: the scope list, method strings and calibration bin names are now checked across all files, and the label count is shown per model. Pairing now also checks segment boundaries, segment-id uniqueness and that every row belongs to the split loaded; the report's interval headings come from the configured level and rendering stops unless every method string states it. `evaluate model` now stops unless the test and shift files share one model version, since the version it records, and the report checks, came from the test file alone.
+- In part: that each file's `model_name` should equal the requested model name. The baseline files carry `tfidf-ovr-logreg`, not `baseline`, and the file path already names the model; `compare` instead requires one name per model across test and shift. Raised again in a later round and rejected for the same reason.
+- Rejected: that two requested models must have distinct name and version. The only way two names could share an identity is a prediction file copied under another name; `compare` checks that files are paired, not that the files were produced by the right pipeline, and the self-comparison relies on one identity on both sides.
+- Rejected: that `compare` breaks the one-touch test rule. It reads the prediction files written by the single test and shift run of each model; no model is run again and nothing is tuned on the result, and the comparison rules are committed before any compare run.
+- `data/eval/baseline.json` dates from 4a, before the harness gained the parse-failure rate and the sparse-score flag (29e1eba), so the report cannot read it. It is regenerated from the unchanged baseline prediction files before any compare run, and every value in the 4a file is checked to be unchanged in the new one.
+
+### Surprises in the data or results
+None.
+
+### Resume-worthy
+none

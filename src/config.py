@@ -57,6 +57,11 @@ LATENCY_SAMPLE_SIZE = 200  # validation segments timed one call at a time
 EVAL_DIR = DATA_DIR / "eval"
 BOOTSTRAP_RESAMPLES = 2000  # contract-level, stratified by contract type; percentile intervals
 CI_LEVEL = 0.95
+BOOTSTRAP_RESAMPLES_COMPARE = 10_000   # paired comparisons (Step 4b): enough resamples for Bonferroni tails
+COMPARE_PAIRS = (("claude", "baseline"), ("gemini", "baseline"), ("gemini", "claude"))
+COMPARE_PRIMARY_SCOPES = (("test", "Rule A"), ("shift", "Rule C"))
+COMPARE_PRIMARY_METRICS = ("micro_f1", "macro_f1")
+COMPARE_FAMILY_SIZE = 12               # 3 model pairs x 2 scopes x 2 metrics, pre-registered 2026-09-27
 CALIBRATION_BINS = 10
 ERROR_SAMPLES_PER_LABEL = 5  # per failing label and error kind, on validation only
 
