@@ -2300,3 +2300,88 @@ None in the runs. The report and compare code went through seven code-review rou
 
 ### Resume-worthy
 - Compared three contract clause classifiers with a pre-registered, Bonferroni-adjusted paired bootstrap (12 comparisons, 10,000 contract-level resamples): Gemini 3.8 Flash beat a TF-IDF baseline by +0.0847 micro-F1 on test and +0.0817 on unseen contract types, and beat Claude Sonnet 5 on test at under half the cost per segment.
+
+## 2026-09-27: Step 5, drift checks pre-registered and code placed (before any drift statistic is computed)
+
+### What we built
+- `src/drift.py`: unlabeled drift checks on batches of 5 contracts.
+  - `calibrate` builds a validation-only null and writes `models/drift/reference.json` with a `freeze_id`.
+  - `evaluate` scores test and shift once against it and writes `data/eval/drift.json`. It refuses:
+    - without the reference, or on an edited reference;
+    - on any model-version, vocabulary-version or bin-edge mismatch;
+    - on settings (calibration, evaluation and bootstrap constants) that differ from the reference's;
+    - when the baseline artifacts do not hash to the declared baseline version;
+    - when a prediction file's contracts differ from the canonical split;
+    - on validation prediction files or segments whose SHA-256 differs from calibration;
+    - on rows from another split;
+    - on a rerun without `--force` (recorded as `forced` in the output).
+  - `drift.json` records SHA-256 hashes of every prediction file and the segments file it read.
+- `src/config.py`: `DRIFT_*` constants.
+- `pyproject.toml`: `scipy` declared (imported directly for sparse matrices; previously only a transitive dependency).
+- `src/report.py`: `drift_tables`, rendered when `data/eval/drift.json` exists; it refuses if the drift file's model versions differ from the model evaluation files.
+- `tests/test_drift.py`:
+  - PSI and Jensen-Shannon against hand-computed values;
+  - unigram and OOV counts;
+  - the weight-matrix statistics against a direct computation;
+  - batch draws; leave-one-out p-values; tie-safe thresholds;
+  - `calibrate` using validation only;
+  - `evaluate` and its refusals; the NaN policy; the report tables.
+  - All run on toy files and never touch the real reference or results.
+
+### Decisions made
+Fixed 2026-09-27, before any drift statistic was computed on any split. Every model's test and shift performance was already known (4a, 3ah, 4b); no drift statistic was.
+- **Monitoring unit: a batch of 5 contracts.**
+- **Reference: the 97 validation contracts.**
+  - Validation prediction files at Rule B thresholds for the baseline, Claude v2 and Gemini v3.
+  - The frozen baseline TF-IDF vocabulary (fitted on train; version 9692b04f03fb).
+- **Input statistics (model-free):**
+  - OOV unigram rate minus the reference rate (one-sided);
+  - 1 minus the cosine of summed TF-IDF vectors;
+  - PSI of segment lengths (10 bins at validation deciles).
+- **Model statistics, per model:**
+  - Jensen-Shannon distance of predicted-positive counts over the 33 labels;
+  - absolute difference in the share of parsed segments predicted none;
+  - PSI of the per-segment maximum score (inner edges 0.05, 0.15, ..., 0.95).
+- **NaN policy.** A zero denominator or an empty histogram gives NaN, a p-value of 1 and no alarm, and is counted.
+- **Parse failures** are an uncalibrated operational counter (validation has none).
+- **Null and thresholds.**
+  - 2,000 batches of 5 validation contracts, each against the other 92.
+  - p-values are leave-one-out within the null.
+  - Alarm groups are each statistic alone and four families (input, baseline, Claude, Gemini), each scored by the minimum p over its statistics.
+  - A group's threshold is the largest attained null score whose null share at or below it is at most 1%, so the null alarm rate is at most 1% with ties.
+  - If `calibrate` reports a rate above 1%, that is a code bug and is fixed in code; the rule does not change.
+- **Evaluation.**
+  - Sets: test (false-alarm rate), shift, Franchise and Transportation, with 1,000 point batches per set.
+  - Intervals come from 10,000 contract-level bootstrap resamples within each set (stratified by type) x 100 batches each. That leaves about 31 resamples per 99.375% tail.
+  - The reference and thresholds are held fixed, so the intervals cover sampling of the monitored contracts only.
+- **Primary reading rule: 4 families x 2 shift types = 8 cells.** A family detects a type when the lower bound of its detection-rate interval at 1 - 0.05/8 = 99.375% exceeds the upper bound of the same family's 99.375% interval on test.
+- **Known reasons validation and test differ for the model families:**
+  - Rule B thresholds were tuned on validation, so its label mix and none share are in-sample.
+  - LLM validation includes the 23 prompt-iteration contracts.
+  - The null reference has 92 contracts, evaluation's 97.
+  - So the test false-alarm rate may depart from 1%. The rule compares shift with test, not with 1%, and the test rate against 1% is reported as a calibration check, not a claim.
+- **Secondary (95% or points, no claims):** combined shift, per-statistic rates, NaN counts, the parse-failure counter, mean statistic values, and the Spearman correlation of each statistic with each model's batch micro-F1 on Rule C labels (within test, within shift, pooled).
+- "Detects" means a batch's distribution differs from validation, not that accuracy fell.
+- Alternatives considered:
+  - conventional cutoffs such as PSI above 0.2;
+  - input-only or prediction-only checks;
+  - batches of 10 contracts;
+  - 500 or 2,000 bootstrap resamples.
+- Why rejected:
+  - Cutoffs leave the false-alarm rate unknown until test is scored.
+  - Single-sided checks cannot show whether model outputs reveal shift the text misses.
+  - Transportation has 13 contracts, too few for many distinct batches of 10.
+  - At 500 resamples a 99.375% tail rests on about 1.6 resamples.
+
+### Numbers measured
+- Tests: to be recorded from pasted output. Command: `pytest tests -v`
+
+### Problems hit and how we solved them
+- Code review before the commit, first round, found five issues; four were fixed:
+  - the reference did not hash its input files;
+  - rows were not checked against the requested split;
+  - `evaluate` did not compare its settings with the reference's;
+  - an empty histogram was smoothed to uniform, giving a large PSI instead of NaN.
+- A second review round found five more; four were fixed: contracts are checked against the canonical split; evaluation and bootstrap settings join the frozen constants; the baseline artifacts are hashed against the declared version; `drift.json` records hashes of the test and shift files it read.
+- Rejected: that reading test labels for the degradation correlations breaks the one-touch rule. No model runs on test and nothing is tuned on it; the labels were already used in 4a, 3ah and 4b, and the correlation is a pre-registered secondary with no claims.
+- Rejected: that `--force` permits repeated test evaluation. `evaluate` reads frozen prediction files, runs no model and tunes nothing. With the settings and inputs checked against the reference, a rerun is seeded and reproduces the same result, and a forced run is recorded in `drift.json`.

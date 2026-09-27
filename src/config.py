@@ -65,6 +65,18 @@ COMPARE_FAMILY_SIZE = 12               # 3 model pairs x 2 scopes x 2 metrics, p
 CALIBRATION_BINS = 10
 ERROR_SAMPLES_PER_LABEL = 5  # per failing label and error kind, on validation only
 
+# Drift monitoring (Step 5): unlabeled checks, thresholds from validation only
+DRIFT_DIR = MODELS_DIR / "drift"
+DRIFT_BATCH_CONTRACTS = 5
+DRIFT_NULL_BATCHES = 2_000
+DRIFT_EVAL_BATCHES = 1_000
+DRIFT_BOOTSTRAP = 10_000          # about 31 resamples per 99.375% tail
+DRIFT_BOOTSTRAP_BATCHES = 100
+DRIFT_BOOTSTRAP_CHUNK = 250       # resamples per chunk: 25,000 batch rows at a time
+DRIFT_ALARM_QUANTILE = 0.99
+DRIFT_MODELS = ("baseline", "claude", "gemini")
+DRIFT_PRIMARY_SETS = ("shift:Franchise", "shift:Transportation")
+
 # Human-readable split file (tracked in git)
 SPLITS_CSV = DATA_DIR / "splits" / "contract_splits.csv"
 
