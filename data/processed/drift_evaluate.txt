@@ -1,0 +1,81 @@
+  test: 96 contracts, bootstrapping 10000 resamples...
+  shift: 28 contracts, bootstrapping 10000 resamples...
+  shift:Franchise: 15 contracts, bootstrapping 10000 resamples...
+  shift:Transportation: 13 contracts, bootstrapping 10000 resamples...
+
+Reference freeze_id 5f2143f3067c; batches of 5 contracts; 1000 point batches per set; 10000 bootstrap resamples x 100 batches; adjusted level 99.375%
+
+=== Family alarm rate by set: point [95% CI] [adjusted CI] ===
+input     test                   0.0580 [0.0000, 0.1800] [0.0000, 0.2275]
+input     shift                  0.0320 [0.0000, 0.2100] [0.0000, 0.3200]
+input     shift:Franchise        0.0910 [0.0000, 0.4800] [0.0000, 0.7200]
+input     shift:Transportation   0.0460 [0.0000, 0.5400] [0.0000, 0.7900]
+baseline  test                   0.0500 [0.0000, 0.1700] [0.0000, 0.2100]
+baseline  shift                  0.0200 [0.0000, 0.1400] [0.0000, 0.2200]
+baseline  shift:Franchise        0.0020 [0.0000, 0.0800] [0.0000, 0.1875]
+baseline  shift:Transportation   0.1280 [0.0000, 0.6800] [0.0000, 0.9075]
+claude    test                   0.0080 [0.0000, 0.0500] [0.0000, 0.0600]
+claude    shift                  0.0040 [0.0000, 0.0800] [0.0000, 0.1375]
+claude    shift:Franchise        0.0020 [0.0000, 0.0900] [0.0000, 0.2075]
+claude    shift:Transportation   0.0080 [0.0000, 0.2100] [0.0000, 0.4100]
+gemini    test                   0.0200 [0.0000, 0.0900] [0.0000, 0.1275]
+gemini    shift                  0.0230 [0.0000, 0.1700] [0.0000, 0.2600]
+gemini    shift:Franchise        0.0160 [0.0000, 0.2000] [0.0000, 0.3800]
+gemini    shift:Transportation   0.1520 [0.0200, 0.7800] [0.0000, 0.9900]
+
+=== Pre-registered rule: shift adjusted lower bound > test adjusted upper bound ===
+input     shift:Franchise        lower 0.0000  test upper 0.2275  detects: False
+input     shift:Transportation   lower 0.0000  test upper 0.2275  detects: False
+baseline  shift:Franchise        lower 0.0000  test upper 0.2100  detects: False
+baseline  shift:Transportation   lower 0.0000  test upper 0.2100  detects: False
+claude    shift:Franchise        lower 0.0000  test upper 0.0600  detects: False
+claude    shift:Transportation   lower 0.0000  test upper 0.0600  detects: False
+gemini    shift:Franchise        lower 0.0000  test upper 0.1275  detects: False
+gemini    shift:Transportation   lower 0.0000  test upper 0.1275  detects: False
+
+=== Per-statistic alarm rate by set (point) ===
+statistic                                      test                  shift        shift:Franchise   shift:Transportation
+oov_rate_diff                                0.0000                 0.0000                 0.0000                 0.0000
+tfidf_centroid_distance                      0.0720                 0.0880                 0.2340                 0.1750
+length_psi                                   0.0460                 0.0270                 0.0990                 0.0000
+baseline:label_mix_js                        0.0050                 0.0450                 0.0030                 0.3100
+baseline:none_share_diff                     0.0120                 0.0000                 0.0050                 0.0000
+baseline:confidence_psi                      0.0550                 0.0000                 0.0020                 0.0000
+claude:label_mix_js                          0.0080                 0.0090                 0.0000                 0.0420
+claude:none_share_diff                       0.0140                 0.0010                 0.0020                 0.0000
+claude:confidence_psi                        0.0100                 0.0060                 0.0150                 0.0100
+gemini:label_mix_js                          0.0100                 0.0450                 0.0010                 0.3340
+gemini:none_share_diff                       0.0320                 0.0030                 0.0420                 0.0000
+gemini:confidence_psi                        0.0280                 0.0020                 0.0060                 0.0070
+
+=== Mean statistic value by set (NaN batches) ===
+oov_rate_diff                       -0.0011 (   0)        -0.0016 (   0)        -0.0046 (   0)         0.0025 (   0)
+tfidf_centroid_distance              0.2959 (   0)         0.3513 (   0)         0.3998 (   0)         0.3697 (   0)
+length_psi                           0.2165 (   0)         0.1575 (   0)         0.3017 (   0)         0.1026 (   0)
+baseline:label_mix_js                0.3765 (   0)         0.4722 (   0)         0.4604 (   0)         0.5750 (   0)
+baseline:none_share_diff             0.0264 (   0)         0.0223 (   0)         0.0206 (   0)         0.0467 (   0)
+baseline:confidence_psi              0.0954 (   0)         0.0394 (   0)         0.0467 (   0)         0.0754 (   0)
+claude:label_mix_js                  0.3996 (   0)         0.4470 (   0)         0.4379 (   0)         0.5442 (   0)
+claude:none_share_diff               0.0357 (   0)         0.0332 (   0)         0.0654 (   0)         0.0425 (   0)
+claude:confidence_psi                0.0639 (   0)         0.0533 (   0)         0.0916 (   0)         0.0927 (   0)
+gemini:label_mix_js                  0.3895 (   0)         0.4279 (   0)         0.4098 (   0)         0.5775 (   0)
+gemini:none_share_diff               0.0377 (   0)         0.0320 (   0)         0.0603 (   0)         0.0485 (   0)
+gemini:confidence_psi                0.0927 (   0)         0.0440 (   0)         0.0698 (   0)         0.0845 (   0)
+
+=== Share of batches with a parse failure ===
+baseline  test=0.0000 shift=0.0000 shift:Franchise=0.0000 shift:Transportation=0.0000
+claude    test=0.0000 shift=0.0000 shift:Franchise=0.0000 shift:Transportation=0.0000
+gemini    test=0.0000 shift=0.1740 shift:Franchise=0.0000 shift:Transportation=0.3860
+
+=== Spearman with batch micro-F1 (Rule C), descriptive ===
+test    baseline  oov_rate_diff=-0.038 tfidf_centroid_distance=+0.079 length_psi=-0.102 baseline:label_mix_js=+0.058 baseline:none_share_diff=-0.005 baseline:confidence_psi=+0.030 claude:label_mix_js=+0.052 claude:none_share_diff=+0.009 claude:confidence_psi=+0.144 gemini:label_mix_js=+0.051 gemini:none_share_diff=-0.020 gemini:confidence_psi=+0.142
+test    claude    oov_rate_diff=-0.021 tfidf_centroid_distance=-0.012 length_psi=-0.059 baseline:label_mix_js=+0.135 baseline:none_share_diff=+0.048 baseline:confidence_psi=+0.203 claude:label_mix_js=+0.124 claude:none_share_diff=+0.093 claude:confidence_psi=+0.286 gemini:label_mix_js=+0.186 gemini:none_share_diff=+0.078 gemini:confidence_psi=+0.338
+test    gemini    oov_rate_diff=-0.121 tfidf_centroid_distance=-0.098 length_psi=+0.003 baseline:label_mix_js=+0.197 baseline:none_share_diff=+0.109 baseline:confidence_psi=+0.290 claude:label_mix_js=+0.165 claude:none_share_diff=+0.177 claude:confidence_psi=+0.301 gemini:label_mix_js=+0.192 gemini:none_share_diff=+0.127 gemini:confidence_psi=+0.368
+shift   baseline  oov_rate_diff=-0.045 tfidf_centroid_distance=+0.053 length_psi=+0.085 baseline:label_mix_js=-0.443 baseline:none_share_diff=-0.067 baseline:confidence_psi=-0.215 claude:label_mix_js=-0.091 claude:none_share_diff=+0.156 claude:confidence_psi=+0.074 gemini:label_mix_js=+0.146 gemini:none_share_diff=+0.157 gemini:confidence_psi=+0.200
+shift   claude    oov_rate_diff=+0.058 tfidf_centroid_distance=-0.091 length_psi=-0.013 baseline:label_mix_js=-0.293 baseline:none_share_diff=-0.087 baseline:confidence_psi=-0.111 claude:label_mix_js=-0.177 claude:none_share_diff=+0.123 claude:confidence_psi=+0.044 gemini:label_mix_js=-0.015 gemini:none_share_diff=+0.118 gemini:confidence_psi=+0.162
+shift   gemini    oov_rate_diff=-0.119 tfidf_centroid_distance=+0.092 length_psi=+0.150 baseline:label_mix_js=-0.243 baseline:none_share_diff=-0.042 baseline:confidence_psi=+0.003 claude:label_mix_js=-0.115 claude:none_share_diff=+0.133 claude:confidence_psi=+0.075 gemini:label_mix_js=-0.129 gemini:none_share_diff=+0.150 gemini:confidence_psi=+0.203
+pooled  baseline  oov_rate_diff=+0.001 tfidf_centroid_distance=-0.363 length_psi=+0.157 baseline:label_mix_js=-0.541 baseline:none_share_diff=+0.020 baseline:confidence_psi=+0.156 claude:label_mix_js=-0.313 claude:none_share_diff=+0.033 claude:confidence_psi=+0.170 gemini:label_mix_js=-0.170 gemini:none_share_diff=+0.078 gemini:confidence_psi=+0.426
+pooled  claude    oov_rate_diff=+0.035 tfidf_centroid_distance=-0.406 length_psi=+0.148 baseline:label_mix_js=-0.489 baseline:none_share_diff=+0.029 baseline:confidence_psi=+0.232 claude:label_mix_js=-0.315 claude:none_share_diff=+0.052 claude:confidence_psi=+0.203 gemini:label_mix_js=-0.169 gemini:none_share_diff=+0.100 gemini:confidence_psi=+0.465
+pooled  gemini    oov_rate_diff=-0.035 tfidf_centroid_distance=-0.406 length_psi=+0.207 baseline:label_mix_js=-0.474 baseline:none_share_diff=+0.056 baseline:confidence_psi=+0.277 claude:label_mix_js=-0.298 claude:none_share_diff=+0.073 claude:confidence_psi=+0.206 gemini:label_mix_js=-0.199 gemini:none_share_diff=+0.115 gemini:confidence_psi=+0.480
+
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/data/eval/drift.json
