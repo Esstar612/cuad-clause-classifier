@@ -1,0 +1,38 @@
+Drift calibration on validation: 97 contracts, 11656 segments, 2000 leave-batch-out batches of 5 contracts
+Versions: {'baseline': '9692b04f03fb', 'claude': 'claude-sonnet-5|prompt v2 dc2236da8a44|thresholds 9b37545d9c08', 'gemini': 'gemini-3.8-flash|prompt v3 8ec29d0ea6ca|thresholds 9cf165579892'}
+Vocabulary (baseline) version: 9692b04f03fb
+
+=== Null per statistic: median, 90th, 99th percentile, NaN batches ===
+oov_rate_diff                -0.0022 0.0118 0.0417  nan=0
+tfidf_centroid_distance      0.2417 0.3216 0.4239  nan=0
+length_psi                   0.0889 0.2409 0.7200  nan=0
+baseline:label_mix_js        0.3741 0.4931 0.6070  nan=0
+baseline:none_share_diff     0.0202 0.0541 0.1020  nan=0
+baseline:confidence_psi      0.0331 0.1348 0.3253  nan=0
+claude:label_mix_js          0.3766 0.4950 0.6053  nan=0
+claude:none_share_diff       0.0238 0.0600 0.1282  nan=0
+claude:confidence_psi        0.0350 0.1079 0.3025  nan=0
+gemini:label_mix_js          0.3787 0.4896 0.5869  nan=0
+gemini:none_share_diff       0.0254 0.0614 0.1186  nan=0
+gemini:confidence_psi        0.0369 0.1478 0.2853  nan=0
+
+=== Alarm groups: threshold on min p, exact null alarm rate (at most 1%) ===
+input                        0.003500  0.0100
+baseline                     0.004000  0.0100
+claude                       0.003500  0.0090
+gemini                       0.004500  0.0095
+oov_rate_diff                0.010000  0.0100
+tfidf_centroid_distance      0.010000  0.0100
+length_psi                   0.010000  0.0100
+baseline:label_mix_js        0.010000  0.0100
+baseline:none_share_diff     0.010000  0.0100
+baseline:confidence_psi      0.010000  0.0100
+claude:label_mix_js          0.010000  0.0100
+claude:none_share_diff       0.010000  0.0100
+claude:confidence_psi        0.010000  0.0100
+gemini:label_mix_js          0.010000  0.0100
+gemini:none_share_diff       0.010000  0.0100
+gemini:confidence_psi        0.010000  0.0100
+
+freeze_id 5f2143f3067c
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/models/drift/reference.json

@@ -2374,7 +2374,17 @@ Fixed 2026-09-27, before any drift statistic was computed on any split. Every mo
   - At 500 resamples a 99.375% tail rests on about 1.6 resamples.
 
 ### Numbers measured
-- Tests: to be recorded from pasted output. Command: `pytest tests -v`
+- Tests: 158 passed. Command: `pytest tests -v`
+- Calibration (validation only; `python -m src.drift calibrate | tee data/processed/drift_calibrate.txt`; `models/drift/reference.json`, freeze_id 5f2143f3067c):
+  - 97 contracts, 11,656 segments, 2,000 leave-batch-out batches of 5; no NaN batch in any statistic.
+  - Null median, 90th and 99th percentile:
+    - oov_rate_diff -0.0022, 0.0118, 0.0417;
+    - tfidf_centroid_distance 0.2417, 0.3216, 0.4239;
+    - length_psi 0.0889, 0.2409, 0.7200;
+    - label_mix_js 0.3741, 0.4931, 0.6070 (baseline), 0.3766, 0.4950, 0.6053 (Claude), 0.3787, 0.4896, 0.5869 (Gemini);
+    - none_share_diff 0.0202, 0.0541, 0.1020 (baseline), 0.0238, 0.0600, 0.1282 (Claude), 0.0254, 0.0614, 0.1186 (Gemini);
+    - confidence_psi 0.0331, 0.1348, 0.3253 (baseline), 0.0350, 0.1079, 0.3025 (Claude), 0.0369, 0.1478, 0.2853 (Gemini).
+  - Family thresholds on the minimum p, with exact null alarm rates: input 0.0035 (0.0100), baseline 0.0040 (0.0100), Claude 0.0035 (0.0090), Gemini 0.0045 (0.0095). Every single statistic: 0.0100 (0.0100). Claude's and Gemini's rates sit below 1% because of ties at the cut.
 
 ### Problems hit and how we solved them
 - Code review before the commit, first round, found five issues; four were fixed:
