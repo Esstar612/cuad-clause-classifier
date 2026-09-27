@@ -54,7 +54,7 @@ from src.llm.retrieval import train_index
 from src.llm.selection import llm_thresholds, paired_micro_f1
 from src.llm.windows import WINDOW, build_calls, casebook, iteration_contracts, n1_half_contracts, windows
 from src.metrics import per_label
-from src.predictions import read_label_order, to_prediction_frame, write_predictions
+from src.predictions import read_label_order, read_notes, to_prediction_frame, write_predictions
 
 SCORES_NOTE = f"sparse, floor {config.LLM_CONFIDENCE_FLOOR} (unlisted labels score 0)"
 
@@ -858,32 +858,67 @@ def load_frozen(model_key) -> dict:
     return frozen
 
 
+def freeze_id(frozen: dict) -> str:
+    blob = json.dumps({k: frozen[k] for k in ("prompt_hash", "batch_size", "run_settings")}, sort_keys=True)
+    return hashlib.sha256(blob.encode()).hexdigest()[:12]
+
+
+def val_state(model_key) -> dict:
+    path = model_dir(model_key) / "val_run.json"
+    return json.loads(path.read_text()) if path.exists() else {}
+
+
 def cmd_val(args) -> None:
     load_dotenv()
     frozen = load_frozen(args.model)
+    version = frozen["version"]
+    state = val_state(args.model)
+    if state.get("freeze_id") != freeze_id(frozen):
+        state = {"freeze_id": freeze_id(frozen)}
+    if args.redo_invalid and "val" not in state.get("invalid", {}):
+        raise SystemExit("--redo-invalid applies only after validation was declared invalid")
+    namespace = split_namespace(state, "val", version, args.redo_invalid)
     segments, _, label_order = load_inputs()
     calls = build_calls(segments[segments["split"] == "val"], frozen["batch_size"])
-    soft_checkpoint(args.model, [(calls, frozen["version"], frozen["version"])], label_order,
-                    args.past_checkpoint)
-    result = run_calls(args.model, calls, frozen["version"], frozen["version"], label_order,
-                       max_cost=args.max_cost)
+    soft_checkpoint(args.model, [(calls, version, namespace)], label_order, args.past_checkpoint)
+    result = run_calls(args.model, calls, version, namespace, label_order, max_cost=args.max_cost)
     complete_or_exit(result, calls)
+    status, _, health_notes = split_health([result.records[c.key] for c in calls], version,
+                                             set(label_order), state, "val")
+    iteration_ids = set(pd.read_csv(config.LLM_ITERATION_CONTRACTS)["contract_id"])
+    rest = [result.records[c.key] for c in calls if c.contract_id not in iteration_ids]
+    rest_share = run_health(rest, version, set(label_order))["below_floor_share"] if is_sparse(version) else float("nan")
     frame = build_frame(segments, calls, result, label_order, {}, args.model,
-                        _version_tag(args.model, frozen["version"], served_models(result)))
-    write_predictions(frame, config.PREDICTIONS_DIR / f"{args.model}_val.parquet", label_order,
-                      {"scores": scores_note(frozen["version"]), "thresholds": "provisional 0.5; run `thresholds`",
-                       "latency_ms": "call-amortized", "prompt_version": frozen["version"],
-                       "batch_size": frozen["batch_size"]})
-    print(f"Full validation, frozen prompt {frozen['version']} (threshold 0.5, provisional):")
-    _print(score(frame, label_order, is_sparse(frozen["version"])), "  ")
+                        _version_tag(args.model, version, served_models(result)))
+    path = config.PREDICTIONS_DIR / f"{args.model}_val{'_invalid' if status == 'invalid' else ''}.parquet"
+    write_predictions(frame, path, label_order,
+                      {"scores": scores_note(version), "thresholds": "provisional 0.5; run `thresholds`",
+                       "latency_ms": "call-amortized", "prompt_version": version,
+                       "batch_size": frozen["batch_size"], "cache_namespace": namespace, **health_notes})
+    (model_dir(args.model) / "val_run.json").write_text(json.dumps(state))
+    print(f"Full validation, frozen prompt {version}, namespace {namespace} (threshold 0.5, provisional); "
+          f"run health {status}; below-floor share outside the iteration contracts {rest_share:.4f} (descriptive):")
+    _print(score(frame, label_order, is_sparse(version)), "  ")
     print("Usage:")
-    _print(usage_report(result, calls, frozen["batch_size"], frozen["version"], set(label_order)), "  ")
+    _print(usage_report(result, calls, frozen["batch_size"], version, set(label_order)), "  ")
+    if status == "invalid":
+        raise SystemExit(f"validation declared invalid for infrastructure reasons (run-health rule, "
+                         f"3n extended in 3af). Redo it once with: python -m src.llm.run val "
+                         f"--model {args.model} --redo-invalid")
+    if status == "unreliable":
+        print(f"  FLAG: the one redo of validation also exceeds {config.LLM_HEALTH_MAX_SHARE:.0%}; "
+              "it stands and is reported as unreliable for infrastructure reasons")
 
 
 def cmd_thresholds(args) -> None:
+    state = val_state(args.model)
+    if "val" not in state.get("health", {}) and "val" not in state.get("redone", {}):
+        raise SystemExit("no healthy or redone validation run under the health rule; run `val` first")
     frozen = load_frozen(args.model)
     path = config.PREDICTIONS_DIR / f"{args.model}_val.parquet"
     val = pd.read_parquet(path)
+    if state.get("freeze_id") != freeze_id(frozen) or frozen["prompt_hash"] not in val["model_version"].iloc[0]:
+        raise SystemExit("the validation run or its predictions are not from the current freeze; run `val` again")
     label_order = read_label_order(path)
     thresholds, pooled = llm_thresholds(val, label_order)
     (model_dir(args.model) / "thresholds.json").write_text(json.dumps(thresholds, indent=2, sort_keys=True))
@@ -893,10 +928,7 @@ def cmd_thresholds(args) -> None:
                           for row_p, row_on in zip(proba, pred)]
     served = val["model_version"].iloc[0].split("|")[0].split("/")
     val["model_version"] = _version_tag(args.model, frozen["version"], served, thresholds)
-    write_predictions(val, path, label_order,
-                      {"scores": scores_note(frozen["version"]), "thresholds": "Rule B, tuned on validation",
-                       "latency_ms": "call-amortized", "prompt_version": frozen["version"],
-                       "batch_size": frozen["batch_size"]})
+    write_predictions(val, path, label_order, {**read_notes(path), "thresholds": "Rule B, tuned on validation"})
     print(f"Rule B pooled labels ({len(pooled)}): {pooled}")
     print(f"Pooled threshold: {thresholds[pooled[0]] if pooled else 'n/a'}")
     print("Per-class thresholds:")
@@ -977,7 +1009,7 @@ def heldout_guard(marker: Path, prompt_hash_: str, force: bool) -> dict:
     return state
 
 
-def heldout_namespace(state: dict, split: str, version: str, redo: bool) -> str:
+def split_namespace(state: dict, split: str, version: str, redo: bool) -> str:
     invalid, redone = state.get("invalid", {}), state.get("redone", {})
     if split in redone:
         return f"{version}-redo1"
@@ -1001,7 +1033,7 @@ def record_health(state: dict, split: str, health: dict) -> str:
     return "ok"
 
 
-def heldout_health(records, version, labels, state, split) -> tuple[str, dict, dict]:
+def split_health(records, version, labels, state, split) -> tuple[str, dict, dict]:
     """(status, health, file notes); dense runs have no invalidation rule, so record_health is skipped."""
     if is_sparse(version):
         health = run_health(records, version, labels)
@@ -1029,7 +1061,7 @@ def cmd_heldout(args) -> None:
     if args.redo_invalid and not prior.get("invalid"):
         raise SystemExit("--redo-invalid applies only after a split was declared invalid")
     splits = ("test", "shift")
-    namespaces = {sp: heldout_namespace(prior, sp, version, args.redo_invalid) for sp in splits}
+    namespaces = {sp: split_namespace(prior, sp, version, args.redo_invalid) for sp in splits}
     split_calls = {sp: build_calls(segments[segments["split"] == sp], frozen["batch_size"]) for sp in splits}
     soft_checkpoint(args.model, [(split_calls[sp], version, namespaces[sp]) for sp in splits],
                     label_order, args.past_checkpoint)
@@ -1038,7 +1070,7 @@ def cmd_heldout(args) -> None:
         calls = split_calls[split]
         result = run_calls(args.model, calls, version, namespaces[split], label_order, max_cost=args.max_cost)
         complete_or_exit(result, calls)  # an incomplete run can be resumed; no metrics were shown
-        status, health, health_notes = heldout_health([result.records[c.key] for c in calls], version, labels,
+        status, health, health_notes = split_health([result.records[c.key] for c in calls], version, labels,
                                                       state, split)
         marker.write_text(json.dumps(state))
         frame = build_frame(segments, calls, result, label_order, thresholds, args.model,
@@ -1121,7 +1153,7 @@ def n1_call_cost(base: dict, input_diff: float, out_per_target: float, price_out
     return input_per_call + input_diff + out_per_target * price_out / 1e6
 
 
-def project(call_cost: float, n1_cost: float, n1_calls: int, iteration_calls: int = 357,
+def project(call_cost: float, n1_cost: float, n1_calls: int, iteration_calls: int,
             final_calls: int = 2310, repeat_calls: int = config.LLM_REPEAT_RUNS * config.LLM_REPEAT_WINDOWS) -> dict:
     """Remaining spend for one model; iteration_calls is 0 for a model staying on its incumbent."""
     parts = {"iteration": call_cost * iteration_calls, "val_test_shift": call_cost * final_calls,
@@ -1172,10 +1204,9 @@ def cmd_gate_v4(_args) -> None:
     for model, spec in config.LLM_MODELS.items():
         clf = make_classifier(model)
         v4_smoke = list(_cached_records(model, smoke_calls, "v4", "v4", label_order, clf).values())
-        v3_smoke = {r["call_key"]: r for r in _complete(_cached_records(model, smoke_calls, "v3", "v3", label_order, clf),
-                                                        smoke_calls, f"{model} v3 smoke")}
-        v3 = _run_stats(_complete(_cached_records(model, calls, "v3", "v3", label_order, clf), calls,
-                                  f"{model} v3 iteration run"))
+        v3_records = _cached_records(model, calls, "v3", "v3", label_order, clf)
+        v3 = _run_stats(_complete(v3_records, calls, f"{model} v3 iteration run"))
+        v3_smoke = {c.key: v3_records[c.key] for c in smoke_calls}
         reasons = smoke_check(v4_smoke, len(smoke_calls), labels)
         ok[model] = not reasons
         matched = [(r, v3_smoke[r["call_key"]]) for r in v4_smoke if r["call_key"] in v3_smoke]
@@ -1258,6 +1289,7 @@ def main() -> None:
                        help="approve continuing past the $100 soft checkpoint (Rule E)")
         if name == "heldout":
             p.add_argument("--i-know-this-reruns-test", dest="force", action="store_true")
+        if name in ("val", "heldout"):
             p.add_argument("--redo-invalid", action="store_true",
                            help="redo a split declared invalid by the run-health rule, once")
     p = sub.add_parser("thresholds")

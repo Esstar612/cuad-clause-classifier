@@ -2092,3 +2092,43 @@ Nothing new. The N=1 runs used the Step 3ad code (commit 0d02646).
 
 ### Resume-worthy
 - Measured the batch-size trade-off on matched windows: one target per call cost about 7 times (Claude) and 11 times (Gemini) as much per segment as ten targets per call, with no accuracy gain.
+
+## 2026-09-27: Step 3af, validation health rule pre-registered and placed (before any full-validation call)
+
+### What we built
+- `src/llm/run.py`:
+  - `val_state` and a new `cmd_val`: the run-health rule applied to full validation, reusing `record_health` and the held-out helpers, renamed `split_namespace` and `split_health` now that both validation and held-out runs use them, with split `"val"`; state in `models/<model>/val_run.json`, kept apart from `heldout_run.json` and its touch-once guard. An invalid run is written to `<model>_val_invalid.parquet` and exits with the redo command; `val --redo-invalid` redoes it once in namespace `<version>-redo1`. The prediction file notes carry the cache namespace and health status.
+  - `cmd_thresholds` refuses unless `val_run.json` records a healthy validation run or a completed redo.
+  - `--redo-invalid` is accepted by `val` as well as `heldout`.
+- `src/config.py`: the `LLM_HEALTH_MAX_SHARE` comment covers validation.
+- `tests/test_llm.py`: the thresholds gate (refuses with no state and with an invalid, unredone run; passes with health or a redo); `cmd_val` at command level with the API calls stubbed (an unhealthy run writes the `_invalid` file, records the state and refuses a rerun without the flag; the redo runs in `v2-redo1` and records `redone`; `--redo-invalid` without an invalid run refuses before any call; a healthy run records `health`).
+
+### Decisions made
+- The run-health rule (3n) extends to full validation, decided 2026-09-27 before any full-validation output. Rule B thresholds are tuned on validation and applied to test and shift, so an unhealthy validation run would carry into both held-out sets.
+  - Rule: more than 5% of calls listing any label below the 0.1 floor declares the validation run invalid for infrastructure reasons; it is redone once in a fresh namespace, with every validation window sent again (no cache reuse); the redo stands, and if it also exceeds 5% it is reported as unreliable for infrastructure reasons, with no further reruns.
+  - Denominator: all calls in the validation run, including up to 357 calls reused from cache in namespace `<version>` (345 iteration windows plus 12 casebook windows). This is the literal 3n metric.
+  - Descriptive only, triggers nothing: the below-floor share over calls outside the 23 iteration contracts (the 12 cached casebook windows are among them).
+  - Alternatives considered: health reported only, as before; or stop and decide if validation exceeds 5%.
+  - Why rejected: the first leaves thresholds exposed to a known failure mode; the second decides after seeing the run.
+  - A redo costs about one full validation run.
+- Freeze and remaining order unchanged: Claude v2 and Gemini v3 at N=10; full validation; Rule B thresholds; repeat check; held-out once per model. The held-out run starts only after the frozen prompts, validation and thresholds are committed.
+
+### Numbers measured
+- Tests, final: 141 passed, 5 warnings ("Mean of empty slice" in `score`, from the stubbed `cmd_val` tests, whose synthetic segments carry no gold labels). Command: `pytest tests -v`
+- Code review, third round: "No findings." Simplifications: none. Command: `scripts/review.sh HEAD src tests`
+- Tests after the first review round: 140 passed, 5 warnings (same source). Command: `pytest tests -v`
+- Tests before the review fixes: 139 passed, 3 warnings ("Mean of empty slice" in `score`, raised by the two stubbed `cmd_val` tests, whose synthetic segments carry no gold labels). Command: `pytest tests -v`
+
+### Problems hit and how we solved them
+- Code review (`scripts/review.sh`), two findings, both fixed:
+  - `val_run.json` was not bound to the frozen prompt and was written before the prediction file, so after a forced refreeze, or a failed write, `thresholds` could tune on an older validation file. The state now carries the frozen prompt hash (a different hash starts a fresh state), it is written after the prediction file, and `thresholds` refuses unless both the state and the file's `model_version` carry the frozen hash.
+  - `thresholds` rewrote the validation file without its health and cache-namespace notes, so a file tuned after a redo would lose the record of it. It now keeps the existing notes and changes only `thresholds`.
+  - Optional simplification taken: `heldout_health` renamed `split_health`, and `heldout_namespace` renamed `split_namespace` for the same reason; no behavior change.
+- Code review, second round, one finding, fixed: the validation state was bound only to the prompt hash, so a forced refreeze of the same prompt with a different batch size, model id, effort or max tokens would let `thresholds` accept the old validation file. The state now carries `freeze_id`, a hash of the prompt hash, batch size and pinned run settings; a different `freeze_id` starts a fresh state, and `thresholds` refuses unless the state's `freeze_id` matches the current freeze and the file's `model_version` carries the frozen prompt hash.
+- Two simplifications deferred from the 3ab review, applied now (no behavior change): `project` no longer carries its own default of 357 iteration calls, which duplicated `V4_ITERATION_CALLS` (both callers pass the count); `gate-v4` reads the v3 smoke records from the v3 iteration records it already loads instead of loading them a second time.
+
+### Surprises in the data or results
+None.
+
+### Resume-worthy
+none

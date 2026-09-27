@@ -518,19 +518,19 @@ def test_rerun_sends_the_same_request_to_a_new_cache_path(tmp_path):
 
 
 def test_heldout_invalid_split_gets_exactly_one_redo():
-    from src.llm.run import heldout_namespace, record_health
+    from src.llm.run import split_namespace, record_health
 
     state = {}
-    assert heldout_namespace(state, "test", "v2", redo=False) == "v2"
+    assert split_namespace(state, "test", "v2", redo=False) == "v2"
     assert record_health(state, "test", {"below_floor_share": 0.04}) == "ok"
     assert record_health(state, "shift", {"below_floor_share": 0.2}) == "invalid"
     with pytest.raises(SystemExit):
-        heldout_namespace(state, "shift", "v2", redo=False)
-    assert heldout_namespace(state, "shift", "v2", redo=True) == "v2-redo1"
+        split_namespace(state, "shift", "v2", redo=False)
+    assert split_namespace(state, "shift", "v2", redo=True) == "v2-redo1"
     assert record_health(state, "shift", {"below_floor_share": 0.3}) == "unreliable"
-    assert heldout_namespace(state, "shift", "v2", redo=True) == "v2-redo1"
+    assert split_namespace(state, "shift", "v2", redo=True) == "v2-redo1"
     assert record_health(state, "shift", {"below_floor_share": 0.01}) == "ok"
-    assert "shift" in state["redone"] and heldout_namespace(state, "test", "v2", redo=False) == "v2"
+    assert "shift" in state["redone"] and split_namespace(state, "test", "v2", redo=False) == "v2"
 
 
 # ----------------------------------------------------------------------------- v2 keyed format
@@ -854,7 +854,7 @@ def test_dense_health_counts():
 
 @needs_data
 def test_heldout_dense_branch_writes_its_own_notes(tmp_path):
-    from src.llm.run import RunResult, build_frame, heldout_health
+    from src.llm.run import RunResult, build_frame, split_health
     from src.predictions import read_notes, write_predictions
 
     labels = _label_order()
@@ -862,7 +862,7 @@ def test_heldout_dense_branch_writes_its_own_notes(tmp_path):
     call = build_calls(seg, WINDOW)[0]
     rec = _dense_record(call.targets, {s: {lab: 0.0 for lab in labels} for s in ("S1", "S2")})
     state = {}
-    status, _, notes = heldout_health([rec], "v4", set(labels), state, "test")
+    status, _, notes = split_health([rec], "v4", set(labels), state, "test")
     assert status == "not applicable (dense)" and state == {}
     frame = build_frame(seg, [call], RunResult(records={call.key: rec}), labels, {}, "stub", "t")
     path = tmp_path / "p.parquet"
@@ -1033,3 +1033,163 @@ def test_restrict_to_pairs_or_refuses():
     with pytest.raises(SystemExit):
         restrict_to(b, pd.DataFrame({"segment_id": ["d"]}))
 
+
+
+# ----------------------------------------------------------------------------- validation health rule (Step 3af)
+
+def test_thresholds_requires_a_healthy_or_redone_validation_run(tmp_path, monkeypatch):
+    import argparse
+
+    from src.llm.run import cmd_thresholds
+
+    monkeypatch.setattr(config, "MODELS_DIR", tmp_path)
+    args = argparse.Namespace(model="claude")
+    marker = tmp_path / "claude" / "val_run.json"
+    marker.parent.mkdir()
+    for state in ({}, {"invalid": {"val": {}}}):
+        marker.write_text(json.dumps(state))
+        with pytest.raises(SystemExit, match="no healthy or redone validation run"):
+            cmd_thresholds(args)
+    for state in ({"health": {"val": {}}}, {"invalid": {"val": {}}, "redone": {"val": {}}}):
+        marker.write_text(json.dumps(state))
+        with pytest.raises(SystemExit, match="freeze a prompt first"):
+            cmd_thresholds(args)
+
+
+def _val_record(targets, confidence):
+    answer = _resp([{"id": f"S{i + 1}", "labels": [{"label": "Governing Law", "confidence": confidence}]}
+                    for i in range(len(targets))])
+    rec = _record(targets, answer)
+    rec["prompt_version"] = "v2"
+    rec["attempts"][-1].update(served_model="stub-model", transport_retries=0)
+    return rec
+
+
+@needs_data
+def test_val_invalid_run_is_redone_once_in_a_fresh_namespace(tmp_path, monkeypatch):
+    import argparse
+
+    from src.llm import run
+    from src.predictions import read_notes
+
+    labels = _label_order()
+    seg = _segments({7: 2, 8: 2}).assign(start=0, end=1, labels=[[]] * 4)
+    iteration_csv = tmp_path / "iteration.csv"
+    pd.DataFrame({"contract_id": [7]}).to_csv(iteration_csv, index=False)
+    monkeypatch.setattr(config, "MODELS_DIR", tmp_path / "models")
+    monkeypatch.setattr(config, "PREDICTIONS_DIR", tmp_path / "pred")
+    monkeypatch.setattr(config, "LLM_ITERATION_CONTRACTS", iteration_csv)
+    (tmp_path / "models" / "claude").mkdir(parents=True)
+    frozen = {"version": "v2", "batch_size": WINDOW, "prompt_hash": run.prompt_hash("v2", labels), "run_settings": {}}
+    monkeypatch.setattr(run, "load_frozen", lambda _m: frozen)
+    monkeypatch.setattr(run, "load_inputs", lambda: (seg, None, labels))
+    monkeypatch.setattr(run, "soft_checkpoint", lambda *a, **k: None)
+    sent, confidence = [], {"value": 0.0}
+
+    def fake_run_calls(model_key, calls_, version, namespace, label_order, max_cost=None):
+        sent.append(namespace)
+        return run.RunResult(records={c.key: _val_record(c.targets, confidence["value"]) for c in calls_})
+
+    monkeypatch.setattr(run, "run_calls", fake_run_calls)
+
+    def args(redo=False):
+        return argparse.Namespace(model="claude", redo_invalid=redo, past_checkpoint=False, max_cost=None)
+
+    with pytest.raises(SystemExit, match="applies only after validation was declared invalid"):
+        run.cmd_val(args(redo=True))
+    assert sent == []
+
+    with pytest.raises(SystemExit, match="--redo-invalid"):
+        run.cmd_val(args())
+    state = json.loads((tmp_path / "models" / "claude" / "val_run.json").read_text())
+    assert sent == ["v2"] and "val" in state["invalid"]
+    assert (tmp_path / "pred" / "claude_val_invalid.parquet").exists()
+    assert not (tmp_path / "pred" / "claude_val.parquet").exists()
+
+    with pytest.raises(SystemExit):
+        run.cmd_val(args())
+    assert sent == ["v2"]
+
+    confidence["value"] = 0.8
+    run.cmd_val(args(redo=True))
+    state = json.loads((tmp_path / "models" / "claude" / "val_run.json").read_text())
+    assert sent == ["v2", "v2-redo1"] and "val" in state["redone"]
+    assert read_notes(tmp_path / "pred" / "claude_val.parquet")["cache_namespace"] == "v2-redo1"
+
+
+@needs_data
+def test_freeze_id_changes_with_prompt_batch_size_or_model_settings():
+    from src.llm.run import freeze_id
+
+    base = {"prompt_hash": "p", "batch_size": WINDOW, "run_settings": {"effort": "low"}, "frozen_utc": "t1"}
+    assert freeze_id(base) == freeze_id({**base, "frozen_utc": "t2"})
+    for change in ({"prompt_hash": "q"}, {"batch_size": 1}, {"run_settings": {"effort": "medium"}}):
+        assert freeze_id({**base, **change}) != freeze_id(base)
+
+
+@needs_data
+def test_val_state_is_bound_to_the_freeze_and_thresholds_keep_the_notes(tmp_path, monkeypatch):
+    import argparse
+
+    from src.llm import run
+    from src.predictions import read_notes
+
+    labels = _label_order()
+    seg = _segments({7: 2, 8: 2}).assign(start=0, end=1, labels=[[]] * 4)
+    iteration_csv = tmp_path / "iteration.csv"
+    pd.DataFrame({"contract_id": [7]}).to_csv(iteration_csv, index=False)
+    monkeypatch.setattr(config, "MODELS_DIR", tmp_path / "models")
+    monkeypatch.setattr(config, "PREDICTIONS_DIR", tmp_path / "pred")
+    monkeypatch.setattr(config, "LLM_ITERATION_CONTRACTS", iteration_csv)
+    marker = tmp_path / "models" / "claude" / "val_run.json"
+    marker.parent.mkdir(parents=True)
+    marker.write_text(json.dumps({"freeze_id": "older freeze", "invalid": {"val": {}}}))
+    frozen = {"version": "v2", "batch_size": WINDOW, "prompt_hash": run.prompt_hash("v2", labels), "run_settings": {}}
+    monkeypatch.setattr(run, "load_frozen", lambda _m: frozen)
+    monkeypatch.setattr(run, "load_inputs", lambda: (seg, None, labels))
+    monkeypatch.setattr(run, "soft_checkpoint", lambda *a, **k: None)
+    sent = []
+
+    def fake_run_calls(m, calls_, v, namespace, lo, max_cost=None):
+        sent.append(namespace)
+        return run.RunResult(records={c.key: _val_record(c.targets, 0.8) for c in calls_})
+
+    monkeypatch.setattr(run, "run_calls", fake_run_calls)
+    run.cmd_val(argparse.Namespace(model="claude", redo_invalid=False, past_checkpoint=False, max_cost=None))
+    state = json.loads(marker.read_text())
+    assert sent == ["v2"] and state["freeze_id"] == run.freeze_id(frozen) and "invalid" not in state
+
+    run.cmd_thresholds(argparse.Namespace(model="claude"))
+    notes = read_notes(tmp_path / "pred" / "claude_val.parquet")
+    assert notes["thresholds"] == "Rule B, tuned on validation"
+    assert notes["cache_namespace"] == "v2" and notes["run_health_status"] == "ok"
+
+    marker.write_text(json.dumps({**state, "freeze_id": "older freeze"}))
+    with pytest.raises(SystemExit, match="not from the current freeze"):
+        run.cmd_thresholds(argparse.Namespace(model="claude"))
+
+
+@needs_data
+def test_val_healthy_run_records_health(tmp_path, monkeypatch):
+    import argparse
+
+    from src.llm import run
+
+    labels = _label_order()
+    seg = _segments({7: 2, 8: 2}).assign(start=0, end=1, labels=[[]] * 4)
+    iteration_csv = tmp_path / "iteration.csv"
+    pd.DataFrame({"contract_id": [7]}).to_csv(iteration_csv, index=False)
+    monkeypatch.setattr(config, "MODELS_DIR", tmp_path / "models")
+    monkeypatch.setattr(config, "PREDICTIONS_DIR", tmp_path / "pred")
+    monkeypatch.setattr(config, "LLM_ITERATION_CONTRACTS", iteration_csv)
+    (tmp_path / "models" / "claude").mkdir(parents=True)
+    frozen = {"version": "v2", "batch_size": WINDOW, "prompt_hash": run.prompt_hash("v2", labels), "run_settings": {}}
+    monkeypatch.setattr(run, "load_frozen", lambda _m: frozen)
+    monkeypatch.setattr(run, "load_inputs", lambda: (seg, None, labels))
+    monkeypatch.setattr(run, "soft_checkpoint", lambda *a, **k: None)
+    monkeypatch.setattr(run, "run_calls", lambda m, calls_, v, ns, lo, max_cost=None: run.RunResult(
+        records={c.key: _val_record(c.targets, 0.8) for c in calls_}))
+    run.cmd_val(argparse.Namespace(model="claude", redo_invalid=False, past_checkpoint=False, max_cost=None))
+    state = json.loads((tmp_path / "models" / "claude" / "val_run.json").read_text())
+    assert "val" in state["health"] and "invalid" not in state
+    assert (tmp_path / "pred" / "claude_val.parquet").exists()
