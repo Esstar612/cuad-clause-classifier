@@ -1,0 +1,14 @@
+N=1 half: 12 of 23 iteration contracts, 1467 segments = N=1 calls per model (saved to /Users/owner/Dropbox/My Resume/Code/CCC/data/processed/llm_n1_contracts.csv)
+ contract_id                            contract_type  segments
+          56                Collaboration/Cooperation       156
+          91                               Consulting        81
+          93                              Sponsorship        47
+          99                              Maintenance        31
+         140                              Development       139
+         287                                Marketing       191
+         291                                  License        24
+         300                              Distributor       154
+         307                              Outsourcing       295
+         335                       Strategic Alliance       284
+         368 Non-Compete/No-Solicit/Non-Disparagement        26
+         438                                  Service        39

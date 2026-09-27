@@ -79,6 +79,7 @@ LLM_WINDOW_SIZE = 10             # fixed context window; batch size is 10 (whole
 LLM_CONFIDENCE_FLOOR = 0.1       # models list every label with confidence >= this; others score 0
 LLM_ITERATION_MIN_SEGMENTS = 1500
 LLM_ITERATION_CONTRACTS = PROCESSED_DIR / "llm_iteration_contracts.csv"
+LLM_N1_CONTRACTS = PROCESSED_DIR / "llm_n1_contracts.csv"
 LLM_ITERATION_DIR = PREDICTIONS_DIR / "iteration"
 LLM_THIN_LABEL_SEGMENTS = 5      # iteration-sample labels below this are "too thin to judge"
 LLM_MAX_PROMPT_VERSIONS = 5

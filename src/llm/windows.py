@@ -7,6 +7,7 @@ a call must label, never the context a segment is read in.
 
 from __future__ import annotations
 
+import zlib
 from dataclasses import dataclass
 
 import numpy as np
@@ -100,3 +101,14 @@ def casebook(baseline_val: pd.DataFrame, seed: int = config.SEED) -> pd.DataFram
         pick = sorted(rng.choice(ids, size=min(CASES_PER_PAIR, len(ids)), replace=False)) if ids else []
         rows += [{"segment_id": str(s), "case": f"{a} misread as {b} (baseline)"} for s in pick]
     return pd.DataFrame(rows)
+
+
+N1_HALF_STREAM = b"n1-half"
+
+
+def n1_half_contracts(sample: pd.DataFrame, seed: int = config.SEED) -> pd.DataFrame:
+    """Seeded half of the iteration contracts, rounded up; whole contracts, unstratified (Rule E, 3u)."""
+    ordered = sample.sort_values("contract_id").reset_index(drop=True)
+    rng = np.random.default_rng([seed, zlib.crc32(N1_HALF_STREAM)])
+    picked = rng.choice(len(ordered), size=-(-len(ordered) // 2), replace=False)
+    return ordered.iloc[sorted(picked)].reset_index(drop=True)

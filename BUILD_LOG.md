@@ -1983,3 +1983,69 @@ None.
 
 ### Resume-worthy
 none
+
+---
+
+## 2026-09-26: Step 3ac, v4 gate: dense schema rejected by both providers; v4 not run
+
+### What we built
+Nothing new; ran the v4 gate smoke and `gate-v4`.
+
+### Decisions made
+- v4 is recorded as not runnable for both models, as pre-registered in 3aa and Rule E: a provider that rejects the dense schema excludes that model, and Gemini excluded means no v4 for either model. The gate printed "neither: Gemini failed the smoke, so no v4 for either model".
+- Incumbents stand: Claude v2, Gemini v3. Iteration on prompt versions ends here (4 of the 5 allowed versions used, v4 unrunnable).
+
+### Numbers measured
+- Claude v4 smoke: all 3 calls rejected with `400 invalid_request_error: The compiled grammar is too large, which would cause performance issues. Simplify your tool schemas or reduce the number of strict tools.` (request ids req_011CfSrGpScgtNU5W6m94aDt, req_011CfSrGu8eJmpkdXWeibj33, req_011CfSrGzFidJXctp8hMYKWQ). The dense schema has 33 required properties per target, 330 per 10-target call.
+  - Command: `python -m src.llm.run iterate --model claude --prompt v4 --batch-size 10 --limit 3 --max-cost 1`
+- Gemini v4 smoke: all 3 calls rejected with `400 INVALID_ARGUMENT: Request contains an invalid argument.` (no further detail; the schema size is the likely cause, not confirmed).
+  - Command: `python -m src.llm.run iterate --model gemini --prompt v4 --batch-size 10 --limit 3 --max-cost 1`
+- `gate-v4`: both models "smoke FAIL, 0 of 3 smoke records"; projections NaN (no smoke records to measure); N=1 upper bound 2,658 calls per model (segments of the 12 largest iteration contracts); spent $17.52; branch "neither".
+  - Command: `python -m src.llm.run gate-v4 | tee data/processed/llm_gate_v4.txt`
+- Spend unchanged: rejected requests are not billed and never reached the ledger (no v4 ledger entries).
+
+### Problems hit and how we solved them
+- The dense schema exceeds what both structured-output implementations accept. Not worked around: a different dense encoding would be a new, post-hoc version, not the pre-registered v4.
+
+### Surprises in the data or results
+- Both providers reject a schema of 330 required numeric properties per call, while v2 and v3's keyed sparse schema (10 required arrays over a 33-label enum) is accepted.
+
+### Resume-worthy
+none
+
+---
+
+## 2026-09-26: Step 3ad, N=1 batch-size check designed and drawn (before any N=1 call)
+
+### What we built
+- `src/llm/run.py` `_messages`: retrieved examples now come from the whole window (`call.texts`) rather than only the call's targets. At N=10 every window segment is a target, so every N=10 request is unchanged; at N=1 the example block equals the N=10 call's block for the same window.
+- `src/llm/windows.py` `n1_half_contracts`: the seeded half of the iteration contracts, rounded up; whole contracts, unstratified; `np.random.default_rng([config.SEED, crc32(b"n1-half")])`.
+- `src/llm/run.py`: `n1-sample` (saves the draw to `data/processed/llm_n1_contracts.csv`, refuses a differing saved file); `iterate --subset n1-half` (batch size 1 only, no `--rerun` or `--limit`, refuses unless the saved draw equals the seeded one, no casebook calls, output `{model}_{prompt}-n1half_n1.parquet`, cache namespace unchanged); `compare --restrict-b-to-a` (restricts B to A's segments, refuses if any are missing); `config.LLM_N1_CONTRACTS`.
+- 6 tests (draw determinism and shape; window-level examples leave N=10 unchanged and match at N=1; subset calls match the full-sample N=1 calls and the N=10 windows; refusals for other batch sizes, `--rerun`, `--limit`; refusals for a missing or differing saved draw; `restrict_to`).
+- Plan review: three rounds (`docs/reviews/2026-09-26-3ad-r1.md` to `-r3.md`); rounds 1 and 2 "approve with changes", round 3 "approve".
+
+### Decisions made
+- The check follows the pre-registered design (docs/plan.md:77; adopted for the N=1 check in 3u): a seeded half of the iteration contracts, rounded up, whole contracts, unstratified, on each model's prompt to be frozen (Claude v2, Gemini v3); the N=10 side is restricted to the same contracts so the pair is matched.
+- Retrieved examples at N=1 are chosen for the whole window, so for Gemini v3 the example block is identical to N=10's and only the number of targets per call varies (3a's design). v3's examples paragraph says the examples "resemble the targets"; at N=1 they are chosen for the whole window, which is what each target sees at N=10.
+  - Alternative considered: per-target examples at N=1.
+  - Why rejected: Gemini's N=1 calls would show 2 examples against up to 20 at N=10, changing batch size and example count together.
+- Reading rule (docs/plan.md:90, 3f), restated before any N=1 output: validation, test and shift run at N=10 whatever the check shows. If N=1 beats N=10 (paired unstratified contract bootstrap, 95% interval excluding zero, micro-F1), the gain is reported as a measured accuracy and cost trade-off on validation, not acted on.
+- Caveats fixed now: reduced power (12 contracts); the N=10 runs (Claude v2 2026-09-25, Gemini v3 2026-09-26) and the N=1 runs are not contemporaneous; healthy run-to-run variance is not in the interval (the bootstrap resamples contracts, not reruns).
+- Cost caps: `--max-cost 18` (Claude) and `--max-cost 10` (Gemini) stand. Re-projected from the drawn count (arithmetic, not measured): Claude about $0.0058 per call, up to about $0.0071 if none of each call's roughly 135 fixed output tokens is shared at N=1, so about $8.5 and at most about $10.4 for 1,467 calls; Gemini about $0.0031 per call (slightly high), about $4.5. The checkpoint has no N=1 history and uses the offline estimate, so `--max-cost` is the real guard.
+
+### Numbers measured
+- Tests: 136 passed. Command: `pytest tests -v`
+- Guarded rebuilds before any N=1 run (no paid calls, spend $17.52): Claude v2 micro-F1 0.6086, macro-F1 0.5841, identical to the logged file; Gemini v3 micro-F1 0.6444, macro-F1 0.6118, `new_calls_this_run: 0` (the window-level change left every v3 N=10 request unchanged), the only diff against the logged file being `new_calls_this_run` 354 against 0.
+  - Commands: `python -m src.llm.run iterate --model claude --prompt v2 --batch-size 10 --max-cost 0.01 | tee data/processed/llm_rebuild2_claude_v2_n10.txt`; the Gemini v3 equivalent to `llm_rebuild2_gemini_v3_n10.txt`.
+- The draw: 12 of 23 iteration contracts, 1,467 segments (N=1 calls per model): 56 Collaboration/Cooperation (156), 91 Consulting (81), 93 Sponsorship (47), 99 Maintenance (31), 140 Development (139), 287 Marketing (191), 291 License (24), 300 Distributor (154), 307 Outsourcing (295), 335 Strategic Alliance (284), 368 Non-Compete/No-Solicit/Non-Disparagement (26), 438 Service (39).
+  - Command: `python -m src.llm.run n1-sample | tee data/processed/llm_n1_sample.txt`
+  - File: `data/processed/llm_n1_contracts.csv`
+
+### Problems hit and how we solved them
+- Code review (`scripts/review.sh`): the half-draw test compared against a hardcoded seed 7, which would fail if `config.SEED` were 7; it now uses `config.SEED + 1`. Optional simplification taken: `iterate --subset n1-half` no longer loads the casebook it discards.
+
+### Surprises in the data or results
+None.
+
+### Resume-worthy
+none

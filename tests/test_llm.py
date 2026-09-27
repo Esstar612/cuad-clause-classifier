@@ -948,3 +948,88 @@ def test_score_names_the_ap_by_output_type():
     dense = score(frame, order, sparse=False)
     assert "macro_ap" in dense and "macro_ap_sparse_lower_bound" not in dense
 
+
+# ----------------------------------------------------------------------------- N=1 half check (Step 3ad)
+
+@needs_data
+def test_n1_half_is_seeded_whole_contracts():
+    from src.llm.windows import n1_half_contracts
+
+    sample = pd.read_csv(config.LLM_ITERATION_CONTRACTS)
+    half = n1_half_contracts(sample)
+    pd.testing.assert_frame_equal(half, n1_half_contracts(sample))
+    assert len(sample) == 23 and len(half) == 12
+    assert len(half.merge(sample, on=list(sample.columns))) == 12
+    assert set(n1_half_contracts(sample, seed=config.SEED + 1)["contract_id"]) != set(half["contract_id"])
+
+
+@needs_baseline
+def test_window_level_examples_leave_n10_unchanged_and_match_at_n1():
+    from src.build_segments import load_segments
+    from src.llm.prompt import user_message
+    from src.llm.retrieval import train_index
+    from src.llm.run import _iteration_segments, _messages
+
+    labels = _label_order()
+    seg = _iteration_segments(load_segments())
+    seg = seg[seg["contract_id"] == seg["contract_id"].iloc[0]]
+    n10 = build_calls(seg, WINDOW)[:3]
+    for call in n10:
+        targets = set(call.targets)
+        old = train_index().examples_for([t for sid, t in zip(call.segment_ids, call.texts) if sid in targets])
+        assert _messages(call, "v3", labels)[1] == user_message(call, old)[0]
+    block = lambda message: message.split("<window>")[0]
+    n1 = [c for c in build_calls(seg, 1) if c.segment_ids == n10[0].segment_ids]
+    assert n1 and all(block(_messages(c, "v3", labels)[1]) == block(_messages(n10[0], "v3", labels)[1]) for c in n1)
+
+
+@needs_data
+def test_n1_half_calls_match_the_full_sample_calls():
+    from src.build_segments import load_segments
+    from src.llm.run import _iteration_segments
+    from src.llm.windows import n1_half_contracts
+
+    iteration = _iteration_segments(load_segments())
+    half = n1_half_contracts(pd.read_csv(config.LLM_ITERATION_CONTRACTS))
+    subset = iteration[iteration["contract_id"].isin(half["contract_id"])]
+    full_n1 = {c.key: c for c in build_calls(iteration, 1)}
+    n10_windows = {c.segment_ids for c in build_calls(iteration, WINDOW)}
+    calls = build_calls(subset, 1)
+    assert len(calls) == len(subset)
+    for c in calls:
+        assert len(c.targets) == 1 and full_n1[c.key] == c and c.segment_ids in n10_windows
+
+
+def test_subset_refuses_other_batch_sizes_rerun_and_limit():
+    from types import SimpleNamespace
+
+    from src.llm.run import cmd_iterate
+
+    for kw in ({"batch_size": 10}, {"batch_size": 1, "rerun": "r2"}, {"batch_size": 1, "limit": 3}):
+        args = SimpleNamespace(**{"subset": "n1-half", "rerun": None, "limit": None, **kw})
+        with pytest.raises(SystemExit):
+            cmd_iterate(args)
+
+
+@needs_data
+def test_subset_refuses_a_missing_or_different_saved_draw(tmp_path, monkeypatch):
+    from src.llm.run import _n1_half_segments
+
+    monkeypatch.setattr(config, "LLM_N1_CONTRACTS", tmp_path / "missing.csv")
+    with pytest.raises(SystemExit):
+        _n1_half_segments(None)
+    other = tmp_path / "other.csv"
+    pd.read_csv(config.LLM_ITERATION_CONTRACTS).head(12).to_csv(other, index=False)
+    monkeypatch.setattr(config, "LLM_N1_CONTRACTS", other)
+    with pytest.raises(SystemExit):
+        _n1_half_segments(None)
+
+
+def test_restrict_to_pairs_or_refuses():
+    from src.llm.run import restrict_to
+
+    b = pd.DataFrame({"segment_id": ["a", "b", "c"], "x": [1, 2, 3]})
+    assert list(restrict_to(b, pd.DataFrame({"segment_id": ["c", "a"]}))["segment_id"]) == ["a", "c"]
+    with pytest.raises(SystemExit):
+        restrict_to(b, pd.DataFrame({"segment_id": ["d"]}))
+

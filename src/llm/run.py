@@ -5,6 +5,7 @@
   python -m src.llm.run yardstick                           baseline on the iteration sample (no API)
   python -m src.llm.run estimate-version --prompt V --base B  retrieval version cost from B's measured run (no API)
   python -m src.llm.run gate-v4                             v4 cost gate from the smoke runs (no API)
+  python -m src.llm.run n1-sample                           seeded half of the iteration contracts for N=1 (no API)
   python -m src.llm.run breakdown --model M --prompt V [--batch-size N]   per-label P/R/F1 vs baseline (no API)
   python -m src.llm.run probe [--max-cost X]                Step 3i diagnostic probe (Claude; 4 variants)
   python -m src.llm.run iterate --model M --prompt V --batch-size N [--limit K] [--max-cost X] [--rerun TAG]
@@ -51,7 +52,7 @@ from src.llm.prompt import (PROBE_VARIANTS, PROMPT_VERSIONS, prompt_hash, schema
                             user_message, version_spec)
 from src.llm.retrieval import train_index
 from src.llm.selection import llm_thresholds, paired_micro_f1
-from src.llm.windows import WINDOW, build_calls, casebook, iteration_contracts, windows
+from src.llm.windows import WINDOW, build_calls, casebook, iteration_contracts, n1_half_contracts, windows
 from src.metrics import per_label
 from src.predictions import read_label_order, to_prediction_frame, write_predictions
 
@@ -82,9 +83,7 @@ class RunResult:
 def _messages(call, version, label_order):
     examples = None
     if version_spec(version).get("retrieval"):
-        targets = set(call.targets)
-        examples = train_index().examples_for(
-            [text for sid, text in zip(call.segment_ids, call.texts) if sid in targets])
+        examples = train_index().examples_for(list(call.texts))  # the whole window, so N=1 sees N=10's block
     user, local = user_message(call, examples)
     target_ids = [lid for lid, sid in local.items() if sid in set(call.targets)]
     system, schema = system_prompt(version, label_order), schema_for(version, label_order, target_ids)
@@ -533,16 +532,44 @@ def iteration_path(model_key, version, batch_size) -> Path:
     return config.LLM_ITERATION_DIR / f"{model_key}_{version}_n{batch_size}.parquet"
 
 
+def _n1_draw() -> pd.DataFrame:
+    return n1_half_contracts(pd.read_csv(config.LLM_ITERATION_CONTRACTS))
+
+
+def cmd_n1_sample(_args) -> None:
+    draw, path = _n1_draw(), config.LLM_N1_CONTRACTS
+    if path.exists():
+        if not pd.read_csv(path).equals(draw):
+            raise SystemExit(f"{path} differs from the seeded draw; not overwriting")
+    else:
+        draw.to_csv(path, index=False)
+    print(f"N=1 half: {len(draw)} of {len(pd.read_csv(config.LLM_ITERATION_CONTRACTS))} iteration contracts, "
+          f"{int(draw['segments'].sum())} segments = N=1 calls per model (saved to {path})")
+    print(draw.to_string(index=False))
+
+
+def _n1_half_segments(segments):
+    draw = _n1_draw()
+    if not config.LLM_N1_CONTRACTS.exists() or not pd.read_csv(config.LLM_N1_CONTRACTS).equals(draw):
+        raise SystemExit("run `n1-sample` first; the saved N=1 half must equal the seeded draw")
+    seg = _iteration_segments(segments)
+    return seg[seg["contract_id"].isin(draw["contract_id"])]
+
+
 def cmd_iterate(args) -> None:
+    if args.subset and (args.batch_size != 1 or args.rerun or args.limit):
+        raise SystemExit("--subset n1-half runs at batch size 1 only, without --rerun or --limit")
     load_dotenv()
     segments, _, label_order = load_inputs()
     if args.prompt not in PROMPT_VERSIONS:
         raise SystemExit(f"unknown prompt version {args.prompt}")
-    seg = _iteration_segments(segments)
+    seg = _n1_half_segments(segments) if args.subset else _iteration_segments(segments)
     calls = build_calls(seg, args.batch_size)
-    cases = casebook(pd.read_parquet(config.PREDICTIONS_DIR / "baseline_val.parquet"))
-    case_calls = [c for c in build_calls(segments[segments["split"] == "val"], args.batch_size)
-                  if set(c.targets) & set(cases["segment_id"])]
+    case_calls = []
+    if not args.subset:
+        cases = casebook(pd.read_parquet(config.PREDICTIONS_DIR / "baseline_val.parquet"))
+        case_calls = [c for c in build_calls(segments[segments["split"] == "val"], args.batch_size)
+                      if set(c.targets) & set(cases["segment_id"])]
     if args.limit:
         calls, case_calls = calls[:args.limit], []
     to_run = calls + [c for c in case_calls if c.key not in {k.key for k in calls}]
@@ -561,7 +588,7 @@ def cmd_iterate(args) -> None:
     _print(usage_report(result, calls, args.batch_size, args.prompt, set(label_order)), "  ")
     if args.limit:
         return
-    path = iteration_path(args.model, run_label, args.batch_size)
+    path = iteration_path(args.model, f"{args.prompt}-n1half" if args.subset else run_label, args.batch_size)
     write_predictions(frame, path, label_order, {"scores": scores_note(args.prompt), "threshold": "0.5 (iteration)",
                                                  "latency_ms": "call-amortized"})
     if case_calls and all(c.key in result.records for c in case_calls):
@@ -759,12 +786,21 @@ def cmd_estimate_version(args) -> None:
               f"at {args.base}'s measured cost per call")
 
 
+def restrict_to(b: pd.DataFrame, a: pd.DataFrame) -> pd.DataFrame:
+    missing = set(a["segment_id"]) - set(b["segment_id"])
+    if missing:
+        raise SystemExit(f"B lacks {len(missing)} of A's segments; cannot pair them")
+    return b[b["segment_id"].isin(set(a["segment_id"]))].reset_index(drop=True)
+
+
 def cmd_compare(args) -> None:
     label_order = _label_order_cached()
     frames = []
     for spec in (args.a, args.b):
         version, n = spec.split(":")
         frames.append(pd.read_parquet(iteration_path(args.model, version, int(n))))
+    if args.restrict_b_to_a:
+        frames[1] = restrict_to(frames[1], frames[0])
     out = paired_micro_f1(frames[0], frames[1], label_order)
     print(f"{args.model}: A={args.a} minus B={args.b}, unstratified paired contract bootstrap "
           f"({config.BOOTSTRAP_RESAMPLES} resamples, seed {config.SEED}, stream 'iteration'), "
@@ -1181,6 +1217,7 @@ def main() -> None:
     sub.add_parser("estimate")
     sub.add_parser("yardstick")
     sub.add_parser("gate-v4")
+    sub.add_parser("n1-sample")
     p = sub.add_parser("estimate-version")
     p.add_argument("--prompt", required=True)
     p.add_argument("--base", required=True)
@@ -1200,12 +1237,14 @@ def main() -> None:
     p.add_argument("--limit", type=int)
     p.add_argument("--max-cost", type=float)
     p.add_argument("--rerun", help="fresh cache namespace for the same prompt, e.g. r2")
+    p.add_argument("--subset", choices=["n1-half"], help="the seeded half of the iteration contracts, N=1 only")
     p.add_argument("--past-checkpoint", action="store_true",
                    help="approve continuing past the $100 soft checkpoint (Rule E)")
     p = sub.add_parser("compare")
     p.add_argument("--model", choices=models, required=True)
     p.add_argument("--a", required=True, help="VERSION:BATCH_SIZE, e.g. v2:10")
     p.add_argument("--b", required=True)
+    p.add_argument("--restrict-b-to-a", action="store_true", help="pair on A's segments only (N=1 half check)")
     p = sub.add_parser("freeze")
     p.add_argument("--model", choices=models, required=True)
     p.add_argument("--prompt", required=True)
@@ -1226,7 +1265,7 @@ def main() -> None:
     args = parser.parse_args()
     {"sample": cmd_sample, "estimate": cmd_estimate, "yardstick": cmd_yardstick,
      "breakdown": cmd_breakdown, "probe": cmd_probe, "estimate-version": cmd_estimate_version,
-     "gate-v4": cmd_gate_v4,
+     "gate-v4": cmd_gate_v4, "n1-sample": cmd_n1_sample,
      "iterate": cmd_iterate, "compare": cmd_compare,
      "freeze": cmd_freeze, "val": cmd_val, "thresholds": cmd_thresholds, "repeat": cmd_repeat,
      "heldout": cmd_heldout}[args.cmd](args)
