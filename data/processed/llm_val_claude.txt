@@ -1,0 +1,24 @@
+Checkpoint: spent $30.75 so far; this command projects $6.07 (v2 ledger mean $0.0071/call at N=10); total $36.83; soft checkpoint $100.00, hard cap $150.00
+Full validation, frozen prompt v2, namespace v2 (threshold 0.5, provisional); run health ok; below-floor share outside the iteration contracts 0.0000 (descriptive):
+  segments: 11656
+  contracts: 97
+  micro_f1: 0.6286
+  macro_f1: 0.5989
+  macro_ap_sparse_lower_bound: 0.5764
+  none_fp_rate_parsed: 0.0498
+  parse_failure_rate: 0.0
+Usage:
+  calls: 1212
+  new_calls_this_run: 855
+  attempts: 1212
+  parse_retries: 0
+  transport_retries: 0
+  tokens: {'cache_creation_input_tokens': 182108, 'cache_read_input_tokens': 9985380, 'input_tokens': 1921041, 'output_tokens': 161997, 'thinking_blocks': 0}
+  cost_usd_all_calls: 7.9144
+  cost_per_1000_segments: 0.679
+  latency_per_call_ms: {'median': 2114.6299164392985, 'p95': 3516.076410672395}
+  latency_per_segment_ms_median: 219.8809
+  latency_label: 10 targets per call, call-amortized per segment
+  served_models: ['claude-sonnet-5']
+  record_window_utc: ['2026-09-25T17:18:10+00:00', '2026-09-27T09:14:44+00:00']
+  run_health: {'calls': 1212, 'below_floor_calls': 0, 'below_floor_share': 0.0, 'unreadable_attempts': 0, 'empty_set_share': 0.7610672614962252, 'mean_labels_listed': 0.31648936170212766, 'parse_failed_segments': 0}

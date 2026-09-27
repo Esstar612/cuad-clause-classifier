@@ -1,0 +1,24 @@
+Checkpoint: spent $30.75 so far; this command projects $3.06 (v3 ledger mean $0.0036/call at N=10); total $33.81; soft checkpoint $100.00, hard cap $150.00
+Full validation, frozen prompt v3, namespace v3 (threshold 0.5, provisional); run health ok; below-floor share outside the iteration contracts 0.0000 (descriptive):
+  segments: 11656
+  contracts: 97
+  micro_f1: 0.6746
+  macro_f1: 0.6455
+  macro_ap_sparse_lower_bound: 0.6017
+  none_fp_rate_parsed: 0.05
+  parse_failure_rate: 0.0
+Usage:
+  calls: 1212
+  new_calls_this_run: 855
+  attempts: 1212
+  parse_retries: 0
+  transport_retries: 184
+  tokens: {'cached_content_token_count': 1608008, 'candidates_token_count': 169391, 'prompt_token_count': 5897159, 'thoughts_token_count': 0, 'total_token_count': 6066550}
+  cost_usd_all_calls: 3.9727
+  cost_per_1000_segments: 0.3408
+  latency_per_call_ms: {'median': 1416.1797079723328, 'p95': 6435.118350019918}
+  latency_per_segment_ms_median: 147.2555
+  latency_label: 10 targets per call, call-amortized per segment
+  served_models: ['gemini-3.8-flash']
+  record_window_utc: ['2026-09-26T16:55:35+00:00', '2026-09-27T09:16:20+00:00']
+  run_health: {'calls': 1212, 'below_floor_calls': 0, 'below_floor_share': 0.0, 'unreadable_attempts': 0, 'empty_set_share': 0.8295298558682224, 'mean_labels_listed': 0.21851407000686343, 'parse_failed_segments': 0}

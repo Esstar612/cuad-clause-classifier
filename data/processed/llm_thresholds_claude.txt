@@ -1,0 +1,39 @@
+Rule B pooled labels (5): ['Joint Ip Ownership', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Third Party Beneficiary']
+Pooled threshold: 0.61
+Per-class thresholds:
+  Affiliate License: 0.4
+  Anti-Assignment: 0.5
+  Audit Rights: 0.5
+  Cap On Liability: 0.3
+  Change Of Control: 0.61
+  Competitive Restriction Exception: 0.5
+  Covenant Not To Sue: 0.4
+  Exclusivity: 0.4
+  Expiration Date: 0.3
+  Governing Law: 0.71
+  Insurance: 0.51
+  Ip Ownership Assignment: 0.81
+  Irrevocable Or Perpetual License: 0.51
+  License Grant: 0.51
+  Liquidated Damages: 0.5
+  Minimum Commitment: 0.51
+  No-Solicit Of Employees: 0.3
+  Non-Compete: 0.5
+  Non-Transferable License: 0.51
+  Notice Period To Terminate Renewal: 0.61
+  Post-Termination Services: 0.76
+  Renewal Term: 0.61
+  Revenue/Profit Sharing: 0.5
+  Rofr/Rofo/Rofn: 0.3
+  Termination For Convenience: 0.5
+  Uncapped Liability: 0.4
+  Volume Restriction: 0.4
+  Warranty Duration: 0.5
+Validation with Rule B thresholds (tuned on this set, so optimistic):
+  segments: 11656
+  contracts: 97
+  micro_f1: 0.6825
+  macro_f1: 0.6322
+  macro_ap_sparse_lower_bound: 0.5764
+  none_fp_rate_parsed: 0.0306
+  parse_failure_rate: 0.0

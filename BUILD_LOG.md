@@ -2132,3 +2132,45 @@ None.
 
 ### Resume-worthy
 none
+
+## 2026-09-27: Step 3ag, frozen prompts, full validation, Rule B thresholds and repeat check (before any held-out call)
+
+### What we built
+Nothing new. The runs used the Step 3af code (commit 2ee1208).
+
+### Decisions made
+- Frozen for the held-out run: Claude v2 at batch size 10 (prompt hash dc2236da8a44), Gemini v3 at batch size 10 (prompt hash 8ec29d0ea6ca). Rule B thresholds as tuned below. Nothing is changed after this entry; test and shift run once per model.
+- Both validation runs are healthy under the 3af rule, so no redo.
+
+### Numbers measured
+- Freeze: `python -m src.llm.run freeze --model claude --prompt v2 --batch-size 10` and `--model gemini --prompt v3`; files `data/processed/llm_freeze_{claude,gemini}.txt`, `models/{claude,gemini}/prompt.json`. Freeze ids in `val_run.json`: Claude 9baad05c8c4f, Gemini 5d5b68a618e6.
+- Full validation, threshold 0.5 (97 contracts, 11,656 segments, 1,212 calls, 855 new):
+  - Claude v2: micro-F1 0.6286, macro-F1 0.5989, macro-AP sparse 0.5764, none FP 0.0498, parse failures 0.0. 0 parse retries, 0 transport retries; latency per call median 2,115 ms, p95 3,516 ms (220 ms per segment, call-amortized). Health 0 of 1,212 below floor (descriptive share outside the iteration contracts 0.0000); empty-set share 0.7611; mean labels listed 0.3165. Checkpoint projected $6.07 for the new calls. Record window 2026-09-25T17:18:10 to 2026-09-27T09:14:44 UTC.
+  - Gemini v3: micro-F1 0.6746, macro-F1 0.6455, macro-AP sparse 0.6017, none FP 0.0500, parse failures 0.0. 0 parse retries, 184 transport retries; latency per call median 1,416 ms, p95 6,435 ms (147 ms per segment). Health 0 of 1,212 below floor (outside the iteration contracts 0.0000); empty-set share 0.8295; mean labels listed 0.2185. Checkpoint projected $3.06. Record window 2026-09-26T16:55:35 to 2026-09-27T09:16:20 UTC.
+  - Spend: $30.75 before validation, $38.83 after (both runs, $8.08).
+  - Commands: `python -m src.llm.run val --model claude --max-cost 15`, `--model gemini --max-cost 8`; files `data/processed/llm_val_{claude,gemini}.txt`, `data/predictions/{claude,gemini}_val.parquet`.
+- Rule B thresholds (tuned on validation, so these validation figures are optimistic):
+  - Pooled labels (5, as pre-registered): Joint Ip Ownership, Most Favored Nation, No-Solicit Of Customers, Non-Disparagement, Third Party Beneficiary. Pooled threshold: Claude 0.61, Gemini 0.91.
+  - Claude v2 with Rule B: micro-F1 0.6825, macro-F1 0.6322, none FP 0.0306.
+  - Gemini v3 with Rule B: micro-F1 0.7117, macro-F1 0.6795, none FP 0.0346.
+  - Per-class thresholds (28 labels each): Claude from 0.3 to 0.81, Gemini from 0.2 to 0.86; above 0.5 for 19 of 28 Gemini labels and 11 of 28 Claude labels, suggesting Gemini's stated confidences run high relative to its precision at 0.5. Full lists in the files.
+  - Commands: `python -m src.llm.run thresholds --model claude` and `--model gemini`; files `data/processed/llm_thresholds_{claude,gemini}.txt`, `models/{claude,gemini}/thresholds.json`.
+- Repeat check (first 30 iteration windows, 295 segments; the cached run plus 2 cache-bypassed runs; Rule B thresholds):
+  - Claude v2: all-runs exact label-set agreement 0.9763; pairwise 0.9831, 0.9864, 0.9831; none-versus-some flip rate 0.0169, 0.0136, 0.0169; mean absolute confidence difference on labels listed in both 0.0518, 0.0567, 0.0638; per-label agreement 0.993 to 1.000; parse failures 0, 0, 0; health 0 below floor in each run. New spend $0.4571.
+  - Gemini v3: all-runs exact agreement 1.0; every pairwise agreement 1.0; flip rate 0.0; confidence difference 0.0; parse failures 0; health 0 below floor in each run. New spend $0.2368.
+  - Commands: `python -m src.llm.run repeat --model claude --max-cost 1` and `--model gemini`; files `data/processed/llm_repeat_{claude,gemini}.txt`, `data/eval/llm_repeat_{claude,gemini}.json`.
+- Spend after the repeat check: about $39.52 ($39.28 before Gemini's repeat plus $0.2368).
+
+### Problems hit and how we solved them
+None.
+
+### Surprises in the data or results
+- Gemini's three runs are identical to the character. A read-only check of the cache found the raw response text identical for all 30 windows across the three namespaces, from separate calls (the original on 2026-09-26 at 20:07 UTC, the repeats on 2026-09-27 at 09:34 and 09:34 UTC, each billed). With `seed=42` (3a, best effort only) Gemini behaved deterministically for these inputs; Claude, which takes no seed or temperature, varied on about 2.4% of segments. Gemini's zero is measured on 30 windows and is not a guarantee of determinism under other load or model updates.
+
+### Caveats
+- Full validation includes the 23 iteration contracts used for prompt selection, so it is optimistic even at 0.5; with Rule B thresholds tuned on it, more so.
+- Validation records span two periods: the reused iteration calls (2026-09-25 for Claude, 2026-09-26 for Gemini) and the new calls (2026-09-27).
+- The repeat check's first run is the cached iteration run, so its comparison with the two new runs also spans a day or two.
+
+### Resume-worthy
+- Measured LLM run-to-run variation directly: three runs of the frozen prompts on the same windows gave 97.6% exact label-set agreement for Claude (no sampling control available) and 100% for Gemini with a fixed seed.

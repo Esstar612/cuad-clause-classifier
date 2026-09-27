@@ -1,0 +1,1 @@
+Froze claude: prompt v2, batch size 10, hash dc2236da8a44 -> /Users/owner/Dropbox/My Resume/Code/CCC/models/claude/prompt.json

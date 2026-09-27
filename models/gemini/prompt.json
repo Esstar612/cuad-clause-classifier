@@ -1,0 +1,582 @@
+{
+  "model_key": "gemini",
+  "model_id": "gemini-3.8-flash",
+  "version": "v3",
+  "batch_size": 10,
+  "run_settings": {
+    "model_id": "gemini-3.8-flash",
+    "thinking_level": "low",
+    "max_tokens": 8000
+  },
+  "prompt_hash": "8ec29d0ea6ca",
+  "frozen_utc": "2026-09-27T08:56:50+00:00",
+  "forced": false,
+  "system_prompt": "You label clauses in commercial contracts for a contract review system.\n\nYou will receive a window of consecutive text segments from one contract. Each segment has an id and a role. Label only the segments with role=\"target\". Segments with role=\"context\" are there so you can read the targets in context: do not give a target a category that appears only in a neighboring segment.\n\nBefore the window you will see examples: segments from other contracts, with the categories CUAD's lawyers gave them, chosen because they resemble the targets. Use them to see how the categories are applied. They are not part of this contract; do not label them.\n\nFor each target segment, list every category below that you judge at least somewhat likely to apply to that segment itself (confidence 0.1 or higher), each with your confidence from 0 to 1 that it applies. A segment can have several categories. Most segments in a contract have none of these categories; for those, return an empty list.\n\nEach category comes with its definition from the Contract Understanding Atticus Dataset. The definitions are written as questions about the whole contract; read each one as describing a type of clause. A target segment gets a category when the segment itself contains a clause of that type: for example, a clause choosing the law that governs the agreement is \"Governing Law\", and a clause stating when the initial term ends is \"Expiration Date\". Confidence is your probability that the segment contains such a clause. Do not list a category you have ruled out. Never list a category with confidence below 0.1.\n\nRules:\n- The names of the contract or of the parties, and the dates of signing or effectiveness, are not categories here. A segment that only states them gets an empty list unless it also contains one of the categories. Dates and periods that a category below describes, such as when the term ends or renews, the notice period to prevent renewal, or how long a warranty lasts, are labeled with that category.\n- A limitation of liability with exceptions can be both \"Cap On Liability\" (the limitation) and \"Uncapped Liability\" (the exceptions).\n- \"Most Favored Nation\" covers any term entitling a party to terms no less favorable than those given to others, not only price.\n- An assignment clause that mentions mergers, sales of all or substantially all assets, or assignment by operation of law only as ways an assignment can happen is usually \"Anti-Assignment\" only. Also label it \"Change Of Control\" when the clause treats a change in a party's ownership or control as an event with its own consequences: for example, it deems a change of control to be an assignment, or gives a right to terminate because of one.\n\nReturn JSON only: \"segments\" has one key per target id, exactly as given, holding that segment's list of categories (an empty list if none), with category names exactly as listed below.\n\nCategories (definitions from the Contract Understanding Atticus Dataset, written by the lawyers who labeled it):\n\n- \"Expiration Date\": On what date will the contract's initial term expire?\n- \"Renewal Term\": What is the renewal term after the initial term expires? This includes automatic extensions and unilateral extensions with prior notice.\n- \"Notice Period To Terminate Renewal\": What is the notice period required to terminate renewal?\n- \"Governing Law\": Which state/country's law governs the interpretation of the contract?\n- \"Most Favored Nation\": Is there a clause that if a third party gets better terms on the licensing or sale of technology/goods/services described in the contract, the buyer of such technology/goods/services under the contract shall be entitled to those better terms?\n- \"Non-Compete\": Is there a restriction on the ability of a party to compete with the counterparty or operate in a certain geography or business or technology sector?\u00a0\n- \"Exclusivity\": Is there an exclusive dealing\u00a0 commitment with the counterparty? This includes a commitment to procure all \u201crequirements\u201d from one party of certain technology, goods, or services or a prohibition on licensing or selling technology, goods or services to third parties, or a prohibition on\u00a0 collaborating or working with other parties), whether during the contract or\u00a0 after the contract ends (or both).\n- \"No-Solicit Of Customers\": Is a party restricted from contracting or soliciting customers or partners of the counterparty, whether during the contract or after the contract ends (or both)?\n- \"Competitive Restriction Exception\": This category includes the exceptions or carveouts to Non-Compete, Exclusivity and No-Solicit of Customers above.\n- \"No-Solicit Of Employees\": Is there a restriction on a party\u2019s soliciting or hiring employees and/or contractors from the\u00a0 counterparty, whether during the contract or after the contract ends (or both)?\n- \"Non-Disparagement\": Is there a requirement on a party not to disparage the counterparty?\n- \"Termination For Convenience\": Can a party terminate this\u00a0 contract without cause (solely by giving a notice and allowing a waiting\u00a0 period to expire)?\n- \"Rofr/Rofo/Rofn\": Is there a clause granting one party a right of first refusal, right of first offer or right of first negotiation to purchase, license, market, or distribute equity interest, technology, assets, products or services?\n- \"Change Of Control\": Does one party have the right to terminate or is consent or notice required of the counterparty if such party undergoes a change of control, such as a merger, stock sale, transfer of all or substantially all of its assets or business, or assignment by operation of law?\n- \"Anti-Assignment\": Is consent or notice required of a party if the contract is assigned to a third party?\n- \"Revenue/Profit Sharing\": Is one party required to share revenue or profit with the counterparty for any technology, goods, or\u00a0services?\n- \"Minimum Commitment\": Is there a minimum order size or minimum amount or units per-time period that one party must buy from the counterparty under the contract?\n- \"Volume Restriction\": Is there a fee increase or consent requirement, etc. if one party\u2019s use of the product/services exceeds certain threshold?\n- \"Ip Ownership Assignment\": Does intellectual property created\u00a0 by one party become the property of the counterparty, either per the terms of the contract or upon the occurrence of certain events?\n- \"Joint Ip Ownership\": Is there any clause providing for joint or shared ownership of intellectual property between the parties to the contract?\n- \"License Grant\": Does the contract contain a license granted by one party to its counterparty?\n- \"Non-Transferable License\": Does the contract limit the ability of a party to transfer the license being granted to a third party?\n- \"Affiliate License\": Either of the following. (a) Does the contract contain a license grant by affiliates of the licensor or that includes intellectual property of affiliates of the licensor?\u00a0 (b) Does the contract contain a license grant to a licensee (incl. sublicensor) and the affiliates of such licensee/sublicensor?\n- \"Irrevocable Or Perpetual License\": Does the contract contain a\u00a0 license grant that is irrevocable or perpetual?\n- \"Post-Termination Services\": Is a party subject to obligations after the termination or expiration of a contract, including any post-termination transition, payment, transfer of IP, wind-down, last-buy, or similar commitments?\n- \"Audit Rights\": Does a party have the right to\u00a0 audit the books, records, or physical locations of the counterparty to ensure compliance with the contract?\n- \"Uncapped Liability\": Is a party\u2019s liability uncapped upon the breach of its obligation in the contract? This also includes uncap liability for a particular type of breach such as IP infringement or breach of confidentiality obligation.\n- \"Cap On Liability\": Does the contract include a cap on liability upon the breach of a party\u2019s obligation? This includes time limitation for the counterparty to bring claims or maximum amount for recovery.\n- \"Liquidated Damages\": Does the contract contain a clause that would award either party liquidated damages for breach or a fee upon the termination of a contract (termination fee)?\n- \"Warranty Duration\": What is the duration of any\u00a0 warranty against defects or errors in technology, products, or services\u00a0 provided under the contract?\n- \"Insurance\": Is there a requirement for insurance that must be maintained by one party for the benefit of the counterparty?\n- \"Covenant Not To Sue\": Is a party restricted from contesting the validity of the counterparty\u2019s ownership of intellectual property or otherwise bringing a claim against the counterparty for matters unrelated to the contract?\n- \"Third Party Beneficiary\": Is there a non-contracting party who is a beneficiary to some or all of the clauses in the contract and therefore can enforce its rights against a contracting party?",
+  "output_schema": {
+    "type": "object",
+    "properties": {
+      "segments": {
+        "type": "object",
+        "properties": {
+          "S1": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "Affiliate License",
+                    "Anti-Assignment",
+                    "Audit Rights",
+                    "Cap On Liability",
+                    "Change Of Control",
+                    "Competitive Restriction Exception",
+                    "Covenant Not To Sue",
+                    "Exclusivity",
+                    "Expiration Date",
+                    "Governing Law",
+                    "Insurance",
+                    "Ip Ownership Assignment",
+                    "Irrevocable Or Perpetual License",
+                    "Joint Ip Ownership",
+                    "License Grant",
+                    "Liquidated Damages",
+                    "Minimum Commitment",
+                    "Most Favored Nation",
+                    "No-Solicit Of Customers",
+                    "No-Solicit Of Employees",
+                    "Non-Compete",
+                    "Non-Disparagement",
+                    "Non-Transferable License",
+                    "Notice Period To Terminate Renewal",
+                    "Post-Termination Services",
+                    "Renewal Term",
+                    "Revenue/Profit Sharing",
+                    "Rofr/Rofo/Rofn",
+                    "Termination For Convenience",
+                    "Third Party Beneficiary",
+                    "Uncapped Liability",
+                    "Volume Restriction",
+                    "Warranty Duration"
+                  ]
+                },
+                "confidence": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "label",
+                "confidence"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "S2": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "Affiliate License",
+                    "Anti-Assignment",
+                    "Audit Rights",
+                    "Cap On Liability",
+                    "Change Of Control",
+                    "Competitive Restriction Exception",
+                    "Covenant Not To Sue",
+                    "Exclusivity",
+                    "Expiration Date",
+                    "Governing Law",
+                    "Insurance",
+                    "Ip Ownership Assignment",
+                    "Irrevocable Or Perpetual License",
+                    "Joint Ip Ownership",
+                    "License Grant",
+                    "Liquidated Damages",
+                    "Minimum Commitment",
+                    "Most Favored Nation",
+                    "No-Solicit Of Customers",
+                    "No-Solicit Of Employees",
+                    "Non-Compete",
+                    "Non-Disparagement",
+                    "Non-Transferable License",
+                    "Notice Period To Terminate Renewal",
+                    "Post-Termination Services",
+                    "Renewal Term",
+                    "Revenue/Profit Sharing",
+                    "Rofr/Rofo/Rofn",
+                    "Termination For Convenience",
+                    "Third Party Beneficiary",
+                    "Uncapped Liability",
+                    "Volume Restriction",
+                    "Warranty Duration"
+                  ]
+                },
+                "confidence": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "label",
+                "confidence"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "S3": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "Affiliate License",
+                    "Anti-Assignment",
+                    "Audit Rights",
+                    "Cap On Liability",
+                    "Change Of Control",
+                    "Competitive Restriction Exception",
+                    "Covenant Not To Sue",
+                    "Exclusivity",
+                    "Expiration Date",
+                    "Governing Law",
+                    "Insurance",
+                    "Ip Ownership Assignment",
+                    "Irrevocable Or Perpetual License",
+                    "Joint Ip Ownership",
+                    "License Grant",
+                    "Liquidated Damages",
+                    "Minimum Commitment",
+                    "Most Favored Nation",
+                    "No-Solicit Of Customers",
+                    "No-Solicit Of Employees",
+                    "Non-Compete",
+                    "Non-Disparagement",
+                    "Non-Transferable License",
+                    "Notice Period To Terminate Renewal",
+                    "Post-Termination Services",
+                    "Renewal Term",
+                    "Revenue/Profit Sharing",
+                    "Rofr/Rofo/Rofn",
+                    "Termination For Convenience",
+                    "Third Party Beneficiary",
+                    "Uncapped Liability",
+                    "Volume Restriction",
+                    "Warranty Duration"
+                  ]
+                },
+                "confidence": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "label",
+                "confidence"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "S4": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "Affiliate License",
+                    "Anti-Assignment",
+                    "Audit Rights",
+                    "Cap On Liability",
+                    "Change Of Control",
+                    "Competitive Restriction Exception",
+                    "Covenant Not To Sue",
+                    "Exclusivity",
+                    "Expiration Date",
+                    "Governing Law",
+                    "Insurance",
+                    "Ip Ownership Assignment",
+                    "Irrevocable Or Perpetual License",
+                    "Joint Ip Ownership",
+                    "License Grant",
+                    "Liquidated Damages",
+                    "Minimum Commitment",
+                    "Most Favored Nation",
+                    "No-Solicit Of Customers",
+                    "No-Solicit Of Employees",
+                    "Non-Compete",
+                    "Non-Disparagement",
+                    "Non-Transferable License",
+                    "Notice Period To Terminate Renewal",
+                    "Post-Termination Services",
+                    "Renewal Term",
+                    "Revenue/Profit Sharing",
+                    "Rofr/Rofo/Rofn",
+                    "Termination For Convenience",
+                    "Third Party Beneficiary",
+                    "Uncapped Liability",
+                    "Volume Restriction",
+                    "Warranty Duration"
+                  ]
+                },
+                "confidence": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "label",
+                "confidence"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "S5": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "Affiliate License",
+                    "Anti-Assignment",
+                    "Audit Rights",
+                    "Cap On Liability",
+                    "Change Of Control",
+                    "Competitive Restriction Exception",
+                    "Covenant Not To Sue",
+                    "Exclusivity",
+                    "Expiration Date",
+                    "Governing Law",
+                    "Insurance",
+                    "Ip Ownership Assignment",
+                    "Irrevocable Or Perpetual License",
+                    "Joint Ip Ownership",
+                    "License Grant",
+                    "Liquidated Damages",
+                    "Minimum Commitment",
+                    "Most Favored Nation",
+                    "No-Solicit Of Customers",
+                    "No-Solicit Of Employees",
+                    "Non-Compete",
+                    "Non-Disparagement",
+                    "Non-Transferable License",
+                    "Notice Period To Terminate Renewal",
+                    "Post-Termination Services",
+                    "Renewal Term",
+                    "Revenue/Profit Sharing",
+                    "Rofr/Rofo/Rofn",
+                    "Termination For Convenience",
+                    "Third Party Beneficiary",
+                    "Uncapped Liability",
+                    "Volume Restriction",
+                    "Warranty Duration"
+                  ]
+                },
+                "confidence": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "label",
+                "confidence"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "S6": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "Affiliate License",
+                    "Anti-Assignment",
+                    "Audit Rights",
+                    "Cap On Liability",
+                    "Change Of Control",
+                    "Competitive Restriction Exception",
+                    "Covenant Not To Sue",
+                    "Exclusivity",
+                    "Expiration Date",
+                    "Governing Law",
+                    "Insurance",
+                    "Ip Ownership Assignment",
+                    "Irrevocable Or Perpetual License",
+                    "Joint Ip Ownership",
+                    "License Grant",
+                    "Liquidated Damages",
+                    "Minimum Commitment",
+                    "Most Favored Nation",
+                    "No-Solicit Of Customers",
+                    "No-Solicit Of Employees",
+                    "Non-Compete",
+                    "Non-Disparagement",
+                    "Non-Transferable License",
+                    "Notice Period To Terminate Renewal",
+                    "Post-Termination Services",
+                    "Renewal Term",
+                    "Revenue/Profit Sharing",
+                    "Rofr/Rofo/Rofn",
+                    "Termination For Convenience",
+                    "Third Party Beneficiary",
+                    "Uncapped Liability",
+                    "Volume Restriction",
+                    "Warranty Duration"
+                  ]
+                },
+                "confidence": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "label",
+                "confidence"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "S7": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "Affiliate License",
+                    "Anti-Assignment",
+                    "Audit Rights",
+                    "Cap On Liability",
+                    "Change Of Control",
+                    "Competitive Restriction Exception",
+                    "Covenant Not To Sue",
+                    "Exclusivity",
+                    "Expiration Date",
+                    "Governing Law",
+                    "Insurance",
+                    "Ip Ownership Assignment",
+                    "Irrevocable Or Perpetual License",
+                    "Joint Ip Ownership",
+                    "License Grant",
+                    "Liquidated Damages",
+                    "Minimum Commitment",
+                    "Most Favored Nation",
+                    "No-Solicit Of Customers",
+                    "No-Solicit Of Employees",
+                    "Non-Compete",
+                    "Non-Disparagement",
+                    "Non-Transferable License",
+                    "Notice Period To Terminate Renewal",
+                    "Post-Termination Services",
+                    "Renewal Term",
+                    "Revenue/Profit Sharing",
+                    "Rofr/Rofo/Rofn",
+                    "Termination For Convenience",
+                    "Third Party Beneficiary",
+                    "Uncapped Liability",
+                    "Volume Restriction",
+                    "Warranty Duration"
+                  ]
+                },
+                "confidence": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "label",
+                "confidence"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "S8": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "Affiliate License",
+                    "Anti-Assignment",
+                    "Audit Rights",
+                    "Cap On Liability",
+                    "Change Of Control",
+                    "Competitive Restriction Exception",
+                    "Covenant Not To Sue",
+                    "Exclusivity",
+                    "Expiration Date",
+                    "Governing Law",
+                    "Insurance",
+                    "Ip Ownership Assignment",
+                    "Irrevocable Or Perpetual License",
+                    "Joint Ip Ownership",
+                    "License Grant",
+                    "Liquidated Damages",
+                    "Minimum Commitment",
+                    "Most Favored Nation",
+                    "No-Solicit Of Customers",
+                    "No-Solicit Of Employees",
+                    "Non-Compete",
+                    "Non-Disparagement",
+                    "Non-Transferable License",
+                    "Notice Period To Terminate Renewal",
+                    "Post-Termination Services",
+                    "Renewal Term",
+                    "Revenue/Profit Sharing",
+                    "Rofr/Rofo/Rofn",
+                    "Termination For Convenience",
+                    "Third Party Beneficiary",
+                    "Uncapped Liability",
+                    "Volume Restriction",
+                    "Warranty Duration"
+                  ]
+                },
+                "confidence": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "label",
+                "confidence"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "S9": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "Affiliate License",
+                    "Anti-Assignment",
+                    "Audit Rights",
+                    "Cap On Liability",
+                    "Change Of Control",
+                    "Competitive Restriction Exception",
+                    "Covenant Not To Sue",
+                    "Exclusivity",
+                    "Expiration Date",
+                    "Governing Law",
+                    "Insurance",
+                    "Ip Ownership Assignment",
+                    "Irrevocable Or Perpetual License",
+                    "Joint Ip Ownership",
+                    "License Grant",
+                    "Liquidated Damages",
+                    "Minimum Commitment",
+                    "Most Favored Nation",
+                    "No-Solicit Of Customers",
+                    "No-Solicit Of Employees",
+                    "Non-Compete",
+                    "Non-Disparagement",
+                    "Non-Transferable License",
+                    "Notice Period To Terminate Renewal",
+                    "Post-Termination Services",
+                    "Renewal Term",
+                    "Revenue/Profit Sharing",
+                    "Rofr/Rofo/Rofn",
+                    "Termination For Convenience",
+                    "Third Party Beneficiary",
+                    "Uncapped Liability",
+                    "Volume Restriction",
+                    "Warranty Duration"
+                  ]
+                },
+                "confidence": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "label",
+                "confidence"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "S10": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "label": {
+                  "type": "string",
+                  "enum": [
+                    "Affiliate License",
+                    "Anti-Assignment",
+                    "Audit Rights",
+                    "Cap On Liability",
+                    "Change Of Control",
+                    "Competitive Restriction Exception",
+                    "Covenant Not To Sue",
+                    "Exclusivity",
+                    "Expiration Date",
+                    "Governing Law",
+                    "Insurance",
+                    "Ip Ownership Assignment",
+                    "Irrevocable Or Perpetual License",
+                    "Joint Ip Ownership",
+                    "License Grant",
+                    "Liquidated Damages",
+                    "Minimum Commitment",
+                    "Most Favored Nation",
+                    "No-Solicit Of Customers",
+                    "No-Solicit Of Employees",
+                    "Non-Compete",
+                    "Non-Disparagement",
+                    "Non-Transferable License",
+                    "Notice Period To Terminate Renewal",
+                    "Post-Termination Services",
+                    "Renewal Term",
+                    "Revenue/Profit Sharing",
+                    "Rofr/Rofo/Rofn",
+                    "Termination For Convenience",
+                    "Third Party Beneficiary",
+                    "Uncapped Liability",
+                    "Volume Restriction",
+                    "Warranty Duration"
+                  ]
+                },
+                "confidence": {
+                  "type": "number"
+                }
+              },
+              "required": [
+                "label",
+                "confidence"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "S1",
+          "S2",
+          "S3",
+          "S4",
+          "S5",
+          "S6",
+          "S7",
+          "S8",
+          "S9",
+          "S10"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "required": [
+      "segments"
+    ],
+    "additionalProperties": false
+  }
+}

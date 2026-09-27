@@ -1,0 +1,26 @@
+Checkpoint: spent $38.83 so far; this command projects $0.53 (offline estimate (no v2_repeat1 N=10 history); offline estimate (no v2_repeat2 N=10 history)); total $39.36; soft checkpoint $100.00, hard cap $150.00
+Repeat check, claude, frozen prompt v2, Rule B thresholds, 295 segments (30 windows), 3 runs:
+  segments: 295
+  runs: ['v2', 'v2_repeat1', 'v2_repeat2']
+  pairwise_exact_agreement: {'v2 vs v2_repeat1': 0.9830508474576272, 'v2 vs v2_repeat2': 0.9864406779661017, 'v2_repeat1 vs v2_repeat2': 0.9830508474576272}
+  none_vs_some_flip_rate: {'v2 vs v2_repeat1': 0.01694915254237288, 'v2 vs v2_repeat2': 0.013559322033898305, 'v2_repeat1 vs v2_repeat2': 0.01694915254237288}
+  mean_abs_confidence_diff_listed_in_both: {'v2 vs v2_repeat1': 0.051818181818181826, 'v2 vs v2_repeat2': 0.05666666666666667, 'v2_repeat1 vs v2_repeat2': 0.06379310344827586}
+  all_runs_exact_agreement: 0.976271186440678
+  parse_failures_per_run: [0, 0, 0]
+  run_health: {'v2': {'calls': 30, 'below_floor_calls': 0, 'below_floor_share': 0.0, 'unreadable_attempts': 0, 'empty_set_share': 0.8135593220338984, 'mean_labels_listed': 0.22372881355932203, 'parse_failed_segments': 0}, 'v2_repeat1': {'calls': 30, 'below_floor_calls': 0, 'below_floor_share': 0.0, 'unreadable_attempts': 0, 'empty_set_share': 0.8101694915254237, 'mean_labels_listed': 0.2305084745762712, 'parse_failed_segments': 0}, 'v2_repeat2': {'calls': 30, 'below_floor_calls': 0, 'below_floor_share': 0.0, 'unreadable_attempts': 0, 'empty_set_share': 0.7898305084745763, 'mean_labels_listed': 0.26101694915254237, 'parse_failed_segments': 0}}
+  new_spend_usd: 0.4571372
+  per-label agreement across all runs (labels predicted in any run):
+    License Grant: 0.993
+    Cap On Liability: 0.997
+    Covenant Not To Sue: 0.997
+    Minimum Commitment: 0.997
+    Revenue/Profit Sharing: 0.997
+    Termination For Convenience: 0.997
+    Audit Rights: 1.000
+    Exclusivity: 1.000
+    Expiration Date: 1.000
+    Governing Law: 1.000
+    Insurance: 1.000
+    Most Favored Nation: 1.000
+    Post-Termination Services: 1.000
+    Rofr/Rofo/Rofn: 1.000
