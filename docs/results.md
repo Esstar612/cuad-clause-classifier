@@ -351,6 +351,112 @@ Reading:
 
 Secondary rows (unadjusted 95%, no claims) are in the appendix "All paired differences".
 
+## Drift monitoring (Step 5)
+Question: would a monitor with no labels notice the contract-type shift that costs every model 0.16 to 0.19 F1? Rules pre-registered in BUILD_LOG Step 5 before any drift statistic was computed; thresholds frozen from validation (`python -m src.drift calibrate | tee data/processed/drift_calibrate.txt`, `models/drift/reference.json`, freeze_id 5f2143f3067c) and committed before one evaluation run (`python -m src.drift evaluate | tee data/processed/drift_evaluate.txt`, `data/eval/drift.json`). Tables: `python -m src.report`.
+
+Setup:
+- Monitoring unit: a batch of 5 contracts. Reference: the 97 validation contracts.
+- Input statistics (model-free): out-of-vocabulary unigram rate against the frozen baseline vocabulary (minus the reference rate), 1 minus the cosine of summed TF-IDF vectors, PSI of segment lengths.
+- Model statistics, per model: Jensen-Shannon distance of the predicted label mix, difference in the share of segments predicted none, PSI of the per-segment maximum confidence.
+- Alarms: each statistic alone, and four families (input, baseline, Claude, Gemini) on the minimum p-value of their statistics. Thresholds come from 2,000 leave-batch-out validation batches, with a null alarm rate of at most 1% (exact rates: 0.0100 for every single statistic and for the input and baseline families; 0.0090 Claude, 0.0095 Gemini, below 1% because of ties).
+- Test measures the false-alarm rate; Franchise and Transportation measure detection. 1,000 batches per set; intervals from 10,000 contract-level bootstrap resamples within each set x 100 batches, with the reference and thresholds held fixed.
+- Primary rule: a family detects a shift type when its detection-rate lower bound exceeds its test upper bound, both at 99.375% (Bonferroni over 4 families x 2 types).
+
+> Contamination caveat: CUAD has been public since 2021, so Claude and Gemini may have seen these contracts and labels in training, and their scores may be optimistic relative to unseen contracts. The shift set is part of the same release (docs/plan.md, Limitations).
+
+### Family alarm rates
+| Family | Set | Alarm rate | 95% CI | Adjusted CI |
+|---|---|---|---|---|
+| input | test | 0.0580 | [0.0000, 0.1800] | [0.0000, 0.2275] |
+| input | shift | 0.0320 | [0.0000, 0.2100] | [0.0000, 0.3200] |
+| input | shift:Franchise | 0.0910 | [0.0000, 0.4800] | [0.0000, 0.7200] |
+| input | shift:Transportation | 0.0460 | [0.0000, 0.5400] | [0.0000, 0.7900] |
+| baseline | test | 0.0500 | [0.0000, 0.1700] | [0.0000, 0.2100] |
+| baseline | shift | 0.0200 | [0.0000, 0.1400] | [0.0000, 0.2200] |
+| baseline | shift:Franchise | 0.0020 | [0.0000, 0.0800] | [0.0000, 0.1875] |
+| baseline | shift:Transportation | 0.1280 | [0.0000, 0.6800] | [0.0000, 0.9075] |
+| claude | test | 0.0080 | [0.0000, 0.0500] | [0.0000, 0.0600] |
+| claude | shift | 0.0040 | [0.0000, 0.0800] | [0.0000, 0.1375] |
+| claude | shift:Franchise | 0.0020 | [0.0000, 0.0900] | [0.0000, 0.2075] |
+| claude | shift:Transportation | 0.0080 | [0.0000, 0.2100] | [0.0000, 0.4100] |
+| gemini | test | 0.0200 | [0.0000, 0.0900] | [0.0000, 0.1275] |
+| gemini | shift | 0.0230 | [0.0000, 0.1700] | [0.0000, 0.2600] |
+| gemini | shift:Franchise | 0.0160 | [0.0000, 0.2000] | [0.0000, 0.3800] |
+| gemini | shift:Transportation | 0.1520 | [0.0200, 0.7800] | [0.0000, 0.9900] |
+
+### Pre-registered rule
+| Family | Shift type | Adjusted lower bound | Test adjusted upper bound | Detects |
+|---|---|---|---|---|
+| input | shift:Franchise | 0.0000 | 0.2275 | no |
+| input | shift:Transportation | 0.0000 | 0.2275 | no |
+| baseline | shift:Franchise | 0.0000 | 0.2100 | no |
+| baseline | shift:Transportation | 0.0000 | 0.2100 | no |
+| claude | shift:Franchise | 0.0000 | 0.0600 | no |
+| claude | shift:Transportation | 0.0000 | 0.0600 | no |
+| gemini | shift:Franchise | 0.0000 | 0.1275 | no |
+| gemini | shift:Transportation | 0.0000 | 0.1275 | no |
+
+Result: no family detects either shift type under the pre-registered rule. Every shift detection interval has an adjusted lower bound of 0. With 13 or 15 contracts per shift type, a contract-level resample often leaves out the few contracts that trigger alarms, and that resample's rate is 0. The rule could not be met at this sample size, and no power check was made before it was fixed. It is reported as written.
+
+Calibration check (not a claim): each family's test false-alarm rate against the nominal 1%. The 95% intervals all contain 1%, but the input (0.0580) and baseline (0.0500) point rates are about five times it; Claude 0.0080, Gemini 0.0200. Validation and test are less alike for these statistics than the null assumed (TF-IDF centroid distance alarms on 0.0720 of test batches, length PSI on 0.0460, the baseline's confidence PSI on 0.0550), as the pre-registration allowed for.
+
+### Per-statistic alarm rates (point, no claims)
+| Statistic | test | shift | shift:Franchise | shift:Transportation |
+|---|---|---|---|---|
+| oov_rate_diff | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
+| tfidf_centroid_distance | 0.0720 | 0.0880 | 0.2340 | 0.1750 |
+| length_psi | 0.0460 | 0.0270 | 0.0990 | 0.0000 |
+| baseline:label_mix_js | 0.0050 | 0.0450 | 0.0030 | 0.3100 |
+| baseline:none_share_diff | 0.0120 | 0.0000 | 0.0050 | 0.0000 |
+| baseline:confidence_psi | 0.0550 | 0.0000 | 0.0020 | 0.0000 |
+| claude:label_mix_js | 0.0080 | 0.0090 | 0.0000 | 0.0420 |
+| claude:none_share_diff | 0.0140 | 0.0010 | 0.0020 | 0.0000 |
+| claude:confidence_psi | 0.0100 | 0.0060 | 0.0150 | 0.0100 |
+| gemini:label_mix_js | 0.0100 | 0.0450 | 0.0010 | 0.3340 |
+| gemini:none_share_diff | 0.0320 | 0.0030 | 0.0420 | 0.0000 |
+| gemini:confidence_psi | 0.0280 | 0.0020 | 0.0060 | 0.0070 |
+
+### Mean statistic values (NaN batches in parentheses)
+| Statistic | test | shift | shift:Franchise | shift:Transportation |
+|---|---|---|---|---|
+| oov_rate_diff | -0.0011 (0) | -0.0016 (0) | -0.0046 (0) | 0.0025 (0) |
+| tfidf_centroid_distance | 0.2959 (0) | 0.3513 (0) | 0.3998 (0) | 0.3697 (0) |
+| length_psi | 0.2165 (0) | 0.1575 (0) | 0.3017 (0) | 0.1026 (0) |
+| baseline:label_mix_js | 0.3765 (0) | 0.4722 (0) | 0.4604 (0) | 0.5750 (0) |
+| baseline:none_share_diff | 0.0264 (0) | 0.0223 (0) | 0.0206 (0) | 0.0467 (0) |
+| baseline:confidence_psi | 0.0954 (0) | 0.0394 (0) | 0.0467 (0) | 0.0754 (0) |
+| claude:label_mix_js | 0.3996 (0) | 0.4470 (0) | 0.4379 (0) | 0.5442 (0) |
+| claude:none_share_diff | 0.0357 (0) | 0.0332 (0) | 0.0654 (0) | 0.0425 (0) |
+| claude:confidence_psi | 0.0639 (0) | 0.0533 (0) | 0.0916 (0) | 0.0927 (0) |
+| gemini:label_mix_js | 0.3895 (0) | 0.4279 (0) | 0.4098 (0) | 0.5775 (0) |
+| gemini:none_share_diff | 0.0377 (0) | 0.0320 (0) | 0.0603 (0) | 0.0485 (0) |
+| gemini:confidence_psi | 0.0927 (0) | 0.0440 (0) | 0.0698 (0) | 0.0845 (0) |
+
+Reading (secondary, descriptive):
+- Transportation's label-distribution shift shows in the predicted label mix: the baseline's and Gemini's label-mix statistics alarm on 0.3100 and 0.3340 of Transportation batches, against 0.0050 and 0.0100 on test. Claude's label mix moves less (0.0420).
+- The vocabulary shift shows in TF-IDF weights, not in unknown words: centroid distance alarms on 0.2340 of Franchise and 0.1750 of Transportation batches (test 0.0720), while the out-of-vocabulary rate never alarms and is lower on Franchise than on validation (mean difference -0.0046). Franchise terms were already in the train vocabulary.
+- Gemini on Transportation is the only family whose 95% interval excludes 0 ([0.0200, 0.7800]); secondary, no claim.
+
+### Parse failures (operational counter, not calibrated)
+| Model | test | shift | shift:Franchise | shift:Transportation |
+|---|---|---|---|---|
+| baseline | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
+| claude | 0.0000 | 0.0000 | 0.0000 | 0.0000 |
+| gemini | 0.0000 | 0.1740 | 0.0000 | 0.3860 |
+
+Gemini's parse failures come from one refused Transportation window (contract 130). A batch of 5 contains a given contract with probability 5/13 = 0.385 among the 13 Transportation contracts and 5/28 = 0.179 among all 28 shift contracts, matching the observed 0.3860 and 0.1740.
+
+### Do drift statistics track accuracy? (descriptive)
+Spearman rank correlation between each statistic and each model's batch micro-F1 on the 17 Rule C labels, over the 1,000 test batches, the 1,000 shift batches, and both pooled. The full table is in the appendix "Drift correlations".
+- Pooled, the TF-IDF centroid distance correlates -0.363 (baseline), -0.406 (Claude) and -0.406 (Gemini) with batch F1, and the baseline's label-mix distance -0.541, -0.489 and -0.474. Pooled figures mostly restate the known test-versus-shift gap.
+- Within test, no correlation exceeds 0.37 in absolute value, and the largest are positive (LLM confidence PSI with LLM F1: +0.286 to +0.368), so more drift went with higher F1 there. Within one population these statistics do not track accuracy.
+- Within shift, the baseline's label-mix distance correlates -0.443 with its own F1.
+
+### What this means for the service (Step 7)
+- A per-batch monitor on 5 contracts, calibrated on 97 validation contracts, is noisy: in-distribution batches alarm on up to about 6% of batches for the input and baseline families.
+- The signals that move under shift are the TF-IDF centroid distance and the predicted label mix; the OOV rate does not.
+- Establishing detection power with intervals needs more shifted contracts than this dataset holds for any one type; with 13 to 15, the contract-level uncertainty dominates.
+
 ## Calibration across models, test
 Every (segment, label) pair is one prediction; 10 equal-width bins. Each cell: pairs, mean predicted vs observed positive rate. Source: `python -m src.report | tee data/processed/results_tables.md`, generated from `data/eval/{baseline,claude,gemini}.json` (`python -m src.evaluate model <name>`).
 
@@ -619,3 +725,117 @@ Primary rows carry claims only through the adjusted interval in "Model compariso
 | gemini minus claude | shift:Transportation \| all \| micro_f1 | +0.0322 | [-0.0093, +0.0746] |
 | gemini minus claude | shift:Transportation \| all \| none_fp_rate | +0.0007 | [-0.0075, +0.0070] |
 | gemini minus claude | shift:Transportation \| all \| parse_failure_rate | +0.0053 | [+0.0000, +0.0171] |
+
+## Appendix: drift correlations (Step 5)
+Spearman rank correlation of each drift statistic with each model's batch micro-F1 on Rule C labels; descriptive, no claims. Source: `data/eval/drift.json` via `python -m src.report`.
+
+| Batches | Model | Statistic | Spearman |
+|---|---|---|---|
+| test | baseline | oov_rate_diff | -0.038 |
+| test | baseline | tfidf_centroid_distance | +0.079 |
+| test | baseline | length_psi | -0.102 |
+| test | baseline | baseline:label_mix_js | +0.058 |
+| test | baseline | baseline:none_share_diff | -0.005 |
+| test | baseline | baseline:confidence_psi | +0.030 |
+| test | baseline | claude:label_mix_js | +0.052 |
+| test | baseline | claude:none_share_diff | +0.009 |
+| test | baseline | claude:confidence_psi | +0.144 |
+| test | baseline | gemini:label_mix_js | +0.051 |
+| test | baseline | gemini:none_share_diff | -0.020 |
+| test | baseline | gemini:confidence_psi | +0.142 |
+| test | claude | oov_rate_diff | -0.021 |
+| test | claude | tfidf_centroid_distance | -0.012 |
+| test | claude | length_psi | -0.059 |
+| test | claude | baseline:label_mix_js | +0.135 |
+| test | claude | baseline:none_share_diff | +0.048 |
+| test | claude | baseline:confidence_psi | +0.203 |
+| test | claude | claude:label_mix_js | +0.124 |
+| test | claude | claude:none_share_diff | +0.093 |
+| test | claude | claude:confidence_psi | +0.286 |
+| test | claude | gemini:label_mix_js | +0.186 |
+| test | claude | gemini:none_share_diff | +0.078 |
+| test | claude | gemini:confidence_psi | +0.338 |
+| test | gemini | oov_rate_diff | -0.121 |
+| test | gemini | tfidf_centroid_distance | -0.098 |
+| test | gemini | length_psi | +0.003 |
+| test | gemini | baseline:label_mix_js | +0.197 |
+| test | gemini | baseline:none_share_diff | +0.109 |
+| test | gemini | baseline:confidence_psi | +0.290 |
+| test | gemini | claude:label_mix_js | +0.165 |
+| test | gemini | claude:none_share_diff | +0.177 |
+| test | gemini | claude:confidence_psi | +0.301 |
+| test | gemini | gemini:label_mix_js | +0.192 |
+| test | gemini | gemini:none_share_diff | +0.127 |
+| test | gemini | gemini:confidence_psi | +0.368 |
+| shift | baseline | oov_rate_diff | -0.045 |
+| shift | baseline | tfidf_centroid_distance | +0.053 |
+| shift | baseline | length_psi | +0.085 |
+| shift | baseline | baseline:label_mix_js | -0.443 |
+| shift | baseline | baseline:none_share_diff | -0.067 |
+| shift | baseline | baseline:confidence_psi | -0.215 |
+| shift | baseline | claude:label_mix_js | -0.091 |
+| shift | baseline | claude:none_share_diff | +0.156 |
+| shift | baseline | claude:confidence_psi | +0.074 |
+| shift | baseline | gemini:label_mix_js | +0.146 |
+| shift | baseline | gemini:none_share_diff | +0.157 |
+| shift | baseline | gemini:confidence_psi | +0.200 |
+| shift | claude | oov_rate_diff | +0.058 |
+| shift | claude | tfidf_centroid_distance | -0.091 |
+| shift | claude | length_psi | -0.013 |
+| shift | claude | baseline:label_mix_js | -0.293 |
+| shift | claude | baseline:none_share_diff | -0.087 |
+| shift | claude | baseline:confidence_psi | -0.111 |
+| shift | claude | claude:label_mix_js | -0.177 |
+| shift | claude | claude:none_share_diff | +0.123 |
+| shift | claude | claude:confidence_psi | +0.044 |
+| shift | claude | gemini:label_mix_js | -0.015 |
+| shift | claude | gemini:none_share_diff | +0.118 |
+| shift | claude | gemini:confidence_psi | +0.162 |
+| shift | gemini | oov_rate_diff | -0.119 |
+| shift | gemini | tfidf_centroid_distance | +0.092 |
+| shift | gemini | length_psi | +0.150 |
+| shift | gemini | baseline:label_mix_js | -0.243 |
+| shift | gemini | baseline:none_share_diff | -0.042 |
+| shift | gemini | baseline:confidence_psi | +0.003 |
+| shift | gemini | claude:label_mix_js | -0.115 |
+| shift | gemini | claude:none_share_diff | +0.133 |
+| shift | gemini | claude:confidence_psi | +0.075 |
+| shift | gemini | gemini:label_mix_js | -0.129 |
+| shift | gemini | gemini:none_share_diff | +0.150 |
+| shift | gemini | gemini:confidence_psi | +0.203 |
+| pooled | baseline | oov_rate_diff | +0.001 |
+| pooled | baseline | tfidf_centroid_distance | -0.363 |
+| pooled | baseline | length_psi | +0.157 |
+| pooled | baseline | baseline:label_mix_js | -0.541 |
+| pooled | baseline | baseline:none_share_diff | +0.020 |
+| pooled | baseline | baseline:confidence_psi | +0.156 |
+| pooled | baseline | claude:label_mix_js | -0.313 |
+| pooled | baseline | claude:none_share_diff | +0.033 |
+| pooled | baseline | claude:confidence_psi | +0.170 |
+| pooled | baseline | gemini:label_mix_js | -0.170 |
+| pooled | baseline | gemini:none_share_diff | +0.078 |
+| pooled | baseline | gemini:confidence_psi | +0.426 |
+| pooled | claude | oov_rate_diff | +0.035 |
+| pooled | claude | tfidf_centroid_distance | -0.406 |
+| pooled | claude | length_psi | +0.148 |
+| pooled | claude | baseline:label_mix_js | -0.489 |
+| pooled | claude | baseline:none_share_diff | +0.029 |
+| pooled | claude | baseline:confidence_psi | +0.232 |
+| pooled | claude | claude:label_mix_js | -0.315 |
+| pooled | claude | claude:none_share_diff | +0.052 |
+| pooled | claude | claude:confidence_psi | +0.203 |
+| pooled | claude | gemini:label_mix_js | -0.169 |
+| pooled | claude | gemini:none_share_diff | +0.100 |
+| pooled | claude | gemini:confidence_psi | +0.465 |
+| pooled | gemini | oov_rate_diff | -0.035 |
+| pooled | gemini | tfidf_centroid_distance | -0.406 |
+| pooled | gemini | length_psi | +0.207 |
+| pooled | gemini | baseline:label_mix_js | -0.474 |
+| pooled | gemini | baseline:none_share_diff | +0.056 |
+| pooled | gemini | baseline:confidence_psi | +0.277 |
+| pooled | gemini | claude:label_mix_js | -0.298 |
+| pooled | gemini | claude:none_share_diff | +0.073 |
+| pooled | gemini | claude:confidence_psi | +0.206 |
+| pooled | gemini | gemini:label_mix_js | -0.199 |
+| pooled | gemini | gemini:none_share_diff | +0.115 |
+| pooled | gemini | gemini:confidence_psi | +0.480 |

@@ -31,7 +31,7 @@ Numbering follows the user's prompts (BUILD_LOG uses the same numbers).
    - 4a (complete): model-agnostic harness `src/evaluate.py`; contract-level bootstrap CIs; paired comparison function (self-comparison exactly zero); baseline calibration on test; baseline error analysis on validation.
    - 4b (complete): pairwise model comparisons (co-primary micro- and macro-F1, Bonferroni family of 12, 10,000 paired resamples); calibration analysis across models; results in `docs/results.md`, generated tables in `data/processed/results_tables.md` (`python -m src.report`).
    - Known item for the calibration analysis: the frozen baseline (version 9692b04f03fb) uses no none downsampling, but class_weight="balanced" inflates positive-class probabilities relative to the real none rate. Step 4a confirmed it on test: in the top bin, mean predicted 0.9753 against observed 0.7439 (`data/eval/baseline.json`).
-5. **Drift monitoring.** Evaluate on the held-out contract-type shift set; define and test drift checks.
+5. **Drift monitoring (complete).** Evaluate on the held-out contract-type shift set; define and test drift checks. Label-free checks on batches of 5 contracts in `src/drift.py`, calibrated on validation (`models/drift/reference.json`) and evaluated once on test and shift (`data/eval/drift.json`); results in `docs/results.md`, BUILD_LOG Step 5.
    - Shift set: Franchise (15) and Transportation (13), 28 contracts. No model trains or tunes on them.
    - Report shift results per type (Franchise, Transportation) and combined, next to in-distribution test results.
    - Bootstrap confidence intervals resample whole contracts, not segments, using the config seed.

@@ -2395,3 +2395,49 @@ Fixed 2026-09-27, before any drift statistic was computed on any split. Every mo
 - A second review round found five more; four were fixed: contracts are checked against the canonical split; evaluation and bootstrap settings join the frozen constants; the baseline artifacts are hashed against the declared version; `drift.json` records hashes of the test and shift files it read.
 - Rejected: that reading test labels for the degradation correlations breaks the one-touch rule. No model runs on test and nothing is tuned on it; the labels were already used in 4a, 3ah and 4b, and the correlation is a pre-registered secondary with no claims.
 - Rejected: that `--force` permits repeated test evaluation. `evaluate` reads frozen prediction files, runs no model and tunes nothing. With the settings and inputs checked against the reference, a rerun is seeded and reproduces the same result, and a forced run is recorded in `drift.json`.
+
+## 2026-09-27: Step 5, drift evaluation on test and shift (Step 5 complete)
+
+### What we built
+Nothing new. The run used the code committed in 4792df9 and the reference frozen from validation (freeze_id 5f2143f3067c). `docs/results.md` gained a "Drift monitoring" section and an appendix of drift correlations, both copied from the generated `data/processed/results_tables.md`. `docs/plan.md` marks Step 5 complete.
+
+### Decisions made
+None. Every rule was fixed in the Step 5 pre-registration entry above. The evaluation ran once, not forced.
+
+### Numbers measured
+- Command: `python -m src.drift evaluate | tee data/processed/drift_evaluate.txt`; file `data/eval/drift.json`. 1,000 batches of 5 contracts per set; 10,000 bootstrap resamples x 100 batches; adjusted level 99.375%.
+- Family alarm rates, point [95% CI] [adjusted CI]:
+  - Input: test 0.0580 [0.0000, 0.1800] [0.0000, 0.2275]; Franchise 0.0910 [0.0000, 0.4800] [0.0000, 0.7200]; Transportation 0.0460 [0.0000, 0.5400] [0.0000, 0.7900].
+  - Baseline: test 0.0500 [0.0000, 0.1700] [0.0000, 0.2100]; Franchise 0.0020 [0.0000, 0.0800] [0.0000, 0.1875]; Transportation 0.1280 [0.0000, 0.6800] [0.0000, 0.9075].
+  - Claude: test 0.0080 [0.0000, 0.0500] [0.0000, 0.0600]; Franchise 0.0020 [0.0000, 0.0900] [0.0000, 0.2075]; Transportation 0.0080 [0.0000, 0.2100] [0.0000, 0.4100].
+  - Gemini: test 0.0200 [0.0000, 0.0900] [0.0000, 0.1275]; Franchise 0.0160 [0.0000, 0.2000] [0.0000, 0.3800]; Transportation 0.1520 [0.0200, 0.7800] [0.0000, 0.9900].
+- Primary rule: 0 of 8 cells detect. Every shift adjusted lower bound is 0.0000; test adjusted upper bounds are 0.2275 (input), 0.2100 (baseline), 0.0600 (Claude), 0.1275 (Gemini).
+- Calibration check: every family's 95% test interval contains 1%. The point rates are input 0.0580, baseline 0.0500, Claude 0.0080 and Gemini 0.0200.
+- Per-statistic alarm rates, test / Franchise / Transportation (secondary):
+  - TF-IDF centroid distance 0.0720 / 0.2340 / 0.1750;
+  - label-mix JS: baseline 0.0050 / 0.0030 / 0.3100, Claude 0.0080 / 0.0000 / 0.0420, Gemini 0.0100 / 0.0010 / 0.3340;
+  - OOV rate difference 0 in every set, with mean difference -0.0011 (test), -0.0046 (Franchise), 0.0025 (Transportation).
+- Parse-failure counter: Gemini 0.1740 of shift batches and 0.3860 of Transportation batches, matching 5/28 and 5/13 for the single refused contract.
+- Spearman with batch micro-F1 on Rule C labels (descriptive):
+  - Pooled: TF-IDF centroid distance -0.363 (baseline), -0.406 (Claude), -0.406 (Gemini); baseline label-mix JS -0.541, -0.489, -0.474.
+  - Within test: every |rho| is at most 0.368, the largest positive.
+  - Within shift: the baseline's label-mix JS is -0.443 with its own F1.
+- No NaN batch in any statistic or set.
+
+### Problems hit and how we solved them
+- The pre-registered rule had no power at this sample size, and no power check was made before it was fixed.
+  - With 13 or 15 contracts per shift type, contract-level resamples that leave out the alarming contracts have a detection rate of 0, so every adjusted lower bound is 0.
+  - The rule is reported as written, not changed after seeing the result.
+  - A power check (simulated detection intervals for the planned contract counts) belongs before any future pre-registered monitoring rule.
+
+### Surprises in the data or results
+- The vocabulary shift built into Franchise does not appear as unknown words. The OOV rate is lower on Franchise than on validation, because Franchise terms are already in the train vocabulary. It appears in TF-IDF weights (centroid distance).
+- The input and baseline families alarm on about 5% to 6% of in-distribution test batches against a 1% null. That was allowed for in the pre-registration: validation and test are less alike than the leave-batch-out null assumed.
+- Within one population, the drift statistics do not track accuracy. The largest within-test correlations are positive: more confidence drift went with higher LLM F1.
+
+### Caveats
+- Possible training-data contamination for both LLMs (docs/plan.md Limitations).
+- The detection intervals cover sampling of the monitored contracts only; the validation reference and thresholds are held fixed.
+
+### Resume-worthy
+- Built and pre-registered a label-free drift monitor, calibrated on validation with a tie-safe 1% false-alarm guarantee and tested once on held-out contract types. It reported a null primary result honestly: the label-mix and TF-IDF signals moved under shift, but 13 to 15 shifted contracts per type gave no power to establish detection.
