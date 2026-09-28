@@ -2,11 +2,11 @@
   "encoder": "bert",
   "device": "mps",
   "probe_segments": 1024,
-  "worst_batch_seconds": 2.46415174996946,
-  "train_seconds_per_segment": 0.043728704223553905,
-  "projected_train_hours": 1.2707197041496232,
-  "infer_ms_per_segment": 3.892779133707336,
-  "mps_allocator_pool_bytes_at_end": 14022737920,
+  "worst_batch_seconds": 1.5606937080156058,
+  "train_seconds_per_segment": 0.040271114787174156,
+  "projected_train_hours": 1.1702450364529584,
+  "infer_ms_per_segment": 4.123669393607088,
+  "mps_allocator_pool_bytes_at_end": 8802336768,
   "mps_recommended_max_bytes": 17179885568,
   "parameters": 109507617,
   "encoder_parameters": 109482240,
@@ -19,11 +19,11 @@
     "TRANSFORMER_MAX_TOKENS": 512,
     "TRANSFORMER_EPOCHS": 3,
     "TRANSFORMER_BATCH_SIZE": 16,
-    "TRANSFORMER_ACCUMULATION": 2,
+    "TRANSFORMER_ACCUMULATION": 4,
     "TRANSFORMER_LR": 2e-05,
     "TRANSFORMER_WEIGHT_DECAY": 0.01,
     "TRANSFORMER_WARMUP": 0.1,
     "TRANSFORMER_INFER_BATCH": 64
   },
-  "created_utc": "2026-09-28T02:17:34+00:00"
+  "created_utc": "2026-09-28T02:37:42+00:00"
 }

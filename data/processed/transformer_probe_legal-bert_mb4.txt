@@ -1,0 +1,19 @@
+  epoch 1 step 1/1 mean loss 0.67943 elapsed 0.0 min, remaining about 0.0 min
+  epoch 1 step 64/64 mean loss 0.46364 elapsed 0.7 min, remaining about 0.0 min
+
+=== Probe legal-bert (train segments only, no weights kept) ===
+encoder                            legal-bert
+device                             mps
+probe_segments                     1024
+worst_batch_seconds                1.7005050419829786
+train_seconds_per_segment          0.04092608109476714
+projected_train_hours              1.1892778115463543
+infer_ms_per_segment               3.9389578856798835
+mps_allocator_pool_bytes_at_end    8803483648
+mps_recommended_max_bytes          17179885568
+parameters                         109507617
+encoder_parameters                 109482240
+dtype                              torch.float32
+mps_watermark_ratios               {'high': '1.0', 'low': '0.8'}
+created_utc                        2026-09-28T02:36:49+00:00
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/models/transformer/legal-bert/probe.json

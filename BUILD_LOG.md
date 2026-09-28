@@ -2548,6 +2548,18 @@ Fixed 2026-09-27, before any encoder was downloaded or trained. Every existing m
   - The same setting applies to every encoder, so the recipe stays identical, as `validate` requires.
   - The micro-batch-8 probes above are kept as a record. All three encoders are re-probed at micro-batch 4, and those probes are the ones that project training time.
   - Alternatives considered: dropping DeBERTa-v3, which would remove the stronger-architecture candidate from the pre-registered design; and gradient checkpointing, which needs more code, new tests and roughly 20-40% more time.
+- Probes at micro-batch 4 (accumulation 4; these project training time; output in `data/processed/transformer_probe_<key>_mb4.txt`):
+
+  | Encoder | Worst batch (s) | Train s/segment | Projected train hours (3 epochs) | Inference ms/segment | MPS pool at end (bytes) | MPS recommended max (bytes) | Parameters | Encoder parameters | dtype |
+  |---|---|---|---|---|---|---|---|---|---|
+  | deberta-v3 | 5.08 | 0.0879 | 2.55 | 15.94 | 14,242,627,584 | 17,179,885,568 | 184,447,521 | 183,831,552 | float32 |
+  | legal-bert | 1.70 | 0.0409 | 1.19 | 3.94 | 8,803,483,648 | 17,179,885,568 | 109,507,617 | 109,482,240 | float32 |
+  | bert | 1.56 | 0.0403 | 1.17 | 4.12 | 8,802,336,768 | 17,179,885,568 | 109,507,617 | 109,482,240 | float32 |
+
+  - Worst-case step loss and timing-epoch mean loss: deberta-v3 0.70305 and 0.46442; legal-bert 0.67943 and 0.46364; bert 0.71025 and 0.45267.
+  - Projected total training time is about 4.9 hours. DeBERTa-v3's pool ended at 83% of the recommended maximum, with its worst-case step included, against 51% for the BERT models.
+  - Encoder sizes, recorded before any validation output: legal-bert and bert have 109,482,240 each; deberta-v3 has 183,831,552, which is 67.9% larger than the BERT count and far outside the 1% size tolerance. Selection's size groups are therefore fixed: {legal-bert, bert} and {deberta-v3}.
+  - DeBERTa-v3 loading printed a `torch.jit.script` FutureWarning under Python 3.14, raised from torch's `jit/_script.py` during model loading. The probe ran to completion. The pooler is listed as MISSING (newly initialized), as expected, because DeBERTa's pooler belongs to its task head.
 
 ### Problems hit and how we solved them
 - The first test run failed twice in the new tests: the toy segments used text contract ids, while the shared prediction schema stores `contract_id` as an integer. The toy data now uses integer ids.

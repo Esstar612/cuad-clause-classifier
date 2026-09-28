@@ -1,15 +1,15 @@
 {
-  "encoder": "legal-bert",
+  "encoder": "deberta-v3",
   "device": "mps",
   "probe_segments": 1024,
-  "worst_batch_seconds": 1.7005050419829786,
-  "train_seconds_per_segment": 0.04092608109476714,
-  "projected_train_hours": 1.1892778115463543,
-  "infer_ms_per_segment": 3.9389578856798835,
-  "mps_allocator_pool_bytes_at_end": 8803483648,
+  "worst_batch_seconds": 5.081448291079141,
+  "train_seconds_per_segment": 0.08789987019827095,
+  "projected_train_hours": 2.554296978069922,
+  "infer_ms_per_segment": 15.942074340841828,
+  "mps_allocator_pool_bytes_at_end": 14242627584,
   "mps_recommended_max_bytes": 17179885568,
-  "parameters": 109507617,
-  "encoder_parameters": 109482240,
+  "parameters": 184447521,
+  "encoder_parameters": 183831552,
   "dtype": "torch.float32",
   "mps_watermark_ratios": {
     "high": "1.0",
@@ -25,5 +25,5 @@
     "TRANSFORMER_WARMUP": 0.1,
     "TRANSFORMER_INFER_BATCH": 64
   },
-  "created_utc": "2026-09-28T02:36:49+00:00"
+  "created_utc": "2026-09-28T02:35:53+00:00"
 }

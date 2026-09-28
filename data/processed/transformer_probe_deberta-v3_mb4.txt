@@ -1,0 +1,19 @@
+  epoch 1 step 1/1 mean loss 0.70305 elapsed 0.1 min, remaining about 0.0 min
+  epoch 1 step 64/64 mean loss 0.46442 elapsed 1.5 min, remaining about 0.0 min
+
+=== Probe deberta-v3 (train segments only, no weights kept) ===
+encoder                            deberta-v3
+device                             mps
+probe_segments                     1024
+worst_batch_seconds                5.081448291079141
+train_seconds_per_segment          0.08789987019827095
+projected_train_hours              2.554296978069922
+infer_ms_per_segment               15.942074340841828
+mps_allocator_pool_bytes_at_end    14242627584
+mps_recommended_max_bytes          17179885568
+parameters                         184447521
+encoder_parameters                 183831552
+dtype                              torch.float32
+mps_watermark_ratios               {'high': '1.0', 'low': '0.8'}
+created_utc                        2026-09-28T02:35:53+00:00
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/models/transformer/deberta-v3/probe.json
