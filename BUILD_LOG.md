@@ -2533,6 +2533,21 @@ Fixed 2026-09-27, before any encoder was downloaded or trained. Every existing m
 
 ### Numbers measured
 - Tests: 166 passed, 5 warnings (the existing "Mean of empty slice" warnings from the toy LLM tests in `tests/test_llm.py`), committed as a42eb8f. Command: `pytest tests -v`
+- Probes (train segments only, no weights kept; accumulation 2, MPS watermarks high 1.0 and low 0.8; `models/transformer/<key>/probe.json`, output in `data/processed/transformer_probe_<key>.txt`):
+
+  | Encoder | Worst batch (s) | Train s/segment | Projected train hours (3 epochs) | Inference ms/segment | MPS pool at end (bytes) | MPS recommended max (bytes) | Parameters | Encoder parameters | dtype |
+  |---|---|---|---|---|---|---|---|---|---|
+  | legal-bert | 2.91 | 0.0439 | 1.28 | 3.88 | 11,871,633,408 | 17,179,885,568 | 109,507,617 | 109,482,240 | float32 |
+  | bert | 2.46 | 0.0437 | 1.27 | 3.89 | 14,022,737,920 | 17,179,885,568 | 109,507,617 | 109,482,240 | float32 |
+
+  - legal-bert: the worst-case step's loss was 0.67883 (about ln 2, an untrained head). The mean loss over the 64-step timing epoch was 0.47779, well below that, so the optimizer updates the model on MPS.
+  - bert: worst-case step loss 0.70978; timing-epoch mean loss 0.45477.
+  - deberta-v3: out of memory. The worst-case step finished (loss 0.70416). The timing epoch then stopped in DeBERTa's disentangled attention (`disentangled_attention_bias`) with `RuntimeError: MPS backend out of memory (MPS allocated: 15.98 GiB, other allocations: 13.28 MiB, max allowed: 16.00 GiB). Tried to allocate 96.00 MiB on shared pool.` The 96 MiB request is exactly one 8 x 12 x 512 x 512 float32 attention-score tensor. DeBERTa builds several such tensors per layer for its relative-position terms, so at micro-batch 8 it sits at the memory cap where the BERT models do not. No `probe.json` was written. The pre-registered OOM fallback is already applied, so any further change is a pre-training amendment.
+- Amendment before any `train` (2026-09-27): `TRANSFORMER_ACCUMULATION = 4`, micro-batches of 4, for all three encoders.
+  - The effective batch (16), optimizer steps, schedule and loss scaling are unchanged. The loss is still the mean over the full batch of 16, so the objective is the same; only floating-point rounding differs.
+  - The same setting applies to every encoder, so the recipe stays identical, as `validate` requires.
+  - The micro-batch-8 probes above are kept as a record. All three encoders are re-probed at micro-batch 4, and those probes are the ones that project training time.
+  - Alternatives considered: dropping DeBERTa-v3, which would remove the stronger-architecture candidate from the pre-registered design; and gradient checkpointing, which needs more code, new tests and roughly 20-40% more time.
 
 ### Problems hit and how we solved them
 - The first test run failed twice in the new tests: the toy segments used text contract ids, while the shared prediction schema stores `contract_id` as an integer. The toy data now uses integer ids.

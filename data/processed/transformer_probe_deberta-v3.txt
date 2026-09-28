@@ -1,0 +1,1 @@
+  epoch 1 step 1/1 mean loss 0.70416 elapsed 0.1 min, remaining about 0.0 min

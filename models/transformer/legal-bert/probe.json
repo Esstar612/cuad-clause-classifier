@@ -1,0 +1,29 @@
+{
+  "encoder": "legal-bert",
+  "device": "mps",
+  "probe_segments": 1024,
+  "worst_batch_seconds": 2.9147425410337746,
+  "train_seconds_per_segment": 0.04394086071772563,
+  "projected_train_hours": 1.2768847950731752,
+  "infer_ms_per_segment": 3.876424194345418,
+  "mps_allocator_pool_bytes_at_end": 11871633408,
+  "mps_recommended_max_bytes": 17179885568,
+  "parameters": 109507617,
+  "encoder_parameters": 109482240,
+  "dtype": "torch.float32",
+  "mps_watermark_ratios": {
+    "high": "1.0",
+    "low": "0.8"
+  },
+  "recipe": {
+    "TRANSFORMER_MAX_TOKENS": 512,
+    "TRANSFORMER_EPOCHS": 3,
+    "TRANSFORMER_BATCH_SIZE": 16,
+    "TRANSFORMER_ACCUMULATION": 2,
+    "TRANSFORMER_LR": 2e-05,
+    "TRANSFORMER_WEIGHT_DECAY": 0.01,
+    "TRANSFORMER_WARMUP": 0.1,
+    "TRANSFORMER_INFER_BATCH": 64
+  },
+  "created_utc": "2026-09-28T02:14:35+00:00"
+}
