@@ -17,10 +17,13 @@ import argparse
 import hashlib
 import json
 import math
+import os
 import time
 
 import numpy as np
 import pandas as pd
+
+os.environ.setdefault("PYTORCH_MPS_HIGH_WATERMARK_RATIO", "1.0")  # MPS raises OOM instead of swapping
 import torch
 from transformers import AutoModelForSequenceClassification, AutoTokenizer, get_linear_schedule_with_warmup
 
@@ -226,6 +229,7 @@ def probe(key: str) -> None:
               "mps_recommended_max_bytes": limit,
               "parameters": sum(p.numel() for p in model.parameters()),
               "encoder_parameters": encoder_parameters(model), "dtype": _dtype(model),
+              "mps_high_watermark_ratio": os.environ.get("PYTORCH_MPS_HIGH_WATERMARK_RATIO"),
               "recipe": recipe(), "created_utc": _now()}
     d = config.TRANSFORMER_DIR / key
     d.mkdir(parents=True, exist_ok=True)
@@ -269,6 +273,7 @@ def train(key: str, restart: bool) -> None:
         "recipe": recipe(), "parameters": sum(p.numel() for p in model.parameters()),
         "encoder_parameters": encoder_parameters(model), "dtype": _dtype(model),
         "train_segments": len(tr), "train_hours": hours,
+        "mps_high_watermark_ratio": os.environ.get("PYTORCH_MPS_HIGH_WATERMARK_RATIO"),
         "epoch_mean_loss": log, "completed_utc": _now()}, indent=2))
     print(f"\n{key}: trained in {hours:.2f} h; per-epoch mean loss:")
     for row in log:

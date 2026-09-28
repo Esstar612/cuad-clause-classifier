@@ -2502,6 +2502,12 @@ Fixed 2026-09-27, before any encoder was downloaded or trained. Every existing m
 - **Out-of-memory fallback:** gradient accumulation of 8 x 2 (same effective batch and steps).
 - **Failed run:** a non-finite loss writes `failed.json`; the run is never retried by a flag and is decided with the user.
 - **After the probe:** only the OOM fallback, on probe evidence, decided before the first `train`, applied to all encoders. A time-driven change (for example dropping an encoder) is a logged amendment decided with the user before any `train`.
+  - Applied 2026-09-27, before any `train`: the OOM fallback, `TRANSFORMER_ACCUMULATION = 2` (micro-batches of 8, effective batch 16, same optimizer steps and schedule), for all three encoders.
+    - Evidence: the first legal-BERT probe (accumulation 1) finished its worst-case step, 16 of the longest train segments at up to 512 tokens, in about 0.1 minutes and at loss 0.68409. The 64-step timing epoch then made no visible progress.
+    - After 73 minutes the process had used 16 minutes of CPU. Its footprint was 19 GB on the 24 GB machine, and system swap was 44 of 45 GB used.
+    - The power log shows no sleep after the probe started, so the stall was memory paging. The probe was stopped and wrote no `probe.json`.
+    - On unified memory, MPS by default allocates past its recommended limit and pages to swap instead of raising an out-of-memory error.
+  - Guard (not a recipe change): `src/transformer.py` sets `PYTORCH_MPS_HIGH_WATERMARK_RATIO=1.0` unless the environment already sets it. A memory shortfall now raises an error instead of swapping. The value is recorded in `probe.json` and `trained.json`.
 - **Order:** fetch, tokens (train and validation text only; decides nothing), probe x 3 (train segments only), train x 3, validate, select, heldout (selected encoder only, once).
 - **Analysis 1, selection (validation, 33 labels, Rule B thresholds tuned on validation):**
   - `best` is the encoder with the highest macro-F1.
