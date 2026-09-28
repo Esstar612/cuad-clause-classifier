@@ -2477,6 +2477,18 @@ Fixed 2026-09-27, before any encoder was downloaded or trained. Every existing m
     - legal-bert: `nlpaueb/legal-bert-base-uncased` at 15b570cbf88259610b082a167dacc190124f60f6
     - bert: `google-bert/bert-base-uncased` at 86b5e0934494bd15c9632b12f734a8a67f723594
     - deberta-v3: `microsoft/deberta-v3-base` at 8ccc9b6f36199bec6961081d44eb72fb3f7353f3
+  - Token lengths from `tokens` (train and validation only; `data/processed/transformer_tokens.txt`). Descriptive; they decide nothing:
+
+    | Encoder | Split | Segments | Median | p99 | Max | Above 512 |
+    |---|---|---|---|---|---|---|
+    | legal-bert | train | 34871 | 56 | 321 | 1170 | 86 |
+    | legal-bert | val | 11656 | 60 | 320 | 847 | 9 |
+    | bert | train | 34871 | 56 | 326 | 1170 | 88 |
+    | bert | val | 11656 | 60 | 327 | 834 | 13 |
+    | deberta-v3 | train | 34871 | 55 | 313 | 1171 | 83 |
+    | deberta-v3 | val | 11656 | 59 | 316 | 840 | 9 |
+
+  - Loading the DeBERTa-v3 tokenizer printed a transformers warning, "incorrect regex pattern ... set `fix_mistral_regex=True`". It is a false positive. In transformers 5.17.0 the check treats a local tokenizer as Mistral-like when its `config.json` has no `transformers_version`, and the DeBERTa-v3 config has none. The flag is not set. Setting it would replace DeBERTa's Metaspace pre-tokenizer with a Mistral split pattern and change the tokenization. The "sequence length is longer than the specified maximum" warnings come from the untruncated counting pass and are expected.
 - **Recipe (fixed, not tuned):**
   - multi-label head, sigmoid, `BCEWithLogitsLoss` without class weights;
   - all 34,871 train segments, no none downsampling;

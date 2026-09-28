@@ -1,0 +1,7 @@
+Token lengths per encoder, train and validation only (truncation above 512); decides nothing. Test and shift counts are recorded by heldout.
+legal-bert  train  segments  34871  median     56  p99    321  max  1170  above 512: 86
+legal-bert  val    segments  11656  median     60  p99    320  max   847  above 512: 9
+bert        train  segments  34871  median     56  p99    326  max  1170  above 512: 88
+bert        val    segments  11656  median     60  p99    327  max   834  above 512: 13
+deberta-v3  train  segments  34871  median     55  p99    313  max  1171  above 512: 83
+deberta-v3  val    segments  11656  median     59  p99    316  max   840  above 512: 9
