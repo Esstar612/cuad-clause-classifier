@@ -2507,7 +2507,7 @@ Fixed 2026-09-27, before any encoder was downloaded or trained. Every existing m
     - After 73 minutes the process had used 16 minutes of CPU. Its footprint was 19 GB on the 24 GB machine, and system swap was 44 of 45 GB used.
     - The power log shows no sleep after the probe started, so the stall was memory paging. The probe was stopped and wrote no `probe.json`.
     - On unified memory, MPS by default allocates past its recommended limit and pages to swap instead of raising an out-of-memory error.
-  - Guard (not a recipe change): `src/transformer.py` sets `PYTORCH_MPS_HIGH_WATERMARK_RATIO=1.0` unless the environment already sets it. A memory shortfall now raises an error instead of swapping. The value is recorded in `probe.json` and `trained.json`.
+  - Guard (not a recipe change): `src/transformer.py` sets `PYTORCH_MPS_HIGH_WATERMARK_RATIO=1.0` unless the environment already sets it. A memory shortfall now raises an error instead of swapping. The first rerun stopped before any training step with `RuntimeError: invalid low watermark ratio 1.4`: on Apple Silicon the low watermark (default 1.4) must not exceed the high one. `PYTORCH_MPS_LOW_WATERMARK_RATIO=0.8` is now set as well, keeping close to the default low-to-high ratio (1.4/1.7). Both values are recorded in `probe.json` and `trained.json`.
 - **Order:** fetch, tokens (train and validation text only; decides nothing), probe x 3 (train segments only), train x 3, validate, select, heldout (selected encoder only, once).
 - **Analysis 1, selection (validation, 33 labels, Rule B thresholds tuned on validation):**
   - `best` is the encoder with the highest macro-F1.
