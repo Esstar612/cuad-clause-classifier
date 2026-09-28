@@ -37,9 +37,9 @@ Numbering follows the user's prompts (BUILD_LOG uses the same numbers).
    - Bootstrap confidence intervals resample whole contracts, not segments, using the config seed.
    - Per-label shift results only for the 17 pre-registered labels in `src/labels.py:SHIFT_MEASURABLE_LABELS` (at least 10 shift contracts each). The other 16 kept labels are listed as not measurable on the shift set.
 6. **Additional models.**
-   - A fine-tuned transformer (PyTorch, Hugging Face).
-     - Known item: check segment length in tokens against the model's input limit before training. Segments reach 1,500 characters and more (max_chars is not a hard cap). Report how many are truncated, or use a sliding window.
-   - An open model served on Fireworks.
+   - 6a (complete): a fine-tuned transformer (PyTorch, Hugging Face). Three encoders (legal-BERT, BERT, DeBERTa-v3) trained locally on MPS with one fixed recipe. legal-BERT was selected on validation by the pre-registered rule and evaluated once on test and shift. Truncation at 512 tokens is counted per split (4 test and 3 shift segments). Results in `docs/results.md` and BUILD_LOG Step 6a; it is below the baseline on test and cannot be distinguished from it on shift.
+     - Possible later item: a tuned successor (a validation budget comparable to the baseline's, with imbalance handled in the recipe). It would be a separate post-hoc model, pre-registered before training, and would not replace the 6a result.
+   - 6b (next): an open model served on Fireworks, prompted with the frozen LLM protocol (same instructions, examples, sparse scoring, batch size 10, Rule B). The exact model ID and prompt version are pre-registered before any call.
    - Both use the shared prediction format; dependencies are added to `pyproject.toml` and the lock file is regenerated.
 7. **Service.** FastAPI, accepting text or PDF.
    - PDF path: extract the text layer first, fall back to OCR, run `segment_text()`, then classify.
