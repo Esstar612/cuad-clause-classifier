@@ -300,14 +300,24 @@ def evaluate_model(name: str) -> None:
     print(f"\nWrote {config.EVAL_DIR / f'{name}.json'}")
 
 
+def family_of(name_a: str, name_b: str) -> str | None:
+    return next((f for f, pairs in config.COMPARE_FAMILIES.items() if (name_a, name_b) in pairs), None)
+
+
 def paired_row(key: str, scope: str, metric: str, a_samples, b_samples, a_point: float, b_point: float,
-               in_family: bool = True) -> dict:
+               in_family: bool = True, sensitivity_size: int | None = None) -> dict:
     d = paired_difference(a_samples, b_samples, a_point, b_point)
     if in_family and (key, scope) in config.COMPARE_PRIMARY_SCOPES and metric in config.COMPARE_PRIMARY_METRICS:
         adj = paired_difference(a_samples, b_samples, a_point, b_point, level=ADJUSTED_LEVEL)
         d.update(primary=True, adjusted_level=ADJUSTED_LEVEL, adjusted_ci_low=adj["ci_low"],
                  adjusted_ci_high=adj["ci_high"],
                  claim="A higher" if adj["ci_low"] > 0 else "B higher" if adj["ci_high"] < 0 else "none")
+        if sensitivity_size:
+            level = 1 - (1 - config.CI_LEVEL) / sensitivity_size
+            sen = paired_difference(a_samples, b_samples, a_point, b_point, level=level)
+            d.update(sensitivity_level=level, sensitivity_ci_low=sen["ci_low"], sensitivity_ci_high=sen["ci_high"],
+                     sensitivity_claim="A higher" if sen["ci_low"] > 0 else "B higher" if sen["ci_high"] < 0
+                     else "none")
     return d
 
 
@@ -324,6 +334,7 @@ def compare(name_a: str, name_b: str) -> None:
     contracts = pd.read_parquet(config.PROCESSED_DIR / "contracts.parquet")
     print(f"Paired comparison: {name_a} minus {name_b}\nMethod: {COMPARE_METHOD}")
     in_family = (name_a, name_b) in config.COMPARE_PAIRS or name_a == name_b
+    sensitivity_size = config.COMPARE_SENSITIVITY.get(family_of(name_a, name_b))
     out, all_zero = {}, True
     seen = {f"{side}_{col}": set() for side in "ab" for col in ("name", "version")}
     for split in ("test", "shift"):
@@ -357,24 +368,34 @@ def compare(name_a: str, name_b: str) -> None:
                 sa, samp_a = pa.scope(sets[scope])
                 sb, samp_b = pb.scope(sets[scope])
                 for m in COMPARE_METRICS:
-                    d = paired_row(key, scope, m, samp_a[m], samp_b[m], sa[m]["point"], sb[m]["point"], in_family)
+                    d = paired_row(key, scope, m, samp_a[m], samp_b[m], sa[m]["point"], sb[m]["point"], in_family,
+                                   sensitivity_size)
                     out[f"{key} | {scope} | {m}"] = d
                     all_zero &= all(d.get(k, 0) == 0 for k in ("difference", "ci_low", "ci_high",
-                                                                "adjusted_ci_low", "adjusted_ci_high"))
+                                                                "adjusted_ci_low", "adjusted_ci_high",
+                                                                "sensitivity_ci_low", "sensitivity_ci_high"))
     if any(len(v) != 1 for v in seen.values()):
         raise SystemExit(f"each model must have one name and one version across test and shift: {seen}")
     versions = {k: v.pop() for k, v in seen.items()}
     verdicts = {f"{k} | {s}": scope_verdict({m: out[f"{k} | {s} | {m}"]["claim"]
                                              for m in config.COMPARE_PRIMARY_METRICS}, name_a, name_b)
                 for k, s in config.COMPARE_PRIMARY_SCOPES} if in_family else {}
+    extra = {"sensitivity_family_size": sensitivity_size} if sensitivity_size else {}
     _dump({"a": name_a, "b": name_b, **versions, "method": COMPARE_METHOD, "family_size": config.COMPARE_FAMILY_SIZE,
-           "differences": out, "verdicts": verdicts},
+           **extra, "differences": out, "verdicts": verdicts},
           config.EVAL_DIR / f"compare_{name_a}_vs_{name_b}.json")
     print(f"\n=== Primary comparisons (A minus B): point [95% CI] [{ADJUSTED_LEVEL:.3%} adjusted CI] claim ===")
     for k, d in out.items():
         if d.get("primary"):
             print(f"{k:40s} {d['difference']:+.4f} [{d['ci_low']:+.4f}, {d['ci_high']:+.4f}] "
                   f"[{d['adjusted_ci_low']:+.4f}, {d['adjusted_ci_high']:+.4f}] {d['claim']}")
+    if sensitivity_size:
+        level = 1 - (1 - config.CI_LEVEL) / sensitivity_size
+        print(f"\n=== Sensitivity, family of {sensitivity_size} ({level:.3%} adjusted CI), no verdicts ===")
+        for k, d in out.items():
+            if d.get("primary"):
+                print(f"{k:40s} {d['difference']:+.4f} [{d['sensitivity_ci_low']:+.4f}, "
+                      f"{d['sensitivity_ci_high']:+.4f}] {d['sensitivity_claim']}")
     print("\n=== Verdicts, per scope ===")
     for k, v in verdicts.items():
         print(f"{k:20s} {v}")

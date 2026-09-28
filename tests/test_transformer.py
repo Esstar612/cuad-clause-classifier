@@ -258,11 +258,28 @@ def test_selection_rule_parsimony_and_size_tolerance(world):
 def test_compare_families_and_report_tables():
     from src import evaluate, report
 
-    assert len(config.COMPARE_PAIRS) == 6 and ("transformer", "baseline") in config.COMPARE_PAIRS
+    assert len(config.COMPARE_PAIRS) == 9 and ("transformer", "baseline") in config.COMPARE_PAIRS
     assert ("baseline", "transformer") not in config.COMPARE_PAIRS
+    assert ("transformer-tuned", "transformer") not in config.COMPARE_PAIRS
     assert evaluate.ADJUSTED_LEVEL == pytest.approx(1 - 0.05 / 12) and "family of 12" in evaluate.COMPARE_METHOD
     row = {"difference": 0.1, "ci_low": 0.05, "ci_high": 0.15, "primary": True, "adjusted_level": 0.99583,
            "adjusted_ci_low": 0.01, "adjusted_ci_high": 0.2, "claim": "A higher"}
     comp = {"family_size": 12, "differences": {"test | Rule A | micro_f1": row}, "verdicts": {"test | Rule A": "x"}}
-    md = report.comparison_tables({p: comp for p in config.COMPARE_PAIRS})
-    assert "family 4b" in md and "family 6a" in md and md.count("#### Primary comparisons") == 2
+    sens = {**comp, "sensitivity_family_size": 24,
+            "differences": {"test | Rule A | micro_f1": {**row, "sensitivity_level": 1 - 0.05 / 24,
+                                                         "sensitivity_ci_low": 0.005, "sensitivity_ci_high": 0.21,
+                                                         "sensitivity_claim": "A higher"}}}
+    secondary = {"family_size": 12, "verdicts": {},
+                 "differences": {"test | all | macro_f1": {"difference": 0.02, "ci_low": -0.01, "ci_high": 0.05}}}
+    earlier = {p: comp for f in ("4b", "6a") for p in config.COMPARE_FAMILIES[f]}
+    everything = {**earlier, **{p: sens for p in config.COMPARE_FAMILIES["6c"]},
+                  **{p: secondary for p in config.COMPARE_SECONDARY}}
+    md = report.comparison_tables(everything)
+    assert all(f"family {f}" in md for f in ("4b", "6a", "6c")) and md.count("#### Primary comparisons") == 3
+    assert md.count("#### Sensitivity") == 1 and "#### Sensitivity, family 6c (family of 24; 99.792%" in md
+    assert "transformer-tuned minus transformer | test \\| all \\| macro_f1" in md
+    before = report.comparison_tables(earlier)
+    for f in ("4b", "6a"):
+        for head in (f"#### Primary comparisons, family {f}", f"#### Verdicts, family {f}"):
+            section = lambda text: text[text.index(head):].split("\n\n####")[0]
+            assert section(md) == section(before)

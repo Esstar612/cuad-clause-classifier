@@ -29,3 +29,6 @@ venv/
 # Regenerable from data/raw with src.data and src.build_segments (contain full contract text)
 data/processed/spans.parquet
 data/processed/segments.parquet
+
+# Step 6c candidate validation predictions (20 files; only the selected one is kept)
+data/predictions/transformer-tuned-candidates/

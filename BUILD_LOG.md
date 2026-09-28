@@ -2655,3 +2655,55 @@ None after training. Selection followed the pre-registered rule. The held-out ru
 
 ### Resume-worthy
 - Fine-tuned and compared three pretrained encoders (legal-BERT, BERT, DeBERTa-v3) on Apple-silicon MPS under a pre-registered selection rule, then evaluated the selected model once on test and on held-out contract types. It came in below a TF-IDF baseline and two LLMs; the result is reported as measured, with a check that ruled out a save or reload bug before test.
+
+## 2026-09-28: Step 6c, tuned legal-BERT successor pre-registered and code placed (before any training)
+
+### What we built
+- `src/transformer_tuned.py`: `train --run KEY` (one grid run, a checkpoint after every epoch), `validate`, `select` and `heldout`.
+  - `validate` refuses until every run has finished or failed.
+  - Candidate validation predictions go to a gitignored directory. Only the selected candidate's file is kept as `transformer-tuned_val.parquet`.
+  - It uses the same markers as 6a: `train_started.json`, `trained.json`, `failed.json`, a `run.json` per candidate, `selected.json`, `heldout_run.json`.
+- `src/transformer.py`: `train_model` takes an optional learning rate, positive weights and an end-of-epoch callback, and `model_version` an optional root. The defaults give the 6a recipe and 6a versions unchanged.
+- `src/evaluate.py`: a sensitivity interval on primary rows for families listed in `config.COMPARE_SENSITIVITY`. Other families' output is unchanged.
+- `src/report.py`: the `transformer-tuned` column, the `COMPARE_SECONDARY` pair in the secondary table, and a sensitivity table per family that has one.
+- `src/config.py`: the `TUNED_*` constants, the 6c family, `COMPARE_SECONDARY` and `COMPARE_SENSITIVITY`. `.gitignore`: the candidate prediction directory.
+- `tests/test_transformer_tuned.py`: runs on CPU with no downloads. It covers:
+  - positive weights and the learning-rate override;
+  - the epoch callback;
+  - the zero-positive refusal;
+  - `model_version` with and without a root;
+  - checkpoints and markers, crash and restart, and a failed run;
+  - `validate` waiting for every run, and a failed run's pre-failure checkpoint being excluded;
+  - the selection order;
+  - `select` and `heldout` guards, with the 6a held-out files left untouched;
+  - sensitivity rows only for listed families.
+
+  `tests/test_transformer.py`: the family test now covers 9 pairs and checks that the 4b and 6a report tables are unchanged.
+- Plan reviews: `docs/reviews/2026-09-28-6c-r1.md` and `-r2.md`.
+
+### Decisions made
+Fixed 2026-09-28, before any 6c training.
+- **Status: post-hoc.** 6c was designed after the 6a validation results, the train-data diagnostic and the 6a test and shift results, which came last of four on test. The transformer approach is therefore evaluated on test twice. 6c does not replace 6a, and 6a's result stays as recorded.
+- **Encoder:** legal-BERT only, at the 6a pinned revision (15b570cbf88259610b082a167dacc190124f60f6).
+- **Shared with 6a:** max 512 tokens; effective batch 16 (micro-batch 4 x accumulation 4); weight decay 0.01 on every parameter; warmup 10% then linear decay; clipping 1.0; fp32; seed 42 for the head initialization and the shuffle; MPS watermarks 1.0 / 0.8.
+- **Grid:** 2 x 2 runs, each on a 5-epoch schedule (10,900 optimizer steps), with warmup and decay spanning all 5 epochs.
+  - `u-lr2e-5`: unweighted BCE, learning rate 2e-5
+  - `u-lr5e-5`: unweighted BCE, 5e-5
+  - `w-lr2e-5`: weighted BCE, 2e-5
+  - `w-lr5e-5`: weighted BCE, 5e-5
+- **Positive weight:** for each label, `sqrt(negatives / positives)` over train segments, passed as BCE `pos_weight`. The square root sits halfway on a log scale between unweighted and fully balanced. `train` refuses if a label has no train positives. Weighted and unweighted training losses are not comparable.
+- **Candidates:** the checkpoints after epochs 1 to 5 of every completed run, 20 in all, against the baseline's 96 configurations. No early stopping: every run trains all 5 epochs.
+- **Failed run:** a non-finite loss writes `failed.json`. That run contributes no candidates, including checkpoints saved before the failure, and it is never retried. `validate` proceeds once every run has finished or failed, and refuses if all failed.
+- **Crash:** `--restart-after-crash` deletes the run's `epoch-*` directories and reruns it from scratch. It is logged and decided with the user first.
+- **No probe:** memory and time are known from the 6a legal-BERT micro-batch 4 run (0.37 h per epoch), so the projection is about 7.4 h for the grid.
+- **Selection:** on validation over 33 labels, with Rule B thresholds tuned per candidate:
+  1. keep every candidate within 0.005 of the best macro-AP;
+  2. choose the higher macro-F1;
+  3. on an exact tie, the simpler candidate: fewer epochs, then unweighted, then the lower learning rate.
+
+  This is the baseline's rule (`src/baseline.py:select`). The 6a design rejected a 0.005 tie as below single-seed noise. 6c adopts it because it is the baseline's own rule, and selection makes a choice, not a claim; there is no interval step. The run x epoch validation table is descriptive, one seed.
+- **Comparisons, family 6c:** `transformer-tuned` minus baseline, Claude and Gemini, on test Rule A and shift Rule C, with micro- and macro-F1 co-primary: 12 comparisons at 99.583%, with 10,000 paired resamples.
+  - Sensitivity: every 6c primary row also reports its interval at 1 - 0.05/24 = 99.792%, for the two test looks. The write-up states which claims survive. Those tails rest on about 10 resamples each.
+  - Secondary, no claim: `transformer-tuned` minus `transformer` (6a), with 95% intervals.
+  - The six earlier compare files must regenerate byte-identically.
+- **What 6c can say:** whether a tuned legal-BERT, chosen on validation, closes the gap on test and shift. It cannot attribute the 6a gap to the recipe: 6c is post-hoc and was motivated by a test result, validation was already used for the 6a selection, and there is one run per configuration.

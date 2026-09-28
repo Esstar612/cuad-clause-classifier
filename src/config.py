@@ -64,8 +64,11 @@ COMPARE_FAMILY_SIZE = 12               # 3 model pairs x 2 scopes x 2 metrics, p
 COMPARE_FAMILIES = {
     "4b": (("claude", "baseline"), ("gemini", "baseline"), ("gemini", "claude")),
     "6a": (("transformer", "baseline"), ("transformer", "claude"), ("transformer", "gemini")),
+    "6c": (("transformer-tuned", "baseline"), ("transformer-tuned", "claude"), ("transformer-tuned", "gemini")),
 }
 COMPARE_PAIRS = tuple(p for pairs in COMPARE_FAMILIES.values() for p in pairs)
+COMPARE_SECONDARY = (("transformer-tuned", "transformer"),)  # reported with 95% intervals, no claims
+COMPARE_SENSITIVITY = {"6c": 24}  # extra adjusted interval: the transformer approach has two test looks
 assert all(len(p) * len(COMPARE_PRIMARY_SCOPES) * len(COMPARE_PRIMARY_METRICS) == COMPARE_FAMILY_SIZE
            for p in COMPARE_FAMILIES.values())
 CALIBRATION_BINS = 10
@@ -140,3 +143,13 @@ TRANSFORMER_WARMUP = 0.10
 TRANSFORMER_INFER_BATCH = 64
 TRANSFORMER_PROBE_SEGMENTS = 1_024   # seeded subset of train segments, timing only
 TRANSFORMER_SIZE_TOLERANCE = 0.01    # encoder parameters within 1% count as the same size
+
+# Tuned legal-BERT successor (Step 6c, post-hoc): 2x2 grid, a candidate per epoch, selection on validation
+TUNED_DIR = MODELS_DIR / "transformer_tuned"
+TUNED_CANDIDATE_PREDICTIONS_DIR = PREDICTIONS_DIR / "transformer-tuned-candidates"  # gitignored
+TUNED_MODEL_NAME = "transformer-tuned"
+TUNED_ENCODER = "legal-bert"
+TUNED_EPOCHS = 5
+TUNED_RUNS = {"u-lr2e-5": {"pos_weight": False, "lr": 2e-5}, "u-lr5e-5": {"pos_weight": False, "lr": 5e-5},
+              "w-lr2e-5": {"pos_weight": True, "lr": 2e-5}, "w-lr5e-5": {"pos_weight": True, "lr": 5e-5}}
+TUNED_SELECTION_TIE = 0.005

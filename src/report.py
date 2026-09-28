@@ -1,9 +1,10 @@
-"""Markdown tables for docs/results.md, generated from saved evaluation JSON only (Steps 4b, 5, 6a).
+"""Markdown tables for docs/results.md, generated from saved evaluation JSON only (Steps 4b, 5, 6a, 6c).
 
   python -m src.report | tee data/processed/results_tables.md
 
-Reads data/eval/{baseline,claude,gemini,transformer}.json, the six compare files of the pre-registered
-families (config.COMPARE_FAMILIES) by name, and data/eval/drift.json when it exists.
+Reads data/eval/{baseline,claude,gemini,transformer,transformer-tuned}.json, the ten compare files (the nine of
+the pre-registered families in config.COMPARE_FAMILIES and config.COMPARE_SECONDARY), and data/eval/drift.json
+when it exists.
 Composes no claims: claims and verdicts come from the compare files.
 """
 
@@ -14,7 +15,7 @@ from pathlib import Path
 
 from src import config
 
-MODELS = ("baseline", "claude", "gemini", "transformer")
+MODELS = ("baseline", "claude", "gemini", "transformer", "transformer-tuned")
 SPARSE_NOTE = "sparse lower bound, not interpreted"
 LEVEL = f"{config.CI_LEVEL:.0%}"
 
@@ -82,6 +83,17 @@ def comparison_tables(compares: dict, families: dict = config.COMPARE_FAMILIES) 
                 "Bonferroni-adjusted interval)\n\n"
                 + _table(["Pair", "Scope and metric", "Difference", f"{LEVEL} CI", "Adjusted CI", "Claim"], primary),
                 f"#### Verdicts, family {name}, per scope\n\n" + _table(["Pair", "Scope", "Verdict"], verdicts)]
+        sensitive = [(a, b, key, d) for (a, b), c in members.items() for key, d in c["differences"].items()
+                     if d.get("primary") and "sensitivity_level" in d]
+        if sensitive:
+            s_size = _same((c["sensitivity_family_size"] for c in members.values()), "sensitivity family size")
+            s_level = _same((d["sensitivity_level"] for *_, d in sensitive), "sensitivity level")
+            rows = [[f"{a} minus {b}", key, f"{d['difference']:+.4f}",
+                     _diff(d, "sensitivity_ci_low", "sensitivity_ci_high"), d["sensitivity_claim"]]
+                    for a, b, key, d in sensitive]
+            out.append(f"#### Sensitivity, family {name} (family of {s_size}; {s_level:.3%} adjusted interval, "
+                       "no verdicts)\n\n"
+                       + _table(["Pair", "Scope and metric", "Difference", "Adjusted CI", "Claim"], rows))
     for (a, b), c in compares.items():
         secondary += [[f"{a} minus {b}", key, f"{d['difference']:+.4f}", _diff(d)]
                       for key, d in c["differences"].items() if not d.get("primary")]
@@ -167,7 +179,8 @@ def drift_tables(drift: dict, evals: dict) -> str:
 
 def render(eval_dir: Path = config.EVAL_DIR) -> str:
     evals = {m: _load(eval_dir / f"{m}.json") for m in MODELS}
-    compares = {(a, b): _load(eval_dir / f"compare_{a}_vs_{b}.json") for a, b in config.COMPARE_PAIRS}
+    compares = {(a, b): _load(eval_dir / f"compare_{a}_vs_{b}.json")
+                for a, b in config.COMPARE_PAIRS + config.COMPARE_SECONDARY}
     check_versions(evals, compares)
     methods = [evals[m]["method"] for m in MODELS] + [c["method"] for c in compares.values()]
     if not all(f"percentile {LEVEL} intervals" in m for m in methods):

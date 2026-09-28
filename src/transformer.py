@@ -19,6 +19,7 @@ import json
 import math
 import os
 import time
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -102,17 +103,20 @@ class FailedRun(Exception):
     pass
 
 
-def train_model(model, tok, texts, Y: np.ndarray, epochs: int) -> list[dict]:
-    """Per-epoch mean loss. Raises FailedRun on a non-finite loss."""
+def train_model(model, tok, texts, Y: np.ndarray, epochs: int, lr: float | None = None,
+                pos_weight: np.ndarray | None = None, on_epoch_end=None) -> list[dict]:
+    """Per-epoch mean loss. Raises FailedRun on a non-finite loss. Defaults give the 6a recipe."""
     ids, _ = encode(tok, texts)
     n, bs, acc = len(ids), config.TRANSFORMER_BATCH_SIZE, config.TRANSFORMER_ACCUMULATION
     micro = bs // acc
     total = epochs * math.ceil(n / bs)
     model.to(device()).train()  # before the optimizer, so it holds the device parameters
-    opt = torch.optim.AdamW(model.parameters(), lr=config.TRANSFORMER_LR,
+    opt = torch.optim.AdamW(model.parameters(), lr=config.TRANSFORMER_LR if lr is None else lr,
                             weight_decay=config.TRANSFORMER_WEIGHT_DECAY)
     sched = get_linear_schedule_with_warmup(opt, int(config.TRANSFORMER_WARMUP * total), total)
-    loss_fn = torch.nn.BCEWithLogitsLoss(reduction="sum")
+    loss_fn = torch.nn.BCEWithLogitsLoss(
+        reduction="sum",
+        pos_weight=None if pos_weight is None else torch.as_tensor(pos_weight, dtype=torch.float32, device=device()))
     gen = torch.Generator().manual_seed(config.SEED)
     log, step, t0 = [], 0, time.perf_counter()
     for epoch in range(epochs):
@@ -143,6 +147,8 @@ def train_model(model, tok, texts, Y: np.ndarray, epochs: int) -> list[dict]:
                       f"elapsed {elapsed / 60:.1f} min, remaining about {elapsed / step * (total - step) / 60:.1f} min",
                       flush=True)
         log.append({"epoch": epoch + 1, "mean_loss": epoch_loss / seen})
+        if on_epoch_end is not None:
+            on_epoch_end(epoch + 1, model)
     return log
 
 
@@ -164,10 +170,10 @@ def predict_proba(model, tok, texts, warm: bool = True) -> tuple[np.ndarray, int
     return out, n_truncated, (time.perf_counter() - t0) * 1000 / max(len(ids), 1)
 
 
-def model_version(key: str) -> str:
+def model_version(key: str, root: Path | None = None) -> str:
     """Hash of every file that determines predictions: weights, HF config, tokenizer files,
     thresholds and labels (run bookkeeping and hidden files excluded)."""
-    d = config.TRANSFORMER_DIR / key
+    d = (config.TRANSFORMER_DIR if root is None else root) / key
     h = hashlib.sha256()
     for p in sorted(p for p in d.iterdir()
                     if p.is_file() and p.name not in RUN_FILES and not p.name.startswith(".")):
