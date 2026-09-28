@@ -2560,6 +2560,16 @@ Fixed 2026-09-27, before any encoder was downloaded or trained. Every existing m
   - Projected total training time is about 4.9 hours. DeBERTa-v3's pool ended at 83% of the recommended maximum, with its worst-case step included, against 51% for the BERT models.
   - Encoder sizes, recorded before any validation output: legal-bert and bert have 109,482,240 each; deberta-v3 has 183,831,552, which is 67.9% larger than the BERT count and far outside the 1% size tolerance. Selection's size groups are therefore fixed: {legal-bert, bert} and {deberta-v3}.
   - DeBERTa-v3 loading printed a `torch.jit.script` FutureWarning under Python 3.14, raised from torch's `jit/_script.py` during model loading. The probe ran to completion. The pooler is listed as MISSING (newly initialized), as expected, because DeBERTa's pooler belongs to its task head.
+- Training (2026-09-28, one run per encoder, accumulation 4, MPS watermarks high 1.0 and low 0.8, seed 42, float32, 6,540 optimizer steps each, no restarts, no failed runs, no validation output; `models/transformer/<key>/trained.json` and `train_log.csv`, output in `data/processed/transformer_train_<key>.txt`):
+
+  | Encoder | Train hours (process timer) | Probe projection (hours) | Epoch 1 mean loss | Epoch 2 mean loss | Epoch 3 mean loss |
+  |---|---|---|---|---|---|
+  | legal-bert | 1.11 | 1.19 | 0.09166 | 0.01774 | 0.01216 |
+  | bert | 1.14 | 1.17 | 0.09343 | 0.02173 | 0.01627 |
+  | deberta-v3 | 2.80 | 2.55 | 0.07756 | 0.01892 | 0.01432 |
+
+  - deberta-v3's start and completion timestamps span 5.69 hours because the laptop slept for 3.03 hours mid-run. The process timer excludes most of that time.
+  - Training losses are on the training data and say nothing about validation performance. The encoders are compared only through `validate` and `select`.
 
 ### Problems hit and how we solved them
 - The first test run failed twice in the new tests: the toy segments used text contract ids, while the shared prediction schema stores `contract_id` as an integer. The toy data now uses integer ids.
@@ -2574,3 +2584,4 @@ Fixed 2026-09-27, before any encoder was downloaded or trained. Every existing m
   - `select` checked validation segment ids but not the current true labels; it now refuses when the stored labels differ from the processed data;
   - the MPS warm-up batch was not synchronized, so queued work could leak into the latency timer; it now waits for the result before timing starts.
 - A third review round found one issue, fixed: the optimizer was built before the model moved to MPS. The model now moves first, following the PyTorch guidance, so the optimizer is guaranteed to hold the device parameters. The CPU tests cannot show the difference, because there the move does nothing.
+- The laptop lid closed during the deberta-v3 run, at epoch 3 step 5200 of 6540. `caffeinate -i` prevents idle sleep, not lid-closed sleep. macOS suspended the process, and it resumed when the lid opened, with no crash and no restart. A pause does not change the computation, so the run counts as one uninterrupted training run. Only its timing is affected, as recorded above. For future long runs the lid stays open.

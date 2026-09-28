@@ -1,0 +1,40 @@
+Training deberta-v3 on 34871 train segments, device mps, recipe {'TRANSFORMER_MAX_TOKENS': 512, 'TRANSFORMER_EPOCHS': 3, 'TRANSFORMER_BATCH_SIZE': 16, 'TRANSFORMER_ACCUMULATION': 4, 'TRANSFORMER_LR': 2e-05, 'TRANSFORMER_WEIGHT_DECAY': 0.01, 'TRANSFORMER_WARMUP': 0.1, 'TRANSFORMER_INFER_BATCH': 64}
+  epoch 1 step 200/6540 mean loss 0.52412 elapsed 4.7 min, remaining about 150.4 min
+  epoch 1 step 400/6540 mean loss 0.31173 elapsed 9.6 min, remaining about 147.6 min
+  epoch 1 step 600/6540 mean loss 0.21842 elapsed 15.1 min, remaining about 149.7 min
+  epoch 1 step 800/6540 mean loss 0.17136 elapsed 20.7 min, remaining about 148.7 min
+  epoch 1 step 1000/6540 mean loss 0.14225 elapsed 25.5 min, remaining about 141.5 min
+  epoch 1 step 1200/6540 mean loss 0.12215 elapsed 30.1 min, remaining about 134.0 min
+  epoch 1 step 1400/6540 mean loss 0.10784 elapsed 34.6 min, remaining about 127.2 min
+  epoch 1 step 1600/6540 mean loss 0.09751 elapsed 39.2 min, remaining about 121.1 min
+  epoch 1 step 1800/6540 mean loss 0.08928 elapsed 44.4 min, remaining about 116.9 min
+  epoch 1 step 2000/6540 mean loss 0.08248 elapsed 49.7 min, remaining about 112.7 min
+  epoch 2 step 2200/6540 mean loss 0.02020 elapsed 56.3 min, remaining about 111.0 min
+  epoch 2 step 2400/6540 mean loss 0.02146 elapsed 62.1 min, remaining about 107.1 min
+  epoch 2 step 2600/6540 mean loss 0.02223 elapsed 67.1 min, remaining about 101.7 min
+  epoch 2 step 2800/6540 mean loss 0.02153 elapsed 71.9 min, remaining about 96.0 min
+  epoch 2 step 3000/6540 mean loss 0.02097 elapsed 76.7 min, remaining about 90.5 min
+  epoch 2 step 3200/6540 mean loss 0.02050 elapsed 81.2 min, remaining about 84.7 min
+  epoch 2 step 3400/6540 mean loss 0.02010 elapsed 85.7 min, remaining about 79.2 min
+  epoch 2 step 3600/6540 mean loss 0.01979 elapsed 90.4 min, remaining about 73.8 min
+  epoch 2 step 3800/6540 mean loss 0.01935 elapsed 95.0 min, remaining about 68.5 min
+  epoch 2 step 4000/6540 mean loss 0.01910 elapsed 99.6 min, remaining about 63.3 min
+  epoch 2 step 4200/6540 mean loss 0.01900 elapsed 104.0 min, remaining about 58.0 min
+  epoch 3 step 4400/6540 mean loss 0.01629 elapsed 108.4 min, remaining about 52.7 min
+  epoch 3 step 4600/6540 mean loss 0.01587 elapsed 112.8 min, remaining about 47.6 min
+  epoch 3 step 4800/6540 mean loss 0.01611 elapsed 117.3 min, remaining about 42.5 min
+  epoch 3 step 5000/6540 mean loss 0.01573 elapsed 121.6 min, remaining about 37.4 min
+  epoch 3 step 5200/6540 mean loss 0.01541 elapsed 127.9 min, remaining about 33.0 min
+  epoch 3 step 5400/6540 mean loss 0.01535 elapsed 133.3 min, remaining about 28.1 min
+  epoch 3 step 5600/6540 mean loss 0.01522 elapsed 138.3 min, remaining about 23.2 min
+  epoch 3 step 5800/6540 mean loss 0.01484 elapsed 143.7 min, remaining about 18.3 min
+  epoch 3 step 6000/6540 mean loss 0.01467 elapsed 149.3 min, remaining about 13.4 min
+  epoch 3 step 6200/6540 mean loss 0.01467 elapsed 156.4 min, remaining about 8.6 min
+  epoch 3 step 6400/6540 mean loss 0.01435 elapsed 162.9 min, remaining about 3.6 min
+  epoch 3 step 6540/6540 mean loss 0.01432 elapsed 167.7 min, remaining about 0.0 min
+
+deberta-v3: trained in 2.80 h; per-epoch mean loss:
+  epoch 1: 0.07756
+  epoch 2: 0.01892
+  epoch 3: 0.01432
+Wrote weights and /Users/owner/Dropbox/My Resume/Code/CCC/models/transformer/deberta-v3/trained.json (no validation output)

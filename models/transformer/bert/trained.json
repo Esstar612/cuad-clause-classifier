@@ -1,0 +1,43 @@
+{
+  "encoder": "bert",
+  "source": {
+    "hub_id": "google-bert/bert-base-uncased",
+    "revision": "86b5e0934494bd15c9632b12f734a8a67f723594"
+  },
+  "seed": 42,
+  "device": "mps",
+  "recipe": {
+    "TRANSFORMER_MAX_TOKENS": 512,
+    "TRANSFORMER_EPOCHS": 3,
+    "TRANSFORMER_BATCH_SIZE": 16,
+    "TRANSFORMER_ACCUMULATION": 4,
+    "TRANSFORMER_LR": 2e-05,
+    "TRANSFORMER_WEIGHT_DECAY": 0.01,
+    "TRANSFORMER_WARMUP": 0.1,
+    "TRANSFORMER_INFER_BATCH": 64
+  },
+  "parameters": 109507617,
+  "encoder_parameters": 109482240,
+  "dtype": "torch.float32",
+  "train_segments": 34871,
+  "train_hours": 1.143314065220022,
+  "mps_watermark_ratios": {
+    "high": "1.0",
+    "low": "0.8"
+  },
+  "epoch_mean_loss": [
+    {
+      "epoch": 1,
+      "mean_loss": 0.09342716188851301
+    },
+    {
+      "epoch": 2,
+      "mean_loss": 0.02173472335760581
+    },
+    {
+      "epoch": 3,
+      "mean_loss": 0.016274339694619964
+    }
+  ],
+  "completed_utc": "2026-09-28T04:57:51+00:00"
+}
