@@ -1,0 +1,5 @@
+=== test: 9378 segments, 96 contracts; truncated 4; 3.314 ms/segment ===
+{'n_labels': 33, 'segments': 9378, 'macro_f1': 0.4512, 'micro_f1': 0.5405, 'macro_ap': 0.4632, 'none_segments': 8167, 'none_fp_rate': 0.0216}
+=== shift: 4584 segments, 28 contracts; truncated 3; 3.754 ms/segment ===
+{'n_labels': 32, 'segments': 4584, 'macro_f1': 0.2983, 'micro_f1': 0.4219, 'macro_ap': 0.3687, 'none_segments': 3971, 'none_fp_rate': 0.0383}
+Run `python -m src.evaluate model transformer` for intervals.

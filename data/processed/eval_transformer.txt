@@ -1,0 +1,681 @@
+Model: transformer   version: legal-bert|82466a1eefd8
+Method: 2000 contract-level bootstrap resamples, stratified by contract type, percentile 95% intervals, seed 42
+  bootstrapping AP for 'test' (96 contracts, 9378 segments)...
+  bootstrapping AP for 'shift' (28 contracts, 4584 segments)...
+  bootstrapping AP for 'shift:Franchise' (15 contracts, 2694 segments)...
+  bootstrapping AP for 'shift:Transportation' (13 contracts, 1890 segments)...
+
+=== Scopes: point [95% CI]  (none_fp_rate on parsed segments only; parse failures count as empty predictions for F1) ===
+test | Rule A                    labels=26 contracts= 96  macro_f1=0.5408 [0.5180, 0.5591]  micro_f1=0.5756 [0.5550, 0.5977]  macro_ap=0.5621 [0.5443, 0.5914]  none_fp_rate=0.0216 [0.0174, 0.0266]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+test | all                       labels=33 contracts= 96  macro_f1=0.4512 [0.4298, 0.4693]  micro_f1=0.5405 [0.5203, 0.5613]  macro_ap=0.4632 [0.4482, 0.4909]  none_fp_rate=0.0216 [0.0174, 0.0266]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+test | Rule C                    labels=17 contracts= 96  macro_f1=0.5901 [0.5616, 0.6143]  micro_f1=0.6382 [0.6108, 0.6653]  macro_ap=0.6178 [0.5948, 0.6482]  none_fp_rate=0.0216 [0.0174, 0.0266]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift | Rule C                   labels=17 contracts= 28  macro_f1=0.4487 [0.4052, 0.5019]  micro_f1=0.4867 [0.4467, 0.5300]  macro_ap=0.5018 [0.4615, 0.5747]  none_fp_rate=0.0383 [0.0294, 0.0469]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift | all                      labels=32 contracts= 28  macro_f1=0.2983 [0.2717, 0.3555]  micro_f1=0.4219 [0.3851, 0.4619]  macro_ap=0.3687 [0.3461, 0.4520]  none_fp_rate=0.0383 [0.0294, 0.0469]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift:Franchise | Rule C         labels=17 contracts= 15  macro_f1=0.4248 [0.4014, 0.4828]  micro_f1=0.4904 [0.4537, 0.5326]  macro_ap=0.4807 [0.4527, 0.5768]  none_fp_rate=0.0493 [0.0394, 0.0627]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift:Franchise | all            labels=30 contracts= 15  macro_f1=0.2841 [0.2673, 0.3407]  micro_f1=0.4181 [0.3797, 0.4578]  macro_ap=0.3694 [0.3512, 0.4614]  none_fp_rate=0.0493 [0.0394, 0.0627]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift:Transportation | Rule C    labels=16 contracts= 13  macro_f1=0.3638 [0.2829, 0.5224]  micro_f1=0.4762 [0.3694, 0.5908]  macro_ap=0.4885 [0.4297, 0.6482]  none_fp_rate=0.0242 [0.0112, 0.0386]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift:Transportation | all       labels=24 contracts= 13  macro_f1=0.2941 [0.2520, 0.4427]  micro_f1=0.4431 [0.3603, 0.5477]  macro_ap=0.4169 [0.3825, 0.5765]  none_fp_rate=0.0242 [0.0112, 0.0386]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+
+=== Test minus shift, Rule C labels (independent bootstraps) ===
+macro_f1       +0.1414 [+0.0821, +0.1904]
+micro_f1       +0.1514 [+0.0990, +0.2002]
+macro_ap       +0.1160 [+0.0405, +0.1650]
+none_fp_rate   -0.0167 [-0.0265, -0.0063]
+parse_failure_rate +0.0000 [+0.0000, +0.0000]
+
+=== Per-label test (all 33; main_table=False: insufficient support, not interpreted) ===
+                             label  contracts  segments  precision  recall  main_table    f1  f1_lo  f1_hi    ap  ap_lo  ap_hi  f1_n
+           Third Party Beneficiary          3         3      0.000   0.000       False 0.000  0.000  0.000 0.002  0.000  0.009  1948
+           No-Solicit Of Customers          7        10      0.000   0.000       False 0.000  0.000  0.000 0.018  0.007  0.043  2000
+               Most Favored Nation          6         8      0.000   0.000       False 0.000  0.000  0.000 0.007  0.001  0.027  1997
+                Volume Restriction         14        24      0.000   0.000        True 0.000  0.000  0.000 0.033  0.017  0.071  2000
+                 Non-Disparagement          6        11      0.028   0.091       False 0.043  0.000  0.120 0.008  0.001  0.042  1998
+                Liquidated Damages         14        30      0.092   0.400        True 0.150  0.062  0.240 0.230  0.083  0.371  2000
+                Joint Ip Ownership          9        19      0.143   0.211       False 0.170  0.000  0.333 0.087  0.025  0.247  2000
+                 Change Of Control         20        42      0.116   0.333        True 0.172  0.112  0.231 0.137  0.072  0.231  2000
+ Competitive Restriction Exception         13        17      0.110   0.765        True 0.193  0.111  0.263 0.187  0.102  0.337  2000
+                 Affiliate License          9        14      0.188   0.214       False 0.200  0.000  0.348 0.098  0.007  0.269  2000
+               Covenant Not To Sue         20        33      0.368   0.212        True 0.269  0.114  0.400 0.229  0.109  0.372  2000
+         Post-Termination Services         37        74      0.243   0.338        True 0.282  0.200  0.357 0.283  0.190  0.382  2000
+                 Warranty Duration         17        44      0.750   0.205        True 0.321  0.182  0.471 0.247  0.133  0.375  2000
+                       Exclusivity         36        76      0.356   0.487        True 0.411  0.333  0.497 0.346  0.260  0.465  2000
+                       Non-Compete         22        43      0.560   0.326        True 0.412  0.239  0.548 0.459  0.289  0.602  2000
+  Irrevocable Or Perpetual License          9        18      0.278   0.833       False 0.417  0.250  0.549 0.450  0.267  0.659  2000
+                    Rofr/Rofo/Rofn         14        46      0.385   0.543        True 0.450  0.293  0.555 0.579  0.448  0.667  2000
+       Termination For Convenience         38        50      0.579   0.440        True 0.500  0.395  0.595 0.593  0.479  0.700  2000
+                Minimum Commitment         35        86      0.606   0.500        True 0.548  0.477  0.621 0.511  0.435  0.604  2000
+                Uncapped Liability         19        25      0.442   0.760        True 0.559  0.419  0.676 0.448  0.321  0.629  2000
+          Non-Transferable License         24        47      0.587   0.574        True 0.581  0.430  0.697 0.562  0.398  0.709  2000
+           Ip Ownership Assignment         22        38      0.944   0.447        True 0.607  0.426  0.769 0.668  0.514  0.809  2000
+            Revenue/Profit Sharing         32        83      0.671   0.614        True 0.642  0.519  0.745 0.681  0.545  0.789  2000
+           No-Solicit Of Employees         12        15      0.625   0.667        True 0.645  0.454  0.800 0.691  0.524  0.855  2000
+Notice Period To Terminate Renewal         24        27      0.783   0.667        True 0.720  0.583  0.842 0.772  0.634  0.898  2000
+                  Cap On Liability         56       121      0.711   0.752        True 0.731  0.663  0.807 0.780  0.709  0.857  2000
+                      Audit Rights         39        77      0.806   0.701        True 0.750  0.650  0.841 0.764  0.668  0.872  2000
+                   Expiration Date         75        78      0.753   0.859        True 0.802  0.750  0.854 0.870  0.809  0.923  2000
+                     License Grant         46       112      0.867   0.759        True 0.810  0.751  0.864 0.848  0.784  0.911  2000
+                         Insurance         28        73      0.819   0.808        True 0.814  0.739  0.874 0.882  0.813  0.934  2000
+                   Anti-Assignment         71        91      0.798   0.912        True 0.851  0.802  0.906 0.890  0.826  0.953  2000
+                      Renewal Term         36        37      0.909   0.811        True 0.857  0.775  0.927 0.929  0.870  0.977  2000
+                     Governing Law         81        87      0.988   0.977        True 0.983  0.965  1.000 0.996  0.990  1.000  2000
+
+=== Per-label shift, Rule C labels, combined ===
+                             label  contracts  segments  precision  recall    f1  f1_lo  f1_hi    ap  ap_lo  ap_hi  f1_n
+                Volume Restriction         11        31      0.000   0.000 0.000  0.000  0.000 0.026  0.013  0.081  2000
+                Liquidated Damages         10        19      0.140   0.421 0.211  0.080  0.367 0.267  0.062  0.470  2000
+Notice Period To Terminate Renewal         11        14      0.667   0.143 0.235  0.000  0.571 0.364  0.178  0.734  2000
+         Post-Termination Services         10        31      0.180   0.355 0.239  0.150  0.305 0.267  0.157  0.388  2000
+                      Renewal Term         15        33      0.833   0.152 0.256  0.078  0.552 0.448  0.302  0.765  2000
+               Covenant Not To Sue         10        22      0.667   0.273 0.387  0.200  0.593 0.333  0.194  0.560  2000
+                Minimum Commitment         14        58      0.545   0.310 0.396  0.250  0.525 0.402  0.244  0.559  2000
+                       Exclusivity         10        22      0.357   0.455 0.400  0.190  0.571 0.345  0.079  0.590  2000
+                       Non-Compete         11        53      0.875   0.264 0.406  0.268  0.600 0.646  0.529  0.804  2000
+                   Anti-Assignment         20        45      0.397   0.600 0.478  0.392  0.577 0.421  0.314  0.591  2000
+                  Cap On Liability         14        24      0.442   0.792 0.567  0.452  0.689 0.690  0.510  0.932  2000
+            Revenue/Profit Sharing         11        25      0.556   0.600 0.577  0.375  0.744 0.640  0.426  0.825  2000
+                     License Grant         10        25      0.765   0.520 0.619  0.400  0.783 0.572  0.319  0.839  2000
+                   Expiration Date         23        26      0.606   0.769 0.678  0.562  0.780 0.717  0.560  0.876  2000
+                         Insurance         15        67      0.625   0.821 0.710  0.540  0.843 0.796  0.688  0.890  2000
+                      Audit Rights         13        43      0.750   0.698 0.723  0.629  0.821 0.752  0.684  0.850  2000
+                     Governing Law         23        24      0.629   0.917 0.746  0.608  0.923 0.842  0.694  0.981  2000
+
+=== Calibration on test (all segment-label pairs pooled) ===
+Pooled ECE: 0.0024 [0.0022, 0.0027]
+       bin  count  mean_predicted  observed_rate
+[0.0, 0.1) 306996          0.0036         0.0017
+[0.1, 0.2)   1004          0.1416         0.1444
+[0.2, 0.3)    427          0.2437         0.2740
+[0.3, 0.4)    179          0.3474         0.4804
+[0.4, 0.5)    173          0.4459         0.5491
+[0.5, 0.6)    118          0.5533         0.7458
+[0.6, 0.7)    118          0.6476         0.7373
+[0.7, 0.8)    205          0.7566         0.8683
+[0.8, 0.9)    254          0.8395         0.9803
+[0.9, 1.0]      0             NaN            NaN
+
+Per-label, Rule A labels (mean predicted vs observed positive rate):
+                             label    ece  mean_predicted  observed_rate
+            Revenue/Profit Sharing 0.0060          0.0118         0.0089
+                   Anti-Assignment 0.0056          0.0133         0.0097
+                      Audit Rights 0.0054          0.0112         0.0082
+                     License Grant 0.0048          0.0145         0.0119
+                     Governing Law 0.0047          0.0105         0.0093
+                Minimum Commitment 0.0045          0.0112         0.0092
+                         Insurance 0.0043          0.0092         0.0078
+                      Renewal Term 0.0042          0.0057         0.0039
+                   Expiration Date 0.0042          0.0113         0.0083
+                       Non-Compete 0.0041          0.0057         0.0046
+         Post-Termination Services 0.0039          0.0100         0.0079
+                Uncapped Liability 0.0038          0.0054         0.0027
+           Ip Ownership Assignment 0.0036          0.0057         0.0041
+       Termination For Convenience 0.0035          0.0067         0.0053
+                  Cap On Liability 0.0034          0.0144         0.0129
+          Non-Transferable License 0.0034          0.0066         0.0050
+Notice Period To Terminate Renewal 0.0030          0.0037         0.0029
+                    Rofr/Rofo/Rofn 0.0029          0.0046         0.0049
+           No-Solicit Of Employees 0.0026          0.0025         0.0016
+                       Exclusivity 0.0022          0.0077         0.0081
+                Volume Restriction 0.0013          0.0039         0.0026
+ Competitive Restriction Exception 0.0012          0.0030         0.0018
+                Liquidated Damages 0.0010          0.0022         0.0032
+                 Change Of Control 0.0010          0.0053         0.0045
+                 Warranty Duration 0.0009          0.0038         0.0047
+               Covenant Not To Sue 0.0003          0.0034         0.0035
+
+=== Error analysis on VALIDATION (not test) ===
+Top confused pairs (segments truly labeled A that were also predicted B, B wrong):
+                       true                         predicted  segments
+              License Grant                       Exclusivity        47
+              License Grant  Irrevocable Or Perpetual License        39
+            Expiration Date                 Change Of Control        35
+   Non-Transferable License  Irrevocable Or Perpetual License        27
+            Expiration Date Competitive Restriction Exception        26
+   Non-Transferable License                       Exclusivity        25
+               Renewal Term Competitive Restriction Exception        25
+               Renewal Term                 Change Of Control        23
+Termination For Convenience                 Change Of Control        22
+            Expiration Date                 Non-Disparagement        21
+              License Grant          Non-Transferable License        21
+            Anti-Assignment                 Change Of Control        19
+            Expiration Date                Liquidated Damages        19
+               Renewal Term                 Non-Disparagement        19
+           Cap On Liability                Uncapped Liability        18
+
+Failing labels on validation: ['Change Of Control', 'Competitive Restriction Exception', 'Covenant Not To Sue', 'Joint Ip Ownership', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Post-Termination Services', 'Third Party Beneficiary', 'Volume Restriction']
+
+[Change Of Control | false_negative | 46_114 | p=0.029]
+true=['Change Of Control', 'License Grant', 'Post-Termination Services']
+predicted=['Exclusivity', 'License Grant']
+Section 3.2 Limited License to Use SpinCo House Marks. RemainCo shall have the right to use the SpinCo House Marks in connection with the operation of the RemainCo Business for a limited period of 270 days following the Distribution Date. After such 270-day period, RemainCo shall discontinue all use of the SpinCo House Marks, including any use on stationery or letterhead and any use on or in conne
+
+[Change Of Control | false_negative | 201_330 | p=0.001]
+true=['Change Of Control']
+predicted=[]
+infringement and licensing of Patents pursuant to (1) Sections 7.2.1, 7.2.3, 7.3.1, 7.3.5, 7.4, and 7.5.2, (2) solely with respect to Joint Patents, Sections 7.2.2, 7.3.2, and 7.5.3, and (3) solely with respect to Joint Patents and Harpoon Patents, Sections 7.3.4 and 7.5.1, (D) notice of any license pursuant to Section 5.9.2, (E) safety data pursuant to Section 8.1, (F) proposed disclosures pursua
+
+[Change Of Control | false_negative | 291_6 | p=0.042]
+true=['Change Of Control']
+predicted=[]
+Termination of Advisory Agreement. This Agreement shall terminate automatically without notice and immediately (a) if MS Capital Partners Adviser Inc. or another affiliate of Licensor is no longer acting as the investment adviser (any such entity, the "Advisor") to Licensee under the Investment Advisory Agreement, dated as of [·], 201[9] (as the same may 2
+
+[Change Of Control | false_negative | 300_120 | p=0.064]
+true=['Change Of Control', 'Minimum Commitment']
+predicted=['Liquidated Damages', 'Post-Termination Services']
+(b) Licensor may terminate this Agreement: (1) Upon ninety (90) days prior written notice if Licensee does not enter into Sublicenses and other agreements relating to the Licensed Products with Redistributors and Customers that result in fees payable to Licensor hereunder in an aggregate amount equal to or greater than the Quota Amount for any year during the term hereof. As used herein, the term 
+
+[Change Of Control | false_negative | 394_87 | p=0.054]
+true=['Change Of Control']
+predicted=[]
+For purposes of the preceding sentence, Licensor will be deemed to have reasonably withheld its consent to a Change of Control if any person or entity who would acquire direct or indirect control (as defined below) of Licensee pursuant to such Change of Control then conducts a business that is directly or indirectly competitive with a business then conducted by Licensor or any of its Affiliates an
+
+[Change Of Control | false_positive | 34_204 | p=0.087]
+true=[]
+predicted=['Change Of Control', 'Termination For Convenience']
+7.3 Termination by Antares. This Agreement may be terminated in its entirety by Antares upon Antares' prior written notice to AMAG:
+
+[Change Of Control | false_positive | 224_10 | p=0.077]
+true=['Expiration Date', 'Irrevocable Or Perpetual License']
+predicted=['Change Of Control', 'Expiration Date']
+Term and Termination. (a) The Term of this Agreement (the "Term") shall commence on the Effective Date listed above and continue for twenty (20) years, unless sooner terminated as provided in Section 7(b). (b) This Agreement may be terminated at any time by either party, effective immediately upon written notice, if the other party: (i) becomes insolvent; (ii) files a petition in bankruptcy; or (i
+
+[Change Of Control | false_positive | 335_243 | p=0.084]
+true=[]
+predicted=['Change Of Control', 'Post-Termination Services']
+(d) Subject to the foregoing paragraphs of this Section 25.7, upon expiration or termination of this Agreement, [***]. 26. Change of Control.
+
+[Change Of Control | false_positive | 352_43 | p=0.074]
+true=['Anti-Assignment']
+predicted=['Anti-Assignment', 'Change Of Control']
+12.3 SEVERABILITY If any provision of this Agreement is held by a court of law to be illegal, invalid or unenforceable: (a) that provision shall be deemed amended to achieve s nearly as possible the same economic and/or protective effect as the original provision; and (b) the legality, validity and enforceability of the remaining provisions of this Agreement shall not be affected or impaired there
+
+[Change Of Control | false_positive | 482_3 | p=0.096]
+true=['Expiration Date', 'Renewal Term', 'Revenue/Profit Sharing']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'Non-Disparagement', 'Renewal Term']
+Source: VNUE, INC., 8-K, 9/14/2015 For every Five (5) music venues that sign a contract with VNUE, Six Hundred Thousand (600,000) shares of VNUE common stock shall be awarded to Promoter; and If Ten (10) music venues sign a contract with VNUE before January 16, 2016, Promoter will receive an additional bonus of Three Hundred Thousand (300,000) shares of VNUE common stock. Section 3. Expenses. VNUE
+
+[Competitive Restriction Exception | false_negative | 151_235 | p=0.025]
+true=['Competitive Restriction Exception', 'Exclusivity']
+predicted=['Exclusivity']
+12.3 Manufacture and Supply. FG shall have the exclusive right and obligation to supply the Lead Compounds to Astellas and its Affiliates and Sublicensees for all development and commercial purposes, and Astellas and its Affiliates and Sublicensees shall purchase such Lead Compounds exclusively from FG. It is understood that FG may engage subcontractors with respect to the manufacture of such Lead
+
+[Competitive Restriction Exception | false_negative | 296_9 | p=0.001]
+true=['Competitive Restriction Exception', 'Exclusivity', 'License Grant']
+predicted=[]
+1.1 APPOINTMENT AS AGENT. NCB appoints NPC, and NPC agrees to serve, as NCB's sole agent (i) to provide authorization, processing and settlement services with respect to Visa and MasterCard transactions ("Merchant Processing Services") to merchants who desire to receive Merchant Processing Services from NCB or NPC ("Merchants") and (ii) to enter into contracts with merchants ("Merchant Contracts")
+
+[Competitive Restriction Exception | false_negative | 326_7 | p=0.007]
+true=['Competitive Restriction Exception', 'Minimum Commitment']
+predicted=[]
+(a) COMWARE must purchase no less than $22,710.00 worth of Products, in any combination, by April 15, 2000. This initial order shall be evidenced by valid purchase order from COMWARE to be received by ITS no later than 5:00PM April 1, 2000, with payment to be received by ITS no later than April 15, 2000. In the event either of these dates are not met, this Agreement will automatically and immediat
+
+[Competitive Restriction Exception | false_negative | 326_9 | p=0.010]
+true=['Competitive Restriction Exception']
+predicted=[]
+(c) Provided COMWARE purchases the initial products as in (a) above, COMWARE shall have the right to purchase additional Products up to a total of $45,420.00 at the following discounts:
+
+[Competitive Restriction Exception | false_negative | 431_50 | p=0.029]
+true=['Competitive Restriction Exception', 'Exclusivity']
+predicted=[]
+(d) Exclusivity ----------- (i) The Company shall not enter into any agreement or arrangement, including without limitation any sale, license, service agreement, co-branding agreement, co-marketing agreement or linking agreement with any provider of manifesting or shipping services through non-carrier retail shipping locations; provided, however, that:
+
+[Competitive Restriction Exception | false_positive | 56_125 | p=0.042]
+true=['Expiration Date']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term']
+11.1 Term. The term of this Agreement will commence on the Effective Date and continue for a period of three (3) years after the Effective Date (the "Initial Term"). Thereafter, this Agreement can be renewed by mutual written agreement of the parties for successive one (1) year periods (each, a "Renewal Term" and together with the Initial Term, the "Term").
+
+[Competitive Restriction Exception | false_positive | 180_24 | p=0.045]
+true=['Exclusivity']
+predicted=['Competitive Restriction Exception', 'Exclusivity', 'License Grant']
+-3- Source: GLU MOBILE INC, S-1/A, 3/19/2007 competition with the Wireless Products at any time in Japan including during the Term and within Japan, provided that Fox will not grant to any other party any such rights to develop, publish, and/or distribute Wireless Products for the Wireless Platform to end users outside of Japan (with the exception of those distribution rights for Wireless Products
+
+[Competitive Restriction Exception | false_positive | 180_42 | p=0.033]
+true=[]
+predicted=['Competitive Restriction Exception', 'Minimum Commitment']
+(b) Release: (i) The Wireless Products: Subject to the timely delivery of the PSM Materials to Licensee by Fox, Licensee shall deliver the Wireless Products to VGSL a minimum of ***** before the initial theatrical release of each Property in each of the VGSL Territories as defined in Paragraph 2(c)(ii) (A) below, and to the other Licensed CSPs within such time frames mandated by such Licensed CSPs
+
+[Competitive Restriction Exception | false_positive | 239_365 | p=0.031]
+true=['Exclusivity', 'License Grant', 'Rofr/Rofo/Rofn']
+predicted=['Competitive Restriction Exception', 'Exclusivity', 'License Grant', 'Non-Transferable License']
+Section 13.1 Combination Products. (a) Depomed agrees to grant and hereby grants to King an exclusive option (exercisable at King's sole discretion by providing written notice of intent at any time, but in no event later than 180 days after the Effective Date) to obtain an exclusive license in the Territory to certain of Depomed's proprietary drug delivery technology in combination with both metfo
+
+[Competitive Restriction Exception | false_positive | 371_22 | p=0.057]
+true=['Expiration Date', 'Termination For Convenience']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Termination For Convenience', 'Third Party Beneficiary', 'Warranty Duration']
+5. TERM This Agreement will be effective as of the Effective Date. Unless sooner terminated in accordance with the provisions hereof, the initial term of this Agreement ("Initial Term") will be ten (10) years from the Effective Date, provided that at any time following the 7th anniversary of such date, either party may terminate such strategic alliance upon not less than 60 days' prior written not
+
+[Covenant Not To Sue | false_negative | 17_34 | p=0.029]
+true=['Covenant Not To Sue']
+predicted=[]
+(a) Diplomat agrees that it will not at any time during the term of this Agreement or thereafter attack (i) KI, Inc.'s title to, or rights in and to, KI's name or (ii) the validity of this license. KI, Inc. hereby indemnifies Diplomat and undertakes to hold it harmless against only those claims or suits (i) arising solely out of the authorized use of KI's name by Diplomat in accordance with this A
+
+[Covenant Not To Sue | false_negative | 46_154 | p=0.042]
+true=['Covenant Not To Sue']
+predicted=['Ip Ownership Assignment', 'Joint Ip Ownership']
+Section 5.10 Covenants. (a) RemainCo hereby covenants not to sue SpinCo under any Licensed RemainCo Know-How and under RemainCo's right, title and interest in and to Shared Library Materials and Foundational Software, including, without limitation, all applicable Patents, Copyrights, and Know-How, for infringement or misappropriation based upon any action that occurs in connection with the continu
+
+[Covenant Not To Sue | false_negative | 206_4 | p=0.011]
+true=['Covenant Not To Sue']
+predicted=[]
+Developer may not contest the validity of, by act or omission jeopardize, or take any action inconsistent with, DSS's ownership rights or goodwill in the Technology or Improvements, including any attempted registration of the Technology or Improvements in Hong Kong or in any other legal jurisdiction, or any attempts to license the same to any unauthorized third Person. 4. Definitions. For purposes
+
+[Covenant Not To Sue | false_negative | 239_202 | p=0.047]
+true=['Covenant Not To Sue', 'License Grant', 'Non-Transferable License']
+predicted=['Affiliate License', 'Exclusivity', 'Irrevocable Or Perpetual License', 'License Grant', 'Non-Transferable License']
+(b) King hereby grants to Depomed a non-assignable, non-sublicensable (except to any Third Party acting as the Depomed Sales Force), non-exclusive, royalty-free right and license to use the King Trademarks in the Territory solely in connection with Depomed's Promotion of the Product. Such license shall expire immediately upon the expiration or termination of this Agreement. Subject to this Section
+
+[Covenant Not To Sue | false_negative | 291_4 | p=0.049]
+true=['Covenant Not To Sue', 'Ip Ownership Assignment']
+predicted=['Ip Ownership Assignment', 'Joint Ip Ownership']
+disputing the validity, enforceability or Licensor's ownership of the Brand (and the associated goodwill), including without limitation, in any claim, allegation, action, demand, proceeding or suit ("Action") regarding enforcement of this Agreement or involving any third party. The parties intend that any and all goodwill in the Brand arising from Licensee's or any applicable sublicensees' Permitt
+
+[Covenant Not To Sue | false_positive | 169_62 | p=0.051]
+true=['Rofr/Rofo/Rofn']
+predicted=['Covenant Not To Sue', 'Liquidated Damages', 'Post-Termination Services', 'Rofr/Rofo/Rofn']
+ARTICLE 2 ADDITIONAL INVESTMENTS BY HOC 2.1 HOC Option to Purchase Additional Shares. From and after the Closing Date and until 5:00 pm Denver time on the date which is eighty (80) days from the Closing Date (the "Option Expiration Date"), HOC shall have the option (the "Option"), at its sole discretion, to subscribe for all, but not less than all, of an additional 4,330,000 Shares from the Compan
+
+[Covenant Not To Sue | false_positive | 223_15 | p=0.057]
+true=['Joint Ip Ownership', 'Rofr/Rofo/Rofn']
+predicted=['Covenant Not To Sue', 'Joint Ip Ownership', 'License Grant']
+5.0 Copyrights 5.1 Title to and the right to determine the disposition of any copyrights or copyrightable material first produced or composed in the performance of this research program ("Copyright Materials") will remain with the Party whose employees solely created such materials or works of authorship (the "Creating Party"). Copyright Materials that are jointly created by the Parties shall be j
+
+[Covenant Not To Sue | false_positive | 352_18 | p=0.054]
+true=['Ip Ownership Assignment']
+predicted=['Covenant Not To Sue', 'Ip Ownership Assignment', 'Joint Ip Ownership']
+6. Intellectual Property 6.1 WORK MADE FOR HIRE AND ASSIGNMENT OF RIGHTS Except as otherwise detailed in this Agreement, the Parties acknowledge and agree that the Subject Program including without limitation the Deliverables and Documentation (collectively, the Works) are "work made for hire" in accordance with the U.S. Copyright Act, 17 U.S.C. § 101 et seq. Accordingly, Client will be the copyri
+
+[Covenant Not To Sue | false_positive | 394_91 | p=0.057]
+true=['Rofr/Rofo/Rofn']
+predicted=['Change Of Control', 'Covenant Not To Sue', 'Joint Ip Ownership', 'Liquidated Damages', 'Post-Termination Services', 'Rofr/Rofo/Rofn', 'Warranty Duration']
+ARTICLE XXII RIGHT OF FIRST REFUSAL During the term of this Agreement, the Licensor shall have the right (the "Right of First Refusal"), for a period (the "Exercise Period") expiring at 11:59 PM (Eastern Time) on the fifth (5th) business day after the giving of written notice by the Licensee that it has received a bonafide offer from a third party to (ii) purchase all or substantially all of the a
+
+[Covenant Not To Sue | false_positive | 505_127 | p=0.063]
+true=['Exclusivity', 'Ip Ownership Assignment']
+predicted=['Affiliate License', 'Competitive Restriction Exception', 'Covenant Not To Sue', 'Irrevocable Or Perpetual License', 'Joint Ip Ownership', 'License Grant', 'Non-Transferable License']
+(ii) Mandatory Laws. If and to the extent that, as a matter of Law in any jurisdiction, ownership, title, or any rights or interest in or to any of the Assigned IP cannot be assigned as provided in Section 2.1(b)(i), (A) the Seller irrevocably agrees to (and shall cause the other Seller Parties to) assign and transfer, and the Seller hereby assigns and transfers (and shall cause the other Seller P
+
+[Joint Ip Ownership | false_negative | 0_35 | p=0.016]
+true=['Joint Ip Ownership']
+predicted=[]
+owner may specify that certain pages of the other party's web-site may not contain the Marks. Title to and ownership of the owner's Marks shall remain with the owner. The receiving party shall use the Marks exactly in the form provided and in conformance with any trademark usage policies. The other party shall not take any action inconsistent with the owner's ownership of the Marks, and any benefi
+
+[Joint Ip Ownership | false_negative | 5_51 | p=0.004]
+true=['Joint Ip Ownership', 'Rofr/Rofo/Rofn']
+predicted=[]
+As between the Parties, Adaptimmune will have the first right to prepare, file, prosecute, maintain, enforce and defend all U.S. and foreign patents, registrations and other forms of intellectual property in any jointly-owned Invention using patent counsel of its choice that is subject to the written approval of MD Anderson not to be unreasonably withheld and at the sole cost and expense of Adapti
+
+[Joint Ip Ownership | false_negative | 201_323 | p=0.020]
+true=['Joint Ip Ownership']
+predicted=['License Grant']
+5.6 Retention of Rights. 5.6.1 Notwithstanding the exclusive licenses granted to AbbVie pursuant to Section 5.1.3, Harpoon retains the right to practice under the Harpoon Patents, the Harpoon Know-How, Harpoon's interests in the Joint Patents and the Joint Know-How, Regulatory Approvals and any other Regulatory Documentation (a) to perform (and to sublicense Third Parties to perform as permitted h
+
+[Joint Ip Ownership | false_negative | 201_389 | p=0.003]
+true=['Joint Ip Ownership']
+predicted=[]
+(b) Each Party will promptly disclose to the other Party in writing, the conception, discovery, development or making of any Joint Know-How or Joint Patents by Persons who perform activities for it under this Agreement. Each Party will execute and record assignments and other necessary documents consistent with such ownership promptly upon request.
+
+[Joint Ip Ownership | false_negative | 223_12 | p=0.037]
+true=['Joint Ip Ownership']
+predicted=['Covenant Not To Sue']
+4.0 Inventions 4.1 Inventorship of inventions, developments, or discoveries first conceived or actually reduced to practice under this Agreement ("Agreement Inventions") will be determined under U.S. Patent Law. All inventions, developments, or discoveries made solely by iBio prior to this Agreement is, and shall be, the sole property of iBio. All inventions, developments, or discoveries made sole
+
+[Joint Ip Ownership | false_positive | 51_375 | p=0.041]
+true=[]
+predicted=['Ip Ownership Assignment', 'Joint Ip Ownership']
+11.2.1 all of its and its Affiliates' employees who conduct any work under this Agreement will be, during the conduct of all such work, bound to a written agreement with such Party or its Affiliate to automatically assign all right, title and interest in and to their inventions and discoveries, whether or not patentable, to such Party as the sole owner thereof;
+
+[Joint Ip Ownership | false_positive | 53_129 | p=0.045]
+true=['Covenant Not To Sue']
+predicted=['Covenant Not To Sue', 'Joint Ip Ownership']
+15.6 To the extent permitted by law you hereby irrevocably and unconditionally waive in favour of the Company, its licensees and successors in title, all existing and future Moral Rights (or similar rights existing in any part of the world) you may have in respect of any Works under Chapter IV of the Copyright Designs and Patents Act 1988 in England or any similar provisions of law in any jurisdic
+
+[Joint Ip Ownership | false_positive | 352_18 | p=0.058]
+true=['Ip Ownership Assignment']
+predicted=['Covenant Not To Sue', 'Ip Ownership Assignment', 'Joint Ip Ownership']
+6. Intellectual Property 6.1 WORK MADE FOR HIRE AND ASSIGNMENT OF RIGHTS Except as otherwise detailed in this Agreement, the Parties acknowledge and agree that the Subject Program including without limitation the Deliverables and Documentation (collectively, the Works) are "work made for hire" in accordance with the U.S. Copyright Act, 17 U.S.C. § 101 et seq. Accordingly, Client will be the copyri
+
+[Joint Ip Ownership | false_positive | 394_91 | p=0.047]
+true=['Rofr/Rofo/Rofn']
+predicted=['Change Of Control', 'Covenant Not To Sue', 'Joint Ip Ownership', 'Liquidated Damages', 'Post-Termination Services', 'Rofr/Rofo/Rofn', 'Warranty Duration']
+ARTICLE XXII RIGHT OF FIRST REFUSAL During the term of this Agreement, the Licensor shall have the right (the "Right of First Refusal"), for a period (the "Exercise Period") expiring at 11:59 PM (Eastern Time) on the fifth (5th) business day after the giving of written notice by the Licensee that it has received a bonafide offer from a third party to (ii) purchase all or substantially all of the a
+
+[Joint Ip Ownership | false_positive | 505_146 | p=0.040]
+true=['Irrevocable Or Perpetual License', 'License Grant', 'Non-Transferable License']
+predicted=['Affiliate License', 'Irrevocable Or Perpetual License', 'Joint Ip Ownership', 'License Grant', 'Non-Transferable License']
+(d) License-Back of Non-Patent, Non-Trademark IP. Effective as of the Initial Closing Date, the Purchaser will cause each Acquired Company and each Purchaser Assignee to grant, following each applicable Closing Date, to the Seller Parties, an irrevocable (except as expressly set forth herein), non-sublicenseable (except as expressly set forth herein), perpetual, fully paid-up, royalty-free, worldw
+
+[Liquidated Damages | false_negative | 68_270 | p=0.007]
+true=['Liquidated Damages']
+predicted=['Cap On Liability']
+15.11 Deposit. Pursuant to the Bidding Procedures, Agent has provided a cash deposit in the amount of $32,700,000 (the "Deposit"), which is being held in escrow by co-counsel to Merchant, Young Conaway Stargatt & Taylor, LLP (the "Escrow Agent"). At the closing, the Deposit shall be released from escrow by the Escrow Agent and applied to the Cash Purchase Price. In the event the Closing fails to o
+
+[Liquidated Damages | false_negative | 214_91 | p=0.011]
+true=['Liquidated Damages', 'Post-Termination Services']
+predicted=['Post-Termination Services']
+(a) Inktomi may require Microsoft to pay to Inktomi, in [*] immediately following the effective termination date, an amount equal to [*] ([*]) of all outstanding principal, interest and other amounts owed or owing to Microsoft by Inktomi on the date of termination under the Loan Agreement (and outstanding Promissory Notes issued thereunder); or
+
+[Liquidated Damages | false_negative | 214_92 | p=0.003]
+true=['Liquidated Damages', 'Post-Termination Services']
+predicted=[]
+(b) Inktomi may deliver that portion of the Collateral (as defined in the Loan Agreement) which was purchased with Advances evidenced by the then-outstanding Promissory Notes (as defined in the Loan Agreement) (the "Returned Collateral") to Microsoft, and assign all right, title and interest in
+
+[Liquidated Damages | false_negative | 218_30 | p=0.008]
+true=['Anti-Assignment', 'Change Of Control', 'Liquidated Damages']
+predicted=['Anti-Assignment', 'Change Of Control']
+Neither this Agreement nor any interest herein may be assigned, in whole or in part, by either party without the prior written consent of the other, which consent shall not be unreasonably withheld or delayed, except that either party may assign its rights and obligations under this Agreement: (a) to an affiliate, division or subsidiary of such party; and/or (b) to any third party that acquires al
+
+[Liquidated Damages | false_negative | 307_138 | p=0.003]
+true=['Liquidated Damages']
+predicted=[]
+5.3.3. Five percent (5%) of the Product Price for a delay of 11 Days or more.
+
+[Liquidated Damages | false_positive | 62_89 | p=0.021]
+true=['Cap On Liability']
+predicted=['Cap On Liability', 'Liquidated Damages', 'Uncapped Liability']
+c. the amount of any other actual direct damages, up to the greater of $100,000 or the charges paid by Customer to IBM for the Services in the twelve (12) months immediately preceding the accrual of the first claim related to the Services. The foregoing limit also applies to any of IBM's Affiliates and Subcontractors. It is the cumulative maximum for which IBM and its Affiliates and Subcontractors
+
+[Liquidated Damages | false_positive | 201_256 | p=0.025]
+true=['Exclusivity', 'License Grant', 'Rofr/Rofo/Rofn']
+predicted=['Covenant Not To Sue', 'License Grant', 'Liquidated Damages', 'Rofr/Rofo/Rofn']
+3.2.3 License Option Exercise Notice. Upon the Effective Date, Harpoon hereby grants to AbbVie the exclusive right, but not the obligation, to obtain the licenses set forth in Section 5.1.3 (the "License Option"). AbbVie shall have the right to exercise its License Option by providing written notice of such election to Harpoon ("License Option Exercise Notice") at any time on or after the Effectiv
+
+[Liquidated Damages | false_positive | 300_97 | p=0.020]
+true=['Non-Compete']
+predicted=['Competitive Restriction Exception', 'Liquidated Damages', 'Non-Compete']
+Section 10.1 NONCOMPETITION. Each of Licensor and Licensee understands and acknowledges that Licensor shall be entitled to protect and preserve the going concern value of Licensor's business to the extent permitted by law and that Licensor would not have entered into this Agreement absent the provisions of this Section 10.1 and, therefore, each of Licensor and Licensee agrees that during the term 
+
+[Liquidated Damages | false_positive | 335_142 | p=0.022]
+true=['No-Solicit Of Employees']
+predicted=['Competitive Restriction Exception', 'Liquidated Damages', 'No-Solicit Of Employees']
+14.4 Non-Solicitation. During the term of this Agreement and for a period of [***] thereafter, neither Party nor its controlled Affiliates will, without the prior written consent of the other Party, directly or indirectly solicit for employment any then-current employee of the other Party or its controlled Affiliates; [***].
+
+[Liquidated Damages | false_positive | 394_91 | p=0.052]
+true=['Rofr/Rofo/Rofn']
+predicted=['Change Of Control', 'Covenant Not To Sue', 'Joint Ip Ownership', 'Liquidated Damages', 'Post-Termination Services', 'Rofr/Rofo/Rofn', 'Warranty Duration']
+ARTICLE XXII RIGHT OF FIRST REFUSAL During the term of this Agreement, the Licensor shall have the right (the "Right of First Refusal"), for a period (the "Exercise Period") expiring at 11:59 PM (Eastern Time) on the fifth (5th) business day after the giving of written notice by the Licensee that it has received a bonafide offer from a third party to (ii) purchase all or substantially all of the a
+
+[Most Favored Nation | false_negative | 11_59 | p=0.002]
+true=['Most Favored Nation']
+predicted=[]
+Page 7 Airspan warrants that during the term of this Agreement, the prices at which Airspan sells to Distributor products supplied under this Agreement shall be no less favorable to the Distributor than those prices at which Airspan sells, at substantially the same time in the United States, similar products and pursuant to similar terms and conditions as those by which Airspan sells Products to t
+
+[Most Favored Nation | false_negative | 51_228 | p=0.002]
+true=['Most Favored Nation']
+predicted=[]
+(a) With respect to any [***], (i) there will be no increases from the per unit pricing set forth in Schedule 5.2.1 (Pricing Schedule) for at least the first [***] and (ii) the per unit pricing charged by BLI to Ginkgo at any time shall be no greater than the lowest of the (A) lowest price per unit charged by BLI or its Affiliates to any similarly situated Third Party customer (i.e. taking into ac
+
+[Most Favored Nation | false_negative | 131_54 | p=0.001]
+true=['Most Favored Nation']
+predicted=[]
+5.4. Partial Shipments; Pro Rata Allocation. Vendor reserves the right to supply against a Purchase Order by making partial shipments of the Products. In the event that Vendor is forced to allocate the distribution of the Products due to limited supply, Distributor shall be treated no less favorably than any other distributor and shall receive its pro rata allocation of the Products.
+
+[Most Favored Nation | false_negative | 169_105 | p=0.004]
+true=['Most Favored Nation']
+predicted=[]
+7.2 Most Favored Nation. The Company shall immediately inform HOC and provide HOC with a copy of any other standstill provisions in any agreement pertaining to the matters set forth in this Article 6, entered into by the Company with another person subsequent to the date hereof, and notwithstanding delivery of such notice and a copy of any such provisions, HOC shall have the full benefit of any ma
+
+[Most Favored Nation | false_negative | 209_87 | p=0.009]
+true=['Most Favored Nation', 'Rofr/Rofo/Rofn']
+predicted=['Rofr/Rofo/Rofn']
+8.3. If, after the date of this Agreement and continuing as long as a Party is a partner, member, or shareholder of the Operating Company, the Joint Venture develops or completes the development of, or discovers, or acquires proprietary rights over, a process or product which at, or after, the time of its development, discovery or acquisition has, or might have, some application outside of the Fie
+
+[Most Favored Nation | false_positive | 146_123 | p=0.058]
+true=['Expiration Date']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Third Party Beneficiary', 'Warranty Duration']
+Source: EXACT SCIENCES CORP, 8-K, 8/22/2018 and regulations of any securities exchange. Once the text or substance of any announcement has been so approved, it may be repeated without further approval. 7.5 Use of Names. Except as described in this Agreement and as may be required by Applicable Law, neither Party shall distribute or have distributed any publicity or information which bears the name
+
+[Most Favored Nation | false_positive | 184_16 | p=0.057]
+true=['Expiration Date', 'Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Third Party Beneficiary', 'Warranty Duration']
+8 Source: GO-PAGE CORP, 10-K, 2/21/2014 6. Term and Termination. 6.1 Term. The initial term of this Agreement commences as of the Effective Date and, unless terminated earlier pursuant to any express provision of this Agreement, shall continue until five (5) years following the Effective Date (the "Initial Term"). Thereafter, this Agreement shall renew automatically for one (1) additional three (3
+
+[Most Favored Nation | false_positive | 335_234 | p=0.054]
+true=['Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Third Party Beneficiary']
+24.2 Renewal. Unless this Agreement is terminated pursuant to Section 25, this Agreement will automatically renew for additional successive [***] terms (each a "Renewal Term" and together with the Initial Term, the "Term") unless and until either Party provides written notice of non-renewal to the other Party at least [***] prior to the end of the then-current Term. 25. Termination.
+
+[Most Favored Nation | false_positive | 431_142 | p=0.065]
+true=['Expiration Date', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Third Party Beneficiary']
+(a) Term and Renewal Option. The initial term of this Agreement shall ----------------------- commence on the Effective Date and end on the fifth anniversary of the Effective Date. MBE shall have the right to elect by written notice to the Company at any time between two (2) and six (6) months prior to the end of such initial term or any subsequent Renewal Period (as defined below), to notify the 
+
+[Most Favored Nation | false_positive | 482_3 | p=0.042]
+true=['Expiration Date', 'Renewal Term', 'Revenue/Profit Sharing']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'Non-Disparagement', 'Renewal Term']
+Source: VNUE, INC., 8-K, 9/14/2015 For every Five (5) music venues that sign a contract with VNUE, Six Hundred Thousand (600,000) shares of VNUE common stock shall be awarded to Promoter; and If Ten (10) music venues sign a contract with VNUE before January 16, 2016, Promoter will receive an additional bonus of Three Hundred Thousand (300,000) shares of VNUE common stock. Section 3. Expenses. VNUE
+
+[No-Solicit Of Customers | false_negative | 460_26 | p=0.011]
+true=['No-Solicit Of Customers', 'Non-Compete']
+predicted=[]
+4.01 RESTRICTIONS. Affiliate shall not, without the express written consent of Network 1: i. Contact or otherwise deal directly with, VISA, MasterCard or the Member Bank; or ii. Make any representations with respect to Network 1, VISA, MasterCard or the Member Bank; or iii. Make contact with or contract with any vendor of Network 1 or its subsidiaries including other Affiliate's, direct sponsored 
+
+[No-Solicit Of Customers | false_negative | 460_34 | p=0.017]
+true=['No-Solicit Of Customers']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Liquidated Damages', 'Post-Termination Services', 'Rofr/Rofo/Rofn']
+5.03 EFFECT OF TERMINATION. Upon termination of this Agreement, except in the event of termination due to an uncured default by Affiliate pursuant to Section 5.02 [TERMINATION]A, Network 1 shall continue to pay to the Affiliate the Affiliate's Fee described in Section 3.01 [AMOUNT]B for so long as Network 1 continues to process transactions of the Merchants in accordance with Schedule B attached h
+
+[No-Solicit Of Customers | false_positive | 206_1 | p=0.049]
+true=['Expiration Date', 'License Grant', 'Non-Transferable License', 'Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Exclusivity', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Renewal Term', 'Third Party Beneficiary']
+Capitalized terms contained herein shall have the meanings ascribed to them herein, or in Schedule 1 which is annexed hereto and made a part of this Agreement. 1. Development License and Fees. 1.1. Development License. Subject to the terms and conditions set forth herein, DSS hereby grants to Developer, and Developer accepts from DSS, for the Term, a non-exclusive, limited, and non-transferable li
+
+[No-Solicit Of Customers | false_positive | 318_19 | p=0.081]
+true=['Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Joint Ip Ownership', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Post-Termination Services', 'Renewal Term', 'Rofr/Rofo/Rofn', 'Termination For Convenience', 'Third Party Beneficiary', 'Volume Restriction', 'Warranty Duration']
+2. TERM 2.1. Duration. Unless this Agreement has been earlier terminated, Metavante shall provide a written renewal notice to Customer at least twelve (12) months prior to the expiration of the Initial Term (the "Renewal Notice"). Unless Customer notifies Metavante of its intent not to renew this Agreement in writing within a period of three (3) months following the Renewal Notice, this Agreement 
+
+[No-Solicit Of Customers | false_positive | 335_234 | p=0.049]
+true=['Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Third Party Beneficiary']
+24.2 Renewal. Unless this Agreement is terminated pursuant to Section 25, this Agreement will automatically renew for additional successive [***] terms (each a "Renewal Term" and together with the Initial Term, the "Term") unless and until either Party provides written notice of non-renewal to the other Party at least [***] prior to the end of the then-current Term. 25. Termination.
+
+[No-Solicit Of Customers | false_positive | 394_37 | p=0.041]
+true=['Expiration Date', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Renewal Term']
+ARTICLE IV TERM I Subject to termination pursuant to this Agreement, the Non Exclusive license granted by Licensor to Licensee shall be for an initial period of 36 months, commencing from the acceptance date, (the "Initial Period"). The Agreement may be renewed for an additional period of seven (7) years at the option of the Licensor. Upon any breach by Licensee of any representation, warranty, co
+
+[No-Solicit Of Customers | false_positive | 486_23 | p=0.048]
+true=['Expiration Date', 'Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Termination For Convenience', 'Third Party Beneficiary']
+10. Term and Termination. 10.1 Term and Termination. This Agreement shall continue in effect from the Effective Date for a one (1) year period, unless earlier terminated as set forth below, and thereafter shall renew automatically for successive one (1) year periods unless either party gives the other party at least thirty (30) days prior written notice of its intent not to renew the Agreement. In
+
+[Non-Disparagement | false_negative | 180_14 | p=0.012]
+true=['Anti-Assignment', 'Non-Disparagement']
+predicted=['Exclusivity', 'License Grant']
+(i) Sublicense: Licensee shall be permitted to sublicense the rights and licenses granted herein to third party contractors of Licensee, solely for purposes of development and distribution of the Wireless Products on behalf of Licensee in accordance with this Agreement; provided that such third party contractors have entered into binding written agreements with Licensee that are no less protective
+
+[Non-Disparagement | false_negative | 180_152 | p=0.007]
+true=['Non-Disparagement']
+predicted=[]
+(v) Licensee Conduct: Licensee will (A) conduct its business in a manner that reflects favorably at all times on the Property, the Wireless Products and the good name, goodwill and reputation of Fox, (B) avoid deceptive, misleading or unethical practices, that are or might be detrimental to Fox, the Property, the Wireless Products or the public, (C) avoid making disparaging, false or misleading st
+
+[Non-Disparagement | false_negative | 438_24 | p=0.007]
+true=['Non-Disparagement']
+predicted=[]
+8 provisions of this clause 17 will be paid within 28 days. The PILON will be equal to the basic salary (as at the Termination Date) which the Executive would have been entitled to receive under this Agreement during the notice period referred to at clause 2 (or, if notice has already been given, during the remainder of the notice period) less deductions required by law. 17.2 The Executive shall h
+
+[Non-Disparagement | false_negative | 456_23 | p=0.028]
+true=['Non-Disparagement']
+predicted=['Competitive Restriction Exception', 'Liquidated Damages']
+7. Cooperation. (a) JANA agrees that, from the date of this Agreement until the earliest of (i) the date that is thirty (30) calendar days prior to any applicable deadline by which a shareholder must give notice to the Company of its intention to nominate a director for election at or bring other business before the 2015 Annual Meeting under the Company's By­Laws and (ii) any material breach of th
+
+[Non-Disparagement | false_negative | 470_57 | p=0.002]
+true=['Non-Disparagement']
+predicted=[]
+(c) Harmful Behavior. Either Party shall have the right to immediately terminate this Agreement in the event the other Party, in such Party's reasonable discretion, engages in illegal, indecent, immoral, harmful or scandalous behavior or activities that may directly or indirectly damage such Party's reputation or goodwill or violates any rules or regulations of Team or the National Football League
+
+[Non-Disparagement | false_positive | 318_19 | p=0.083]
+true=['Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Joint Ip Ownership', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Post-Termination Services', 'Renewal Term', 'Rofr/Rofo/Rofn', 'Termination For Convenience', 'Third Party Beneficiary', 'Volume Restriction', 'Warranty Duration']
+2. TERM 2.1. Duration. Unless this Agreement has been earlier terminated, Metavante shall provide a written renewal notice to Customer at least twelve (12) months prior to the expiration of the Initial Term (the "Renewal Notice"). Unless Customer notifies Metavante of its intent not to renew this Agreement in writing within a period of three (3) months following the Renewal Notice, this Agreement 
+
+[Non-Disparagement | false_positive | 333_18 | p=0.040]
+true=['Anti-Assignment', 'Expiration Date', 'Termination For Convenience']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Non-Disparagement', 'Renewal Term', 'Termination For Convenience']
+9. Renewal and Termination. The term of this Services Agreement shall begin on the date of execution and shall continue in effect for a period of two years. This Services Agreement shall continue in effect from year to year thereafter, subject to termination as hereinafter provided, if such continuance is approved at least annually by vote of a majority of the Trustees who are not interested perso
+
+[Non-Disparagement | false_positive | 335_234 | p=0.055]
+true=['Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Third Party Beneficiary']
+24.2 Renewal. Unless this Agreement is terminated pursuant to Section 25, this Agreement will automatically renew for additional successive [***] terms (each a "Renewal Term" and together with the Initial Term, the "Term") unless and until either Party provides written notice of non-renewal to the other Party at least [***] prior to the end of the then-current Term. 25. Termination.
+
+[Non-Disparagement | false_positive | 368_7 | p=0.044]
+true=['Competitive Restriction Exception', 'Non-Compete']
+predicted=['Competitive Restriction Exception', 'Exclusivity', 'Liquidated Damages', 'No-Solicit Of Employees', 'Non-Compete', 'Non-Disparagement', 'Rofr/Rofo/Rofn']
+2 (b) Each Seller agrees that for a period commencing on the Effective Date and ending two years after the Closing Date (the "Non- Compete Period"), it shall not, other than solely through its direct or indirect ownership of Buyer's capital stock or any other interests in Buyer, directly, or indirectly, including through or on behalf of a subsidiary, anywhere in the world, excluding India: (i) own
+
+[Non-Disparagement | false_positive | 371_22 | p=0.058]
+true=['Expiration Date', 'Termination For Convenience']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Termination For Convenience', 'Third Party Beneficiary', 'Warranty Duration']
+5. TERM This Agreement will be effective as of the Effective Date. Unless sooner terminated in accordance with the provisions hereof, the initial term of this Agreement ("Initial Term") will be ten (10) years from the Effective Date, provided that at any time following the 7th anniversary of such date, either party may terminate such strategic alliance upon not less than 60 days' prior written not
+
+[Post-Termination Services | false_negative | 5_54 | p=0.045]
+true=['Expiration Date', 'Post-Termination Services']
+predicted=['Expiration Date']
+. 8. Term and Termination 8.1 The term of this Agreement shall be five (5) years following the Effective Date or until the Studies are completed, whichever is later, unless extended or unless terminated earlier in accordance with the provisions hereof. In the event of expiration or early termination of this Agreement, the terms and conditions of this Agreement shall remain binding with respect to 
+
+[Post-Termination Services | false_negative | 53_50 | p=0.004]
+true=['Post-Termination Services']
+predicted=[]
+(d) to carry out only part of your duties, or to carry out alternative duties or special projects for the Company within your skill set;
+
+[Post-Termination Services | false_negative | 53_76 | p=0.107]
+true=['Post-Termination Services']
+predicted=[]
+11.7 If your employment is terminated on account of your death or by the Company without Cause (being for any reason not covered by paragraph 11.3), or you terminate your employment for Good Reason (as provided in paragraph 11.4), in either case outside of the Change in Control Period, then the Company shall pay you the Accrued Benefits. In addition, subject to (i) your (or your authorised represe
+
+[Post-Termination Services | false_negative | 131_18 | p=0.003]
+true=['Post-Termination Services']
+predicted=[]
+1.6.2. Payment. The Monthly Compensation shall be paid for the remaining monthly periods remaining in the Term, as if the termination of this Agreement had not occurred, or twenty four (24) calendar months, which ever period is less, where payment shall be made no later than thirty (30) calendar days after the end of the relevant monthly period.
+
+[Post-Termination Services | false_negative | 460_17 | p=0.043]
+true=['Post-Termination Services']
+predicted=[]
+2.03 RETENTION OF CONTRACTORS. In the event that this contract between Network 1 and Affiliate is terminated for any reason, the Contractors located by Affiliate shall remain Contractors of Network 1.
+
+[Post-Termination Services | false_positive | 20_34 | p=0.182]
+true=['Ip Ownership Assignment']
+predicted=['Post-Termination Services']
+4.3 Termination of Lead Scaffolds. For each Lead Scaffold, if (a) neither Anixa nor any of its Affiliates, licensees or assignees has dosed the first patient in a human clinical trial for a product incorporating a compound from such Lead Scaffold by the fifth (5th) anniversary of the date of the Selection Notice, or (b) Anixa earlier provides written notice of termination of such Lead Scaffold ref
+
+[Post-Termination Services | false_positive | 51_271 | p=0.246]
+true=[]
+predicted=['Change Of Control', 'Liquidated Damages', 'Post-Termination Services', 'Rofr/Rofo/Rofn']
+Notwithstanding the foregoing, in the event that a Change in Control of an existing (as of the Effective Date or at any time during the Term) Third Party BLI customer results in such customer being controlled [***] following the date such Third Party became a BLI customer, BLI shall promptly notify Ginkgo in writing of such Change in Control (in no event later than [***] ([***]) days after BLI fir
+
+[Post-Termination Services | false_positive | 131_14 | p=0.176]
+true=[]
+predicted=['Post-Termination Services']
+1.4. Delivery upon Termination. In the event of termination for whatever reason, Vendor and Distributor agree to complete the delivery of each order of the Product received by Distributor and each unfulfilled order for the Product prior to the termination date.
+
+[Post-Termination Services | false_positive | 335_244 | p=0.124]
+true=[]
+predicted=['Post-Termination Services']
+26.1 Competing Providers. This Section 26 will only apply in the event of a Change of Control to a Competing Provider or its Affiliate.
+
+[Post-Termination Services | false_positive | 505_232 | p=0.166]
+true=['Change Of Control']
+predicted=['Change Of Control', 'Post-Termination Services']
+Section 6.3 Effect of Merger or Change of Control. Upon a merger or change of control of a party (including, for purposes of this Section 6.3, with respect to Purchaser any Purchaser Licensee and with respect to Seller any Seller Party) (a "Change of Control Event") with or to a Person (other than a Person that is a then-current Affiliate of such party) (the "Buyer"), the license rights granted un
+
+[Third Party Beneficiary | false_negative | 51_454 | p=0.000]
+true=['Third Party Beneficiary']
+predicted=[]
+14.10 Third Party Beneficiaries. There are no Third Party beneficiaries under this Agreement, except to the extent a Third Party is indemnified pursuant to Article 12 (Indemnification; Insurance); provided that, in no event will any Third Party entitled to indemnification pursuant to Article 12 (Indemnification; Insurance) be allowed to enforce the terms thereof against a Party.
+
+[Third Party Beneficiary | false_negative | 62_132 | p=0.001]
+true=['Third Party Beneficiary']
+predicted=[]
+Except as expressly provided in Section 8, this Agreement does not create any intended third party beneficiary rights.
+
+[Third Party Beneficiary | false_negative | 209_175 | p=0.001]
+true=['Third Party Beneficiary']
+predicted=[]
+21. MISCELLANEOUS PROVISIONS. 21.1. THIRD PARTIES. Except as expressly stated herein with respect to members of each Party, no person or entity not a Party to this Agreement (including, without limitation, any employee of either Party or the Joint Venture) shall be a third-party beneficiary of any provision of this Agreement, and nothing contained herein shall be construed or deemed to confer any 
+
+[Third Party Beneficiary | false_negative | 365_23 | p=0.003]
+true=['Third Party Beneficiary']
+predicted=[]
+ARTICLE IV "Rights to the Proceeds at Death" Upon the death of the Employee while this Agreement is in force, the Employee's beneficiary as named in the Beneficiary Designation Form on page 6 (or as it may be amended according to the terms set forth on page 6) for this Agreement will be entitled to receive from the Policy proceeds an amount equal to the lesser of: (a) (two (2) times the Employee's
+
+[Third Party Beneficiary | false_negative | 411_69 | p=0.000]
+true=['Third Party Beneficiary']
+predicted=[]
+22 Section 8.13 Third-party Beneficiaries. It is expressly agreed by the Parties that the Lenders shall be third party beneficiaries of Section 4.09, Section 6.03, Section 8.02(b), Section 8.04, Section 8.05 and this Section 8.13. Nothing in this Agreement shall be construed to create a right in any employee to employment with Acquiror or the Company or any of their respective Affiliates or succes
+
+[Third Party Beneficiary | false_positive | 184_16 | p=0.054]
+true=['Expiration Date', 'Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Third Party Beneficiary', 'Warranty Duration']
+8 Source: GO-PAGE CORP, 10-K, 2/21/2014 6. Term and Termination. 6.1 Term. The initial term of this Agreement commences as of the Effective Date and, unless terminated earlier pursuant to any express provision of this Agreement, shall continue until five (5) years following the Effective Date (the "Initial Term"). Thereafter, this Agreement shall renew automatically for one (1) additional three (3
+
+[Third Party Beneficiary | false_positive | 296_50 | p=0.054]
+true=['Expiration Date', 'Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Third Party Beneficiary', 'Warranty Duration']
+7.1 TERM. The term of this Agreement shall be five years commencing on the Effective Date and ending at the close of business on the fifth anniversary of the Effective Date. This Agreement shall automatically renew for successive one-year terms unless one party gives the other party written notice of non-renewal at least six months prior to automatic renewal.
+
+[Third Party Beneficiary | false_positive | 299_20 | p=0.042]
+true=['Expiration Date', 'Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Third Party Beneficiary']
+Section 14.1 TERM. This Agreement shall be effective through and including March 31, 2004. Upon the expiration of such term, this Agreement will renew automatically for successive terms of one (1) year each unless either party to this Agreement delivers written notice of termination to the other party to this Agreement at least sixty (60) days prior to the end of the original or any renewal term. 
+
+[Third Party Beneficiary | false_positive | 397_149 | p=0.049]
+true=['Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Third Party Beneficiary']
+After the initial period of two years, the maintenance and support contract shall be automatically renewed for a period of one year on each renewal date, unless one of the parties terminates the maintenance and support contract through written notification to the other party in the form of a registered letter with proof of receipt, at least six (6) weeks prior to the renewal date. There shall be n
+
+[Third Party Beneficiary | false_positive | 486_23 | p=0.048]
+true=['Expiration Date', 'Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Renewal Term', 'Termination For Convenience', 'Third Party Beneficiary']
+10. Term and Termination. 10.1 Term and Termination. This Agreement shall continue in effect from the Effective Date for a one (1) year period, unless earlier terminated as set forth below, and thereafter shall renew automatically for successive one (1) year periods unless either party gives the other party at least thirty (30) days prior written notice of its intent not to renew the Agreement. In
+
+[Volume Restriction | false_negative | 180_275 | p=0.005]
+true=['Volume Restriction']
+predicted=[]
+"TBD" Wireless Products Up to: 1 Java Game (2-D or 3-D to be mutually agreed provided that if the parties are unable to reach an agreement, Licensee's decision will prevail)
+
+[Volume Restriction | false_negative | 180_277 | p=0.001]
+true=['Volume Restriction']
+predicted=[]
+10 Wallpapers 5 Voicetones, if talent agreements so allow
+
+[Volume Restriction | false_negative | 253_20 | p=0.063]
+true=['Volume Restriction']
+predicted=['Minimum Commitment']
+f. From the Effective Date through September 30, 2004, Schoolpop may order non-standard Encompass(R) Select denominations (other than 25, 50, 75, and 100 Points) up to a maximum of 200 Points. Such non-standard Encompass(R) Select denominations require eight (8) weeks to fulfill and must be ordered in boxes of 100 Cards of like denominations. Schoolpop shall discontinue reselling Encompass(R) Sele
+
+[Volume Restriction | false_negative | 253_34 | p=0.075]
+true=['Volume Restriction']
+predicted=['Minimum Commitment']
+m. At any given time during this Agreement, Schoolpop's inactive Card inventory shall be limited to $3,000,000 in Card value as determined by the Point denomination on each Card. This limit &sbsp; shall consist of a maximum Card value of $1,500,000 in Encompass(R) Select Cards and $1,500,000 Card value in any other product (s). Effective January 1, 2005, after which Encompass(R) Select shall no lo
+
+[Volume Restriction | false_negative | 357_1 | p=0.074]
+true=['Volume Restriction']
+predicted=['Minimum Commitment']
+In Clotamin-related press releases. D. In connection with any HDS' usage of Celebrity Attributes as outlined above in Paragraphs 3(A)-(C), HDS will feature the following disclaimer in close proximity to said usage: "PAUL SILAS IS NOT A MEDICAL AUTHORITY. THESE STATEMENTS HAVE NOT BEEN EVALUATED BY THE FOOD AND DRUG ADMINISTRATION. THIS PRODUCT IS NOT INTENDED TO DIAGNOSE, TREAT, CURE OR PREVENT AN
+
+[Volume Restriction | false_positive | 253_102 | p=0.097]
+true=[]
+predicted=['Competitive Restriction Exception', 'Minimum Commitment', 'Volume Restriction']
+9. PROGRAM TERMS a. From the Effective Date through September 30, 2004, Schoolpop may order non-standard Encompass(R) Select denominations (other than 25, 50, 75, and 100 Points) up to a maximum of 200 Points. Such non-standard Encompass(R) Select denominations require eight (8) weeks to fulfill and must be ordered in boxes of 100 Cards of like denominations. Schoolpop shall be limited to $26,500,
+
+[Volume Restriction | false_positive | 318_19 | p=0.099]
+true=['Notice Period To Terminate Renewal', 'Renewal Term']
+predicted=['Change Of Control', 'Competitive Restriction Exception', 'Expiration Date', 'Joint Ip Ownership', 'Liquidated Damages', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Notice Period To Terminate Renewal', 'Post-Termination Services', 'Renewal Term', 'Rofr/Rofo/Rofn', 'Termination For Convenience', 'Third Party Beneficiary', 'Volume Restriction', 'Warranty Duration']
+2. TERM 2.1. Duration. Unless this Agreement has been earlier terminated, Metavante shall provide a written renewal notice to Customer at least twelve (12) months prior to the expiration of the Initial Term (the "Renewal Notice"). Unless Customer notifies Metavante of its intent not to renew this Agreement in writing within a period of three (3) months following the Renewal Notice, this Agreement 
+
+[Volume Restriction | false_positive | 470_154 | p=0.105]
+true=[]
+predicted=['Minimum Commitment', 'Volume Restriction']
+(iii) *** shall be played in each Postgame Live (or similar postgame show) per season, including during playoffs and re-airs. There shall be a minimum of ***.
+
+[Volume Restriction | false_positive | 470_155 | p=0.100]
+true=[]
+predicted=['Minimum Commitment', 'Volume Restriction']
+(iv) *** shall be played in each "Press Pass" or similar television show episode per season, including re­airs. There shall be a minimum of ***.
+
+[Volume Restriction | false_positive | 470_164 | p=0.092]
+true=[]
+predicted=['Minimum Commitment', 'Volume Restriction']
+(c) Print. Sponsor shall receive: (i) *** in each issue of the Gameday magazine (or similar program), a minimum of ten such programs per season, including playoffs;
+
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/data/eval/transformer.json
