@@ -1,0 +1,252 @@
+{
+  "a": "transformer",
+  "b": "baseline",
+  "a_name": "transformer",
+  "a_version": "legal-bert|82466a1eefd8",
+  "b_name": "tfidf-ovr-logreg",
+  "b_version": "9692b04f03fb",
+  "method": "10000 contract-level bootstrap resamples, stratified by contract type, percentile 95% intervals, seed 42; paired (identical resamples); primary rows also Bonferroni-adjusted over a family of 12 (adjusted level 99.583%)",
+  "family_size": 12,
+  "differences": {
+    "test | Rule A | macro_f1": {
+      "difference": -0.09032922463311865,
+      "ci_low": -0.11406942309871854,
+      "ci_high": -0.06599951498989551,
+      "n_resamples": 10000,
+      "primary": true,
+      "adjusted_level": 0.9958333333333333,
+      "adjusted_ci_low": -0.12673725219273127,
+      "adjusted_ci_high": -0.055401362508145466,
+      "claim": "B higher"
+    },
+    "test | Rule A | micro_f1": {
+      "difference": -0.09029937572972957,
+      "ci_low": -0.11041729298161011,
+      "ci_high": -0.07104540512313187,
+      "n_resamples": 10000,
+      "primary": true,
+      "adjusted_level": 0.9958333333333333,
+      "adjusted_ci_low": -0.12020537987888977,
+      "adjusted_ci_high": -0.06259602964621788,
+      "claim": "B higher"
+    },
+    "test | Rule A | none_fp_rate": {
+      "difference": -0.003918207420105301,
+      "ci_low": -0.008324544410325357,
+      "ci_high": 0.0011066538476323367,
+      "n_resamples": 10000
+    },
+    "test | Rule A | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "test | all | macro_f1": {
+      "difference": -0.09738095941794106,
+      "ci_low": -0.1207712724501199,
+      "ci_high": -0.07368501695686934,
+      "n_resamples": 10000
+    },
+    "test | all | micro_f1": {
+      "difference": -0.11371661216542284,
+      "ci_low": -0.1360838097156347,
+      "ci_high": -0.09239569290769063,
+      "n_resamples": 10000
+    },
+    "test | all | none_fp_rate": {
+      "difference": -0.003918207420105301,
+      "ci_low": -0.008324544410325357,
+      "ci_high": 0.0011066538476323367,
+      "n_resamples": 10000
+    },
+    "test | all | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "test | Rule C | macro_f1": {
+      "difference": -0.07180815668589191,
+      "ci_low": -0.10009615731376634,
+      "ci_high": -0.04138615711642357,
+      "n_resamples": 10000
+    },
+    "test | Rule C | micro_f1": {
+      "difference": -0.05204458505074583,
+      "ci_low": -0.0729465833220337,
+      "ci_high": -0.030977876684777934,
+      "n_resamples": 10000
+    },
+    "test | Rule C | none_fp_rate": {
+      "difference": -0.003918207420105301,
+      "ci_low": -0.008324544410325357,
+      "ci_high": 0.0011066538476323367,
+      "n_resamples": 10000
+    },
+    "test | Rule C | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "shift | Rule C | macro_f1": {
+      "difference": -0.025315652980339276,
+      "ci_low": -0.06364164956868691,
+      "ci_high": 0.016521746884634134,
+      "n_resamples": 10000,
+      "primary": true,
+      "adjusted_level": 0.9958333333333333,
+      "adjusted_ci_low": -0.08363056366916671,
+      "adjusted_ci_high": 0.034076970004379876,
+      "claim": "none"
+    },
+    "shift | Rule C | micro_f1": {
+      "difference": -0.015925449750842313,
+      "ci_low": -0.05731558654273977,
+      "ci_high": 0.02568741384618175,
+      "n_resamples": 10000,
+      "primary": true,
+      "adjusted_level": 0.9958333333333333,
+      "adjusted_ci_low": -0.07467239636350846,
+      "adjusted_ci_high": 0.04257946605707169,
+      "claim": "none"
+    },
+    "shift | Rule C | none_fp_rate": {
+      "difference": 0.00428103752203475,
+      "ci_low": -0.002066453303084316,
+      "ci_high": 0.010714123134349033,
+      "n_resamples": 10000
+    },
+    "shift | Rule C | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "shift | all | macro_f1": {
+      "difference": -0.06312610260886037,
+      "ci_low": -0.10317080733186274,
+      "ci_high": -0.01818591353859044,
+      "n_resamples": 10000
+    },
+    "shift | all | micro_f1": {
+      "difference": -0.0463315636009663,
+      "ci_low": -0.09046099144843697,
+      "ci_high": -0.0033702383565241104,
+      "n_resamples": 10000
+    },
+    "shift | all | none_fp_rate": {
+      "difference": 0.00428103752203475,
+      "ci_low": -0.002066453303084316,
+      "ci_high": 0.010714123134349033,
+      "n_resamples": 10000
+    },
+    "shift | all | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | Rule C | macro_f1": {
+      "difference": -0.022929219886150154,
+      "ci_low": -0.07581535963056542,
+      "ci_high": 0.030860179303138294,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | Rule C | micro_f1": {
+      "difference": -0.023685276950311696,
+      "ci_low": -0.07677252659796475,
+      "ci_high": 0.028572932649753115,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | Rule C | none_fp_rate": {
+      "difference": 0.004926108374384237,
+      "ci_low": -0.00499729317046085,
+      "ci_high": 0.016467928945387324,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | Rule C | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | all | macro_f1": {
+      "difference": -0.06930212451583728,
+      "ci_low": -0.11833346835722462,
+      "ci_high": -0.021491815423489515,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | all | micro_f1": {
+      "difference": -0.051291989163336715,
+      "ci_low": -0.10744088137447227,
+      "ci_high": -0.0015833198311909437,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | all | none_fp_rate": {
+      "difference": 0.004926108374384237,
+      "ci_low": -0.00499729317046085,
+      "ci_high": 0.016467928945387324,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | all | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | Rule C | macro_f1": {
+      "difference": -0.06533826157041733,
+      "ci_low": -0.10512535967309616,
+      "ci_high": -0.006796607598676386,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | Rule C | micro_f1": {
+      "difference": 0.002116402116402072,
+      "ci_low": -0.05255519103926905,
+      "ci_high": 0.05158869124975198,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | Rule C | none_fp_rate": {
+      "difference": 0.0034522439585730723,
+      "ci_low": -0.004137470231085289,
+      "ci_high": 0.00956943825099731,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | Rule C | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | all | macro_f1": {
+      "difference": -0.06419376168186552,
+      "ci_low": -0.11081895298225648,
+      "ci_high": 0.0027789400009529375,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | all | micro_f1": {
+      "difference": -0.021497776599817386,
+      "ci_low": -0.07655215434223864,
+      "ci_high": 0.04970399237213885,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | all | none_fp_rate": {
+      "difference": 0.0034522439585730723,
+      "ci_low": -0.004137470231085289,
+      "ci_high": 0.00956943825099731,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | all | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    }
+  },
+  "verdicts": {
+    "test | Rule A": "baseline higher on both co-primary metrics",
+    "shift | Rule C": "per metric: micro_f1 none, macro_f1 none"
+  }
+}

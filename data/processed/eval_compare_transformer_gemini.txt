@@ -1,0 +1,46 @@
+Paired comparison: transformer minus gemini
+Method: 10000 contract-level bootstrap resamples, stratified by contract type, percentile 95% intervals, seed 42; paired (identical resamples); primary rows also Bonferroni-adjusted over a family of 12 (adjusted level 99.583%)
+
+=== Primary comparisons (A minus B): point [95% CI] [99.583% adjusted CI] claim ===
+test | Rule A | macro_f1                 -0.1829 [-0.2070, -0.1613] [-0.2207, -0.1523] B higher
+test | Rule A | micro_f1                 -0.1750 [-0.1992, -0.1505] [-0.2116, -0.1375] B higher
+shift | Rule C | macro_f1                -0.1267 [-0.1545, -0.0997] [-0.1686, -0.0860] B higher
+shift | Rule C | micro_f1                -0.0976 [-0.1263, -0.0691] [-0.1392, -0.0560] B higher
+
+=== Verdicts, per scope ===
+test | Rule A        gemini higher on both co-primary metrics
+shift | Rule C       gemini higher on both co-primary metrics
+
+=== Secondary differences (A minus B), point [95% CI], no claims ===
+test | Rule A | none_fp_rate             -0.0099 [-0.0142, -0.0058]
+test | Rule A | parse_failure_rate       +0.0000 [+0.0000, +0.0000]
+test | all | macro_f1                    -0.2292 [-0.2553, -0.1980]
+test | all | micro_f1                    -0.2006 [-0.2261, -0.1754]
+test | all | none_fp_rate                -0.0099 [-0.0142, -0.0058]
+test | all | parse_failure_rate          +0.0000 [+0.0000, +0.0000]
+test | Rule C | macro_f1                 -0.1432 [-0.1722, -0.1159]
+test | Rule C | micro_f1                 -0.1237 [-0.1510, -0.0956]
+test | Rule C | none_fp_rate             -0.0099 [-0.0142, -0.0058]
+test | Rule C | parse_failure_rate       +0.0000 [+0.0000, +0.0000]
+shift | Rule C | none_fp_rate            -0.0115 [-0.0198, -0.0024]
+shift | Rule C | parse_failure_rate      -0.0022 [-0.0073, +0.0000]
+shift | all | macro_f1                   -0.2234 [-0.2607, -0.1671]
+shift | all | micro_f1                   -0.1628 [-0.1973, -0.1285]
+shift | all | none_fp_rate               -0.0115 [-0.0198, -0.0024]
+shift | all | parse_failure_rate         -0.0022 [-0.0073, +0.0000]
+shift:Franchise | Rule C | macro_f1      -0.1394 [-0.1769, -0.1142]
+shift:Franchise | Rule C | micro_f1      -0.0933 [-0.1233, -0.0643]
+shift:Franchise | Rule C | none_fp_rate  -0.0188 [-0.0282, -0.0069]
+shift:Franchise | Rule C | parse_failure_rate +0.0000 [+0.0000, +0.0000]
+shift:Franchise | all | macro_f1         -0.2560 [-0.2880, -0.2014]
+shift:Franchise | all | micro_f1         -0.1677 [-0.2076, -0.1292]
+shift:Franchise | all | none_fp_rate     -0.0188 [-0.0282, -0.0069]
+shift:Franchise | all | parse_failure_rate +0.0000 [+0.0000, +0.0000]
+shift:Transportation | Rule C | macro_f1 -0.1540 [-0.2199, -0.0653]
+shift:Transportation | Rule C | micro_f1 -0.1097 [-0.1749, -0.0286]
+shift:Transportation | Rule C | none_fp_rate -0.0019 [-0.0144, +0.0080]
+shift:Transportation | Rule C | parse_failure_rate -0.0053 [-0.0171, +0.0000]
+shift:Transportation | all | macro_f1    -0.2275 [-0.2700, -0.0934]
+shift:Transportation | all | micro_f1    -0.1397 [-0.2007, -0.0480]
+shift:Transportation | all | none_fp_rate -0.0019 [-0.0144, +0.0080]
+shift:Transportation | all | parse_failure_rate -0.0053 [-0.0171, +0.0000]
