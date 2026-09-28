@@ -1,0 +1,4 @@
+legal-bert  nlpaueb/legal-bert-base-uncased    revision 15b570cbf88259610b082a167dacc190124f60f6
+bert        google-bert/bert-base-uncased      revision 86b5e0934494bd15c9632b12f734a8a67f723594
+deberta-v3  microsoft/deberta-v3-base          revision 8ccc9b6f36199bec6961081d44eb72fb3f7353f3
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/models/transformer/sources.json

@@ -1,0 +1,14 @@
+{
+  "legal-bert": {
+    "hub_id": "nlpaueb/legal-bert-base-uncased",
+    "revision": "15b570cbf88259610b082a167dacc190124f60f6"
+  },
+  "bert": {
+    "hub_id": "google-bert/bert-base-uncased",
+    "revision": "86b5e0934494bd15c9632b12f734a8a67f723594"
+  },
+  "deberta-v3": {
+    "hub_id": "microsoft/deberta-v3-base",
+    "revision": "8ccc9b6f36199bec6961081d44eb72fb3f7353f3"
+  }
+}

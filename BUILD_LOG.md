@@ -2472,6 +2472,11 @@ None. Every rule was fixed in the Step 5 pre-registration entry above. The evalu
 ### Decisions made
 Fixed 2026-09-27, before any encoder was downloaded or trained. Every existing model's validation, test and shift results were known; no transformer output existed.
 - **Encoders:** `nlpaueb/legal-bert-base-uncased`, `bert-base-uncased`, `microsoft/deberta-v3-base`, with revisions pinned by `fetch` and recorded here before any training.
+  - Correction before any training (2026-09-27): the first `fetch` pinned legal-BERT, then failed on `bert-base-uncased`. That legacy ID is a redirect (HTTP 307) to `google-bert/bert-base-uncased`; the Hub's Xet download-token endpoint returns 404 for the legacy name and 200 for the canonical one. Both names resolve to the same repository at the same commit (86b5e0934494bd15c9632b12f734a8a67f723594), so the config now uses the canonical ID. The encoder, weights and recipe are unchanged. The failed run wrote no `sources.json`, so `fetch` is rerun in full.
+  - Pinned by `fetch` (2026-09-27; `models/transformer/sources.json`, output in `data/processed/transformer_fetch.txt`), before any training:
+    - legal-bert: `nlpaueb/legal-bert-base-uncased` at 15b570cbf88259610b082a167dacc190124f60f6
+    - bert: `google-bert/bert-base-uncased` at 86b5e0934494bd15c9632b12f734a8a67f723594
+    - deberta-v3: `microsoft/deberta-v3-base` at 8ccc9b6f36199bec6961081d44eb72fb3f7353f3
 - **Recipe (fixed, not tuned):**
   - multi-label head, sigmoid, `BCEWithLogitsLoss` without class weights;
   - all 34,871 train segments, no none downsampling;
@@ -2509,7 +2514,7 @@ Fixed 2026-09-27, before any encoder was downloaded or trained. Every existing m
   - The local M4 Pro costs nothing, and a timing probe checks feasibility first.
 
 ### Numbers measured
-- Tests: to be recorded from pasted output. Command: `pytest tests -v`
+- Tests: 166 passed, 5 warnings (the existing "Mean of empty slice" warnings from the toy LLM tests in `tests/test_llm.py`), committed as a42eb8f. Command: `pytest tests -v`
 
 ### Problems hit and how we solved them
 - The first test run failed twice in the new tests: the toy segments used text contract ids, while the shared prediction schema stores `contract_id` as an integer. The toy data now uses integer ids.

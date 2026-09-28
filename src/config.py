@@ -127,7 +127,7 @@ LLM_EST_THINKING_TOKENS_PER_CALL = 300
 # Fine-tuned transformer (Step 6a): one fixed recipe, three encoders, selection on validation
 TRANSFORMER_DIR = MODELS_DIR / "transformer"
 TRANSFORMER_ENCODERS = {"legal-bert": "nlpaueb/legal-bert-base-uncased",
-                        "bert": "bert-base-uncased",
+                        "bert": "google-bert/bert-base-uncased",
                         "deberta-v3": "microsoft/deberta-v3-base"}
 TRANSFORMER_DOMAIN_PAIR = ("legal-bert", "bert")
 TRANSFORMER_MAX_TOKENS = 512
