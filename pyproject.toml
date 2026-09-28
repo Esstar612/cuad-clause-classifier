@@ -19,6 +19,11 @@ dependencies = [
     "pyarrow",
     "joblib",
     "scipy",
+    "torch>=2.6",
+    "transformers",
+    "huggingface_hub",
+    "sentencepiece",
+    "protobuf",
 ]
 
 [project.optional-dependencies]

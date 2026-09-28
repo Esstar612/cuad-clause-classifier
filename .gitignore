@@ -10,6 +10,7 @@ data/llm_cache/
 
 # Model binaries (metadata JSON/CSV stays tracked)
 models/**/*.joblib
+models/**/*.safetensors
 
 # Python
 __pycache__/

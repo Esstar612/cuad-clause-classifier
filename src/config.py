@@ -58,10 +58,16 @@ EVAL_DIR = DATA_DIR / "eval"
 BOOTSTRAP_RESAMPLES = 2000  # contract-level, stratified by contract type; percentile intervals
 CI_LEVEL = 0.95
 BOOTSTRAP_RESAMPLES_COMPARE = 10_000   # paired comparisons (Step 4b): enough resamples for Bonferroni tails
-COMPARE_PAIRS = (("claude", "baseline"), ("gemini", "baseline"), ("gemini", "claude"))
 COMPARE_PRIMARY_SCOPES = (("test", "Rule A"), ("shift", "Rule C"))
 COMPARE_PRIMARY_METRICS = ("micro_f1", "macro_f1")
 COMPARE_FAMILY_SIZE = 12               # 3 model pairs x 2 scopes x 2 metrics, pre-registered 2026-09-27
+COMPARE_FAMILIES = {
+    "4b": (("claude", "baseline"), ("gemini", "baseline"), ("gemini", "claude")),
+    "6a": (("transformer", "baseline"), ("transformer", "claude"), ("transformer", "gemini")),
+}
+COMPARE_PAIRS = tuple(p for pairs in COMPARE_FAMILIES.values() for p in pairs)
+assert all(len(p) * len(COMPARE_PRIMARY_SCOPES) * len(COMPARE_PRIMARY_METRICS) == COMPARE_FAMILY_SIZE
+           for p in COMPARE_FAMILIES.values())
 CALIBRATION_BINS = 10
 ERROR_SAMPLES_PER_LABEL = 5  # per failing label and error kind, on validation only
 
@@ -117,3 +123,20 @@ LLM_TIMEOUT_S = 120.0
 LLM_EST_CHARS_PER_TOKEN = 4.0
 LLM_EST_OUTPUT_TOKENS_PER_TARGET = 25
 LLM_EST_THINKING_TOKENS_PER_CALL = 300
+
+# Fine-tuned transformer (Step 6a): one fixed recipe, three encoders, selection on validation
+TRANSFORMER_DIR = MODELS_DIR / "transformer"
+TRANSFORMER_ENCODERS = {"legal-bert": "nlpaueb/legal-bert-base-uncased",
+                        "bert": "bert-base-uncased",
+                        "deberta-v3": "microsoft/deberta-v3-base"}
+TRANSFORMER_DOMAIN_PAIR = ("legal-bert", "bert")
+TRANSFORMER_MAX_TOKENS = 512
+TRANSFORMER_EPOCHS = 3
+TRANSFORMER_BATCH_SIZE = 16          # effective batch
+TRANSFORMER_ACCUMULATION = 1         # the pre-registered OOM fallback sets 2 (micro-batch 8)
+TRANSFORMER_LR = 2e-5
+TRANSFORMER_WEIGHT_DECAY = 0.01      # on every parameter
+TRANSFORMER_WARMUP = 0.10
+TRANSFORMER_INFER_BATCH = 64
+TRANSFORMER_PROBE_SEGMENTS = 1_024   # seeded subset of train segments, timing only
+TRANSFORMER_SIZE_TOLERANCE = 0.01    # encoder parameters within 1% count as the same size

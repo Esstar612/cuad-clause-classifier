@@ -1,8 +1,9 @@
-"""Markdown tables for docs/results.md, generated from saved evaluation JSON only (Step 4b).
+"""Markdown tables for docs/results.md, generated from saved evaluation JSON only (Steps 4b, 5, 6a).
 
   python -m src.report | tee data/processed/results_tables.md
 
-Reads data/eval/{baseline,claude,gemini}.json and the three cross-model compare files by name.
+Reads data/eval/{baseline,claude,gemini,transformer}.json, the six compare files of the pre-registered
+families (config.COMPARE_FAMILIES) by name, and data/eval/drift.json when it exists.
 Composes no claims: claims and verdicts come from the compare files.
 """
 
@@ -13,7 +14,7 @@ from pathlib import Path
 
 from src import config
 
-MODELS = ("baseline", "claude", "gemini")
+MODELS = ("baseline", "claude", "gemini", "transformer")
 SPARSE_NOTE = "sparse lower bound, not interpreted"
 LEVEL = f"{config.CI_LEVEL:.0%}"
 
@@ -60,26 +61,33 @@ def scope_tables(evals: dict) -> str:
     return "\n\n".join(out)
 
 
-def comparison_tables(compares: dict) -> str:
-    primary, verdicts, secondary = [], [], []
+def comparison_tables(compares: dict, families: dict = config.COMPARE_FAMILIES) -> str:
+    """One primary and verdict table per pre-registered family; pairs outside every family have no
+    primary rows and appear only in the secondary table, which covers all pairs."""
+    out, secondary = [], []
+    for name, pairs in families.items():
+        members = {p: compares[p] for p in pairs if p in compares}
+        if not members:
+            continue
+        primary, verdicts = [], []
+        for (a, b), c in members.items():
+            primary += [[f"{a} minus {b}", key, f"{d['difference']:+.4f}", _diff(d),
+                         _diff(d, "adjusted_ci_low", "adjusted_ci_high"), d["claim"]]
+                        for key, d in c["differences"].items() if d.get("primary")]
+            verdicts += [[f"{a} vs {b}", scope, v] for scope, v in c["verdicts"].items()]
+        size = _same((c["family_size"] for c in members.values()), "family size")
+        adj = _same((d["adjusted_level"] for c in members.values() for d in c["differences"].values()
+                     if d.get("primary")), "adjusted level")
+        out += [f"#### Primary comparisons, family {name} (family of {size}; claims use the {adj:.3%} "
+                "Bonferroni-adjusted interval)\n\n"
+                + _table(["Pair", "Scope and metric", "Difference", f"{LEVEL} CI", "Adjusted CI", "Claim"], primary),
+                f"#### Verdicts, family {name}, per scope\n\n" + _table(["Pair", "Scope", "Verdict"], verdicts)]
     for (a, b), c in compares.items():
-        for key, d in c["differences"].items():
-            row = [f"{a} minus {b}", key, f"{d['difference']:+.4f}", _diff(d)]
-            if d.get("primary"):
-                primary.append(row + [_diff(d, "adjusted_ci_low", "adjusted_ci_high"), d["claim"]])
-            else:
-                secondary.append(row)
-        verdicts += [[f"{a} vs {b}", scope, v] for scope, v in c["verdicts"].items()]
-    family = _same((c["family_size"] for c in compares.values()), "family size")
-    adj = _same((d["adjusted_level"] for c in compares.values() for d in c["differences"].values()
-                 if d.get("primary")), "adjusted level")
-    return "\n\n".join([
-        f"#### Primary comparisons (family of {family}; claims use the {adj:.3%} "
-        "Bonferroni-adjusted interval)\n\n"
-        + _table(["Pair", "Scope and metric", "Difference", f"{LEVEL} CI", "Adjusted CI", "Claim"], primary),
-        "#### Verdicts, per scope\n\n" + _table(["Pair", "Scope", "Verdict"], verdicts),
-        f"#### Secondary differences ({LEVEL} CI, reported, no claims)\n\n"
-        + _table(["Pair", "Scope and metric", "Difference", f"{LEVEL} CI"], secondary)])
+        secondary += [[f"{a} minus {b}", key, f"{d['difference']:+.4f}", _diff(d)]
+                      for key, d in c["differences"].items() if not d.get("primary")]
+    out.append(f"#### Secondary differences ({LEVEL} CI, reported, no claims)\n\n"
+               + _table(["Pair", "Scope and metric", "Difference", f"{LEVEL} CI"], secondary))
+    return "\n\n".join(out)
 
 
 def per_label_tables(evals: dict) -> str:

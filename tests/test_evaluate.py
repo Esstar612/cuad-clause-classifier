@@ -215,7 +215,8 @@ def test_compare_on_toy_files_has_primary_rows_verdicts_and_no_ap_or_nan(tmp_pat
     assert out["a_version"] == out["b_version"] == "t"
     report.check_versions({"ma": {"model_version": "t"}, "mb": {"model_version": "t"}}, {("ma", "mb"): out})
     with pytest.raises(SystemExit, match="family size differs"):
-        report.comparison_tables({("ma", "mb"): out, ("mb", "ma"): {**out, "family_size": 6}})
+        report.comparison_tables({("ma", "mb"): out, ("mb", "ma"): {**out, "family_size": 6}},
+                                 families={"toy": (("ma", "mb"), ("mb", "ma"))})
     with pytest.raises(SystemExit, match="rerun the compare"):
         report.check_versions({"ma": {"model_version": "t2"}, "mb": {"model_version": "t"}}, {("ma", "mb"): out})
     assert sum(bool(d.get("primary")) for d in out["differences"].values()) == 4
@@ -232,7 +233,7 @@ def test_compare_on_toy_files_has_primary_rows_verdicts_and_no_ap_or_nan(tmp_pat
     reverse = json.loads((tmp_path / "eval" / "compare_mb_vs_ma.json").read_text())
     assert not any(d.get("primary") for d in reverse["differences"].values()) and reverse["verdicts"] == {}
 
-    md = report.comparison_tables({("ma", "mb"): out})
+    md = report.comparison_tables({("ma", "mb"): out}, families={"toy": (("ma", "mb"),)})
     first = next(d for d in out["differences"].values() if d.get("primary"))
     assert f"{first['difference']:+.4f}" in md and out["verdicts"]["test | Rule A"] in md
     assert "test \\| Rule A \\| micro_f1" in md and "family of 12" in md

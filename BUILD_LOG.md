@@ -2441,3 +2441,86 @@ None. Every rule was fixed in the Step 5 pre-registration entry above. The evalu
 
 ### Resume-worthy
 - Built and pre-registered a label-free drift monitor, calibrated on validation with a tie-safe 1% false-alarm guarantee and tested once on held-out contract types. It reported a null primary result honestly: the label-mix and TF-IDF signals moved under shift, but 13 to 15 shifted contracts per type gave no power to establish detection.
+
+## 2026-09-27: Step 6a, fine-tuned transformer pre-registered and code placed (before any download or training)
+
+### What we built
+- `src/transformer.py`: `fetch` (pins hub revisions), `tokens`, `probe`, `train`, `validate`, `select`, `heldout`.
+  - Encoders load only from the pinned local snapshot, in fp32.
+  - `train` writes weights and training loss only.
+  - `validate` refuses until every encoder is trained, so no validation result exists before training ends.
+  - Run markers: `train_started.json`, `trained.json`, `failed.json`, `run.json`, `selected.json`, `heldout_run.json`.
+  - `model_version` hashes every file that determines predictions (weights, HF config, tokenizer files, thresholds, labels).
+- `src/config.py`: `TRANSFORMER_*` constants. `COMPARE_FAMILIES` holds the 4b and 6a families, and `COMPARE_PAIRS` is derived from them, with an assert that each family has size 12.
+- `src/report.py`: the transformer added to the model tables; one primary and verdict table per family.
+- `src/baseline.py`: `single_segment_latency` takes a predict function and a device label. The baseline's method string is unchanged.
+- `pyproject.toml`: `torch>=2.6`, `transformers`, `huggingface_hub`, `sentencepiece`, `protobuf`. `.gitignore`: `models/**/*.safetensors`.
+- `tests/test_transformer.py`: runs on a tiny local BERT on CPU with no downloads. It covers:
+  - seeding and fp32;
+  - truncation;
+  - seeded training;
+  - gradient accumulation equivalence;
+  - a failed run on a non-finite loss;
+  - input order in batched prediction;
+  - the probe using train segments only;
+  - the crash, restart and failure markers;
+  - validate, select and heldout end to end, with their refusals;
+  - the selection rule's parsimony and 1% size cases;
+  - the compare families and per-family report tables.
+- `tests/test_evaluate.py`: the two report calls pass their toy family.
+
+### Decisions made
+Fixed 2026-09-27, before any encoder was downloaded or trained. Every existing model's validation, test and shift results were known; no transformer output existed.
+- **Encoders:** `nlpaueb/legal-bert-base-uncased`, `bert-base-uncased`, `microsoft/deberta-v3-base`, with revisions pinned by `fetch` and recorded here before any training.
+- **Recipe (fixed, not tuned):**
+  - multi-label head, sigmoid, `BCEWithLogitsLoss` without class weights;
+  - all 34,871 train segments, no none downsampling;
+  - AdamW, learning rate 2e-5, weight decay 0.01 on every parameter;
+  - linear warmup over 10% of optimizer steps, then linear decay;
+  - effective batch 16, 3 epochs, gradient clipping at 1.0, fp32;
+  - at most 512 tokens with truncation counted; dynamic padding;
+  - seeds from `config.SEED` for head initialization and shuffle;
+  - no early stopping and no epoch or hyperparameter search;
+  - MPS is not bitwise deterministic and one run per encoder is made, so run-to-run variation is not measured.
+- **Out-of-memory fallback:** gradient accumulation of 8 x 2 (same effective batch and steps).
+- **Failed run:** a non-finite loss writes `failed.json`; the run is never retried by a flag and is decided with the user.
+- **After the probe:** only the OOM fallback, on probe evidence, decided before the first `train`, applied to all encoders. A time-driven change (for example dropping an encoder) is a logged amendment decided with the user before any `train`.
+- **Order:** fetch, tokens (train and validation text only; decides nothing), probe x 3 (train segments only), train x 3, validate, select, heldout (selected encoder only, once).
+- **Analysis 1, selection (validation, 33 labels, Rule B thresholds tuned on validation):**
+  - `best` is the encoder with the highest macro-F1.
+  - For each other encoder, compute a paired 95% contract-bootstrap interval for `best` minus that encoder (2,000 resamples, stream `transformer:select`). The intervals are unadjusted and hold the thresholds fixed.
+  - The eligible set is `best` plus every encoder whose interval includes zero.
+  - Size is measured as pretrained encoder parameters, excluding the classification head. The smallest-size group is every eligible encoder with (count - m) / m <= 0.01, where m is the smallest eligible count.
+  - Within that group, the higher micro-F1 wins. It can fall on an encoder below `best` on macro-F1; that is the rule, not a deviation.
+- **Analysis 2, domain comparison:**
+  - legal-BERT minus BERT on validation: macro-F1 and micro-F1 paired differences with 95% intervals, plus macro-AP points.
+  - It is a better-controlled domain comparison, not a clean causal isolation (tokenizer vocabulary and pretraining procedure may differ); no difference is attributed solely to legal-domain data.
+  - Validation only; the non-selected encoders never see test or shift.
+- **Comparisons, family 6a:**
+  - Transformer minus baseline, minus Claude and minus Gemini, x 2 scopes x 2 metrics = 12, with Bonferroni at 99.583%.
+  - The machinery is the same as 4b.
+  - The 4b family and its files are unchanged, checked by regenerating all three 4b compare files with no diff.
+  - Drift (Step 5) is not extended.
+- Alternatives considered: two encoders (legal-BERT and DeBERTa-v3) with an exact-tie rule; exact parameter counts or named size classes; cloud GPU.
+- Why rejected:
+  - Two encoders that differ in corpus, architecture, objective and tokenizer cannot speak to domain pretraining.
+  - An exact tie at 0.005 sits below single-seed noise.
+  - Exact counts turn vocabulary-size differences into size differences, and named classes are ambiguous.
+  - The local M4 Pro costs nothing, and a timing probe checks feasibility first.
+
+### Numbers measured
+- Tests: to be recorded from pasted output. Command: `pytest tests -v`
+
+### Problems hit and how we solved them
+- The first test run failed twice in the new tests: the toy segments used text contract ids, while the shared prediction schema stores `contract_id` as an integer. The toy data now uses integer ids.
+- Code review before the commit found five issues; four were fixed:
+  - `validate` wrote `run.json` before the validation predictions, so a failed write could leave an encoder marked validated with stale predictions; `run.json` is now written last, and `select` checks each validation file's model name and version;
+  - inference settings were not frozen; `validate`, `select` and `heldout` now refuse when the current recipe differs from the trained one;
+  - `tokens` read test and shift text; it now reads train and validation only, and `heldout` records the test and shift truncation counts;
+  - a test seeded with a literal 0; it now uses `config.SEED`.
+- Rejected: that the held-out marker should be written after inference. A started held-out run counts as touching test, as for the baseline and LLM held-out runs; a rerun after a crash needs the logged override.
+- A second review round found three issues, all fixed:
+  - saved seeds were checked against each other but not against `config.SEED`; the recipe check now covers the seed too;
+  - `select` checked validation segment ids but not the current true labels; it now refuses when the stored labels differ from the processed data;
+  - the MPS warm-up batch was not synchronized, so queued work could leak into the latency timer; it now waits for the result before timing starts.
+- A third review round found one issue, fixed: the optimizer was built before the model moved to MPS. The model now moves first, following the PyTorch guidance, so the optimizer is guaranteed to hold the device parameters. The CPU tests cannot show the difference, because there the move does nothing.

@@ -121,17 +121,17 @@ def timed_proba(pipe: Pipeline, texts: list[str]):
     return proba, 1000 * (time.perf_counter() - t0) / max(len(texts), 1)
 
 
-def single_segment_latency(pipe: Pipeline, val: pd.DataFrame) -> dict:
-    """Fair comparison with per-call LLM latency: one predict_proba call per segment."""
+def single_segment_latency(predict, val: pd.DataFrame, where: str = "local CPU") -> dict:
+    """Fair comparison with per-call LLM latency: one predict call per segment."""
     rng = np.random.default_rng(config.SEED)
     idx = rng.choice(len(val), size=min(config.LATENCY_SAMPLE_SIZE, len(val)), replace=False)
     times = []
     for i in sorted(idx):
         text = [val["text"].iloc[i]]
         t0 = time.perf_counter()
-        pipe.predict_proba(text)
+        predict(text)
         times.append(1000 * (time.perf_counter() - t0))
-    return {"method": "single-segment: one predict_proba call per segment, model loaded, local CPU",
+    return {"method": f"single-segment: one predict_proba call per segment, model loaded, {where}",
             "n": len(times), "median_ms": float(np.median(times)),
             "p95_ms": float(np.percentile(times, 95))}
 
@@ -210,7 +210,7 @@ def search() -> None:
     s_all = summary(y_val, pred, proba, label_order)
     s_sup = summary(y_val, pred, proba, label_order, labels=supported)
     latency = {"batch_amortized_ms_per_segment": batch_ms, "batch_note": BATCH_NOTE,
-               "single_segment": single_segment_latency(pipe, val)}
+               "single_segment": single_segment_latency(pipe.predict_proba, val)}
     ARTIFACTS["config.json"].write_text(json.dumps({
         "model_name": MODEL_NAME, "model_version": version, "seed": config.SEED,
         "chosen_config_id": chosen_id,
