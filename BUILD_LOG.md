@@ -2570,6 +2570,24 @@ Fixed 2026-09-27, before any encoder was downloaded or trained. Every existing m
 
   - deberta-v3's start and completion timestamps span 5.69 hours because the laptop slept for 3.03 hours mid-run. The process timer excludes most of that time.
   - Training losses are on the training data and say nothing about validation performance. The encoders are compared only through `validate` and `select`.
+- Validation and selection (2026-09-28; output in `data/processed/transformer_validate.txt` and `transformer_select.txt`). 33 labels, Rule B thresholds tuned on validation (optimistic):
+
+  | Encoder | Macro-F1 | Micro-F1 | Macro-AP | None FP rate |
+  |---|---|---|---|---|
+  | legal-bert | 0.4551 | 0.5501 | 0.4279 | 0.0198 |
+  | bert | 0.3289 | 0.2284 | 0.2894 | 0.0489 |
+  | deberta-v3 | 0.3512 | 0.3154 | 0.3005 | 0.0357 |
+
+  - Selection: legal-bert has the best macro-F1. legal-bert minus bert is +0.1263 [+0.1106, +0.1432], and legal-bert minus deberta-v3 is +0.1040 [+0.0856, +0.1252]. Both intervals exclude zero, so the eligible set is {legal-bert} and legal-bert is selected (`legal-bert|82466a1eefd8`).
+  - Domain comparison (legal-bert minus bert, validation; better-controlled, not causal): macro-F1 +0.1263 [+0.1106, +0.1432], micro-F1 +0.3217 [+0.3066, +0.3390], macro-AP 0.4279 against 0.2894.
+  - Truncated validation segments: 9 (legal-bert), 13 (bert), 9 (deberta-v3).
+  - Latency on local MPS, in ms per segment: legal-bert batch 3.190, single median 9.45, p95 30.95; bert 3.495, 8.41, 16.98; deberta-v3 10.021, 15.98, 53.41.
+  - All three encoders are below the TF-IDF baseline's validation figures (macro-F1 0.5670, micro-F1 0.6307, macro-AP 0.5671).
+- Diagnostic before the held-out run, on training data only (`scripts/transformer_train_fit.py`, 2,000 train segments sampled with `config.SEED`, output in `data/processed/transformer_train_fit.txt`). It separates a save or reload bug from genuine underfitting.
+  - The saved tokenizers encode 300 validation texts identically to the pinned snapshot tokenizers, for all three encoders.
+  - Predicting each label's train prior gives a BCE of 0.02646 on the sample (0.02657 on all train segments).
+  - Eval-mode BCE of the saved models against their epoch-3 training mean: legal-bert 0.01126 against 0.01216; bert 0.01513 against 0.01627; deberta-v3 0.01262 against 0.01432. The saved models reproduce training, so the saved artifacts are intact.
+  - At a 0.5 threshold on the sample's 282 positives, the models predicted 137 (126 true positives) for legal-bert, 48 (44) for bert and 114 (101) for deberta-v3. Positive scores are suppressed even on training data. Most tuned Rule B thresholds are well below 0.5, so this does not by itself establish underfitting. Underfitting, or the imbalance under unweighted BCE (89.0% none segments), is a plausible explanation, not an established cause. The pre-registered selection stands, and nothing was tuned before test.
 
 ### Problems hit and how we solved them
 - The first test run failed twice in the new tests: the toy segments used text contract ids, while the shared prediction schema stores `contract_id` as an integer. The toy data now uses integer ids.

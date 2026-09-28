@@ -1,0 +1,4 @@
+prior-only BCE on this sample: 0.02646
+legal-bert: eval-mode BCE 0.01126 (epoch 3 training mean 0.01216); positives 282, predicted at 0.5 137, true positives 126
+bert: eval-mode BCE 0.01513 (epoch 3 training mean 0.01627); positives 282, predicted at 0.5 48, true positives 44
+deberta-v3: eval-mode BCE 0.01262 (epoch 3 training mean 0.01432); positives 282, predicted at 0.5 114, true positives 101
