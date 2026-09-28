@@ -1,0 +1,117 @@
+
+=== legal-bert (legal-bert|82466a1eefd8), validation, Rule B thresholds tuned here (optimistic) ===
+All 33 labels: {'n_labels': 33, 'segments': 11656, 'macro_f1': 0.4551, 'micro_f1': 0.5501, 'macro_ap': 0.4279, 'none_segments': 10320, 'none_fp_rate': 0.0198}
+28 per-class labels: {'n_labels': 28, 'segments': 11656, 'macro_f1': 0.5316, 'micro_f1': 0.5716, 'macro_ap': 0.5017, 'none_segments': 10320, 'none_fp_rate': 0.0198}
+Truncated segments: 9; batch 3.190 ms/segment; single-segment median 9.45 ms, p95 30.95 ms
+                             label  support  predicted  tp  precision  recall    f1    ap  threshold
+           Third Party Beneficiary        8         15   0      0.000   0.000 0.000 0.001       0.04
+                 Non-Disparagement        9         29   0      0.000   0.000 0.000 0.016       0.04
+           No-Solicit Of Customers        2         16   0      0.000   0.000 0.000 0.006       0.04
+               Most Favored Nation        5         20   0      0.000   0.000 0.000 0.002       0.04
+                Liquidated Damages       31         98   6      0.061   0.194 0.093 0.047       0.02
+                Joint Ip Ownership       15         29   3      0.103   0.200 0.136 0.049       0.04
+ Competitive Restriction Exception       37        100  11      0.110   0.297 0.161 0.097       0.03
+                Volume Restriction       17          7   2      0.286   0.118 0.167 0.121       0.09
+         Post-Termination Services       79        112  18      0.161   0.228 0.188 0.132       0.12
+               Covenant Not To Sue       31         27   8      0.296   0.258 0.276 0.250       0.05
+                 Change Of Control       42        120  23      0.192   0.548 0.284 0.163       0.07
+                 Warranty Duration       28         15   7      0.467   0.250 0.326 0.265       0.06
+                 Affiliate License       42         27  12      0.444   0.286 0.348 0.246       0.20
+                       Exclusivity       88        109  37      0.339   0.420 0.376 0.298       0.16
+                    Rofr/Rofo/Rofn       70         53  26      0.491   0.371 0.423 0.380       0.06
+                Minimum Commitment       65         84  32      0.381   0.492 0.430 0.327       0.28
+  Irrevocable Or Perpetual License       50         75  31      0.413   0.620 0.496 0.502       0.16
+                Uncapped Liability       26         33  15      0.455   0.577 0.508 0.438       0.25
+                       Non-Compete       33         20  14      0.700   0.424 0.528 0.530       0.19
+       Termination For Convenience       54         38  27      0.711   0.500 0.587 0.586       0.26
+          Non-Transferable License       68         61  38      0.623   0.559 0.589 0.426       0.37
+            Revenue/Profit Sharing       81         54  42      0.778   0.519 0.622 0.609       0.31
+Notice Period To Terminate Renewal       22         16  12      0.750   0.545 0.632 0.605       0.32
+           Ip Ownership Assignment       27         23  16      0.696   0.593 0.640 0.658       0.38
+           No-Solicit Of Employees       17         16  11      0.688   0.647 0.667 0.666       0.11
+                     License Grant      177        132 108      0.818   0.610 0.699 0.727       0.53
+                      Renewal Term       34         30  24      0.800   0.706 0.750 0.733       0.43
+                      Audit Rights       82         86  65      0.756   0.793 0.774 0.807       0.51
+                  Cap On Liability      122        123  98      0.797   0.803 0.800 0.841       0.29
+                   Anti-Assignment      105        110  90      0.818   0.857 0.837 0.875       0.36
+                   Expiration Date       94         91  78      0.857   0.830 0.843 0.817       0.36
+                         Insurance       70         77  65      0.844   0.929 0.884 0.928       0.44
+                     Governing Law       90         94  88      0.936   0.978 0.957 0.974       0.47
+
+=== bert (bert|d06444684c09), validation, Rule B thresholds tuned here (optimistic) ===
+All 33 labels: {'n_labels': 33, 'segments': 11656, 'macro_f1': 0.3289, 'micro_f1': 0.2284, 'macro_ap': 0.2894, 'none_segments': 10320, 'none_fp_rate': 0.0489}
+28 per-class labels: {'n_labels': 28, 'segments': 11656, 'macro_f1': 0.3871, 'micro_f1': 0.2575, 'macro_ap': 0.3407, 'none_segments': 10320, 'none_fp_rate': 0.0489}
+Truncated segments: 13; batch 3.495 ms/segment; single-segment median 8.41 ms, p95 16.98 ms
+                             label  support  predicted  tp  precision  recall    f1    ap  threshold
+           Third Party Beneficiary        8         70   0      0.000   0.000 0.000 0.001       0.02
+                 Non-Disparagement        9        154   0      0.000   0.000 0.000 0.002       0.02
+           No-Solicit Of Customers        2         76   0      0.000   0.000 0.000 0.002       0.02
+               Most Favored Nation        5        102   0      0.000   0.000 0.000 0.001       0.02
+                Volume Restriction       17        516   2      0.004   0.118 0.008 0.004       0.02
+                Joint Ip Ownership       15        423   3      0.007   0.200 0.014 0.006       0.02
+ Competitive Restriction Exception       37        344   6      0.017   0.162 0.031 0.014       0.02
+                Liquidated Damages       31        800  16      0.020   0.516 0.039 0.018       0.01
+               Covenant Not To Sue       31         20   1      0.050   0.032 0.039 0.014       0.05
+                    Rofr/Rofo/Rofn       70       1404  33      0.024   0.471 0.045 0.023       0.01
+         Post-Termination Services       79        303  20      0.066   0.253 0.105 0.042       0.06
+                 Change Of Control       42         72   6      0.083   0.143 0.105 0.039       0.05
+                 Warranty Duration       28         23   3      0.130   0.107 0.118 0.068       0.06
+           No-Solicit Of Employees       17        125  12      0.096   0.706 0.169 0.069       0.02
+           Ip Ownership Assignment       27         90  13      0.144   0.481 0.222 0.152       0.09
+                Minimum Commitment       65         72  17      0.236   0.262 0.248 0.179       0.09
+                       Exclusivity       88        102  26      0.255   0.295 0.274 0.171       0.13
+       Termination For Convenience       54         45  14      0.311   0.259 0.283 0.173       0.09
+                       Non-Compete       33         15   7      0.467   0.212 0.292 0.209       0.07
+                 Affiliate License       42         22  12      0.545   0.286 0.375 0.285       0.16
+            Revenue/Profit Sharing       81         55  28      0.509   0.346 0.412 0.350       0.11
+  Irrevocable Or Perpetual License       50         86  31      0.360   0.620 0.456 0.434       0.12
+                Uncapped Liability       26         50  20      0.400   0.769 0.526 0.493       0.16
+          Non-Transferable License       68         78  39      0.500   0.574 0.534 0.394       0.28
+                      Audit Rights       82         64  43      0.672   0.524 0.589 0.585       0.18
+Notice Period To Terminate Renewal       22         15  11      0.733   0.500 0.595 0.499       0.22
+                     License Grant      177        124 101      0.815   0.571 0.671 0.645       0.54
+                  Cap On Liability      122         96  77      0.802   0.631 0.706 0.744       0.44
+                      Renewal Term       34         28  22      0.786   0.647 0.710 0.728       0.36
+                   Anti-Assignment      105         97  77      0.794   0.733 0.762 0.738       0.28
+                   Expiration Date       94         91  73      0.802   0.777 0.789 0.705       0.23
+                         Insurance       70         63  55      0.873   0.786 0.827 0.826       0.23
+                     Governing Law       90         88  81      0.920   0.900 0.910 0.939       0.12
+
+=== deberta-v3 (deberta-v3|276599e06b3f), validation, Rule B thresholds tuned here (optimistic) ===
+All 33 labels: {'n_labels': 33, 'segments': 11656, 'macro_f1': 0.3512, 'micro_f1': 0.3154, 'macro_ap': 0.3005, 'none_segments': 10320, 'none_fp_rate': 0.0357}
+28 per-class labels: {'n_labels': 28, 'segments': 11656, 'macro_f1': 0.4136, 'micro_f1': 0.3992, 'macro_ap': 0.3537, 'none_segments': 10320, 'none_fp_rate': 0.0357}
+Truncated segments: 9; batch 10.021 ms/segment; single-segment median 15.98 ms, p95 53.41 ms
+                             label  support  predicted  tp  precision  recall    f1    ap  threshold
+           Third Party Beneficiary        8         62   0      0.000   0.000 0.000 0.001       0.01
+               Most Favored Nation        5         78   0      0.000   0.000 0.000 0.001       0.01
+           No-Solicit Of Customers        2        120   0      0.000   0.000 0.000 0.003       0.01
+                 Non-Disparagement        9        224   0      0.000   0.000 0.000 0.002       0.01
+                Joint Ip Ownership       15        667   3      0.004   0.200 0.009 0.005       0.01
+                Volume Restriction       17         84   3      0.036   0.176 0.059 0.019       0.03
+                 Warranty Duration       28         65   3      0.046   0.107 0.065 0.034       0.04
+                Liquidated Damages       31         29   2      0.069   0.065 0.067 0.033       0.02
+               Covenant Not To Sue       31         25   2      0.080   0.065 0.071 0.031       0.05
+                    Rofr/Rofo/Rofn       70        857  35      0.041   0.500 0.076 0.053       0.01
+                 Change Of Control       42         39   5      0.128   0.119 0.123 0.093       0.05
+         Post-Termination Services       79         98  13      0.133   0.165 0.147 0.069       0.11
+ Competitive Restriction Exception       37         31   5      0.161   0.135 0.147 0.108       0.03
+       Termination For Convenience       54        117  23      0.197   0.426 0.269 0.119       0.05
+                       Non-Compete       33         47  11      0.234   0.333 0.275 0.159       0.08
+                       Exclusivity       88        181  38      0.210   0.432 0.283 0.212       0.10
+           No-Solicit Of Employees       17         39   8      0.205   0.471 0.286 0.191       0.02
+                 Affiliate License       42         47  14      0.298   0.333 0.315 0.240       0.19
+            Revenue/Profit Sharing       81        132  42      0.318   0.519 0.394 0.309       0.21
+                Minimum Commitment       65         24  18      0.750   0.277 0.404 0.325       0.34
+           Ip Ownership Assignment       27         22  10      0.455   0.370 0.408 0.317       0.14
+Notice Period To Terminate Renewal       22         24  11      0.458   0.500 0.478 0.410       0.20
+  Irrevocable Or Perpetual License       50         81  32      0.395   0.640 0.489 0.400       0.22
+                Uncapped Liability       26         48  20      0.417   0.769 0.541 0.429       0.19
+          Non-Transferable License       68         67  41      0.612   0.603 0.607 0.407       0.44
+                     License Grant      177        131 103      0.786   0.582 0.669 0.660       0.71
+                      Renewal Term       34         36  24      0.667   0.706 0.686 0.597       0.40
+                  Cap On Liability      122         96  76      0.792   0.623 0.697 0.693       0.39
+                      Audit Rights       82         90  64      0.711   0.780 0.744 0.727       0.44
+                   Expiration Date       94         75  63      0.840   0.670 0.746 0.704       0.46
+                   Anti-Assignment      105         83  71      0.855   0.676 0.755 0.735       0.64
+                         Insurance       70         69  58      0.841   0.829 0.835 0.877       0.31
+                     Governing Law       90         90  85      0.944   0.944 0.944 0.953       0.74

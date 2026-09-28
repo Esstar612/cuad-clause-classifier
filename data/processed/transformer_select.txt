@@ -1,0 +1,18 @@
+=== Validation, 33 labels, Rule B thresholds tuned on validation (optimistic) ===
+legal-bert  macro-F1 0.4551  micro-F1 0.5501  macro-AP 0.4279  encoder parameters 109,482,240
+bert        macro-F1 0.3289  micro-F1 0.2284  macro-AP 0.2894  encoder parameters 109,482,240
+deberta-v3  macro-F1 0.3512  micro-F1 0.3154  macro-AP 0.3005  encoder parameters 183,831,552
+
+Best macro-F1: legal-bert
+  legal-bert minus bert: +0.1263 [+0.1106, +0.1432]
+  legal-bert minus deberta-v3: +0.1040 [+0.0856, +0.1252]
+Eligible (interval includes zero): ['legal-bert']
+Smallest-size group (within 1% of 109,482,240): ['legal-bert']
+Selected: legal-bert (legal-bert|82466a1eefd8)
+
+=== Domain comparison, legal-bert minus bert (validation; better-controlled, not causal) ===
+macro_f1: +0.1263 [+0.1106, +0.1432]
+micro_f1: +0.3217 [+0.3066, +0.3390]
+macro-AP points: {'legal-bert': 0.4278838704376746, 'bert': 0.289402119878641}
+
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/models/transformer/selected.json and /Users/owner/Dropbox/My Resume/Code/CCC/data/predictions/transformer_val.parquet

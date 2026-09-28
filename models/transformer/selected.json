@@ -1,0 +1,78 @@
+{
+  "encoder": "legal-bert",
+  "model_version": "legal-bert|82466a1eefd8",
+  "best_macro_f1": "legal-bert",
+  "differences_from_best": {
+    "bert": {
+      "difference": 0.12626014555742582,
+      "ci_low": 0.11055243096092673,
+      "ci_high": 0.14323206377925235,
+      "n_resamples": 2000
+    },
+    "deberta-v3": {
+      "difference": 0.10398706355074144,
+      "ci_low": 0.08560049708608079,
+      "ci_high": 0.12518026829524137,
+      "n_resamples": 2000
+    }
+  },
+  "eligible": [
+    "legal-bert"
+  ],
+  "smallest_size_group": [
+    "legal-bert"
+  ],
+  "encoder_parameters": {
+    "legal-bert": 109482240,
+    "bert": 109482240,
+    "deberta-v3": 183831552
+  },
+  "validation": {
+    "legal-bert": {
+      "n_labels": 33,
+      "segments": 11656,
+      "macro_f1": 0.4551449416742245,
+      "micro_f1": 0.5501229172357279,
+      "macro_ap": 0.4278838704376746,
+      "none_segments": 10320,
+      "none_fp_rate": 0.019767441860465116
+    },
+    "bert": {
+      "n_labels": 33,
+      "segments": 11656,
+      "macro_f1": 0.32888479611679866,
+      "micro_f1": 0.22841000807102502,
+      "macro_ap": 0.289402119878641,
+      "none_segments": 10320,
+      "none_fp_rate": 0.04893410852713178
+    },
+    "deberta-v3": {
+      "n_labels": 33,
+      "segments": 11656,
+      "macro_f1": 0.35115787812348304,
+      "micro_f1": 0.3154134666904804,
+      "macro_ap": 0.300472981045069,
+      "none_segments": 10320,
+      "none_fp_rate": 0.03565891472868217
+    }
+  },
+  "domain_comparison": {
+    "macro_f1": {
+      "difference": 0.12626014555742582,
+      "ci_low": 0.11055243096092673,
+      "ci_high": 0.14323206377925235,
+      "n_resamples": 2000
+    },
+    "micro_f1": {
+      "difference": 0.3217129091647029,
+      "ci_low": 0.3065656240821777,
+      "ci_high": 0.33895802539744485,
+      "n_resamples": 2000
+    },
+    "macro_ap_points": {
+      "legal-bert": 0.4278838704376746,
+      "bert": 0.289402119878641
+    }
+  },
+  "selected_utc": "2026-09-28T10:49:33+00:00"
+}
