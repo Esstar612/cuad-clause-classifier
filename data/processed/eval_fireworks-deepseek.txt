@@ -1,0 +1,247 @@
+Model: fireworks-deepseek   version: accounts/fireworks/models/deepseek-v4p1-flash|prompt v3 8ec29d0ea6ca|thresholds 01261b8608c6
+Method: 2000 contract-level bootstrap resamples, stratified by contract type, percentile 95% intervals, seed 42
+Scores are sparse (unlisted labels score 0): macro_ap is a lower bound, not comparable to dense-score models (pre-registered 2026-09-24).
+  bootstrapping AP for 'test' (96 contracts, 9378 segments)...
+  bootstrapping AP for 'shift' (28 contracts, 4584 segments)...
+  bootstrapping AP for 'shift:Franchise' (15 contracts, 2694 segments)...
+  bootstrapping AP for 'shift:Transportation' (13 contracts, 1890 segments)...
+
+=== Scopes: point [95% CI]  (none_fp_rate on parsed segments only; parse failures count as empty predictions for F1) ===
+test | Rule A                    labels=26 contracts= 96  macro_f1=0.6828 [0.6570, 0.7076]  micro_f1=0.7136 [0.6904, 0.7398]  macro_ap=0.6383 [0.6138, 0.6771]  none_fp_rate=0.0370 [0.0320, 0.0430]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+test | all                       labels=33 contracts= 96  macro_f1=0.6655 [0.6351, 0.6918]  micro_f1=0.7087 [0.6857, 0.7345]  macro_ap=0.6241 [0.5971, 0.6657]  none_fp_rate=0.0370 [0.0320, 0.0430]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+test | Rule C                    labels=17 contracts= 96  macro_f1=0.7123 [0.6840, 0.7388]  micro_f1=0.7385 [0.7150, 0.7635]  macro_ap=0.6701 [0.6401, 0.7107]  none_fp_rate=0.0370 [0.0320, 0.0430]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift | Rule C                   labels=17 contracts= 28  macro_f1=0.5552 [0.4984, 0.6199]  micro_f1=0.5842 [0.5284, 0.6440]  macro_ap=0.5274 [0.4775, 0.6071]  none_fp_rate=0.0489 [0.0398, 0.0568]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift | all                      labels=32 contracts= 28  macro_f1=0.4751 [0.4383, 0.5336]  micro_f1=0.5690 [0.5235, 0.6170]  macro_ap=0.4859 [0.4492, 0.5528]  none_fp_rate=0.0489 [0.0398, 0.0568]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift:Franchise | Rule C         labels=17 contracts= 15  macro_f1=0.5225 [0.4688, 0.6000]  micro_f1=0.5945 [0.5422, 0.6496]  macro_ap=0.4969 [0.4566, 0.6018]  none_fp_rate=0.0605 [0.0521, 0.0693]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift:Franchise | all            labels=30 contracts= 15  macro_f1=0.4839 [0.4500, 0.5433]  micro_f1=0.5785 [0.5413, 0.6211]  macro_ap=0.4573 [0.4374, 0.5568]  none_fp_rate=0.0605 [0.0521, 0.0693]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift:Transportation | Rule C    labels=16 contracts= 13  macro_f1=0.5143 [0.4115, 0.6469]  micro_f1=0.5584 [0.4358, 0.7150]  macro_ap=0.5293 [0.4556, 0.6746]  none_fp_rate=0.0339 [0.0187, 0.0489]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift:Transportation | all       labels=24 contracts= 13  macro_f1=0.5034 [0.3800, 0.6042]  micro_f1=0.5481 [0.4215, 0.6928]  macro_ap=0.5889 [0.4569, 0.6986]  none_fp_rate=0.0339 [0.0187, 0.0489]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+
+=== Test minus shift, Rule C labels (independent bootstraps) ===
+macro_f1       +0.1571 [+0.0888, +0.2183]
+micro_f1       +0.1543 [+0.0903, +0.2153]
+macro_ap       +0.1427 [+0.0601, +0.2051]
+none_fp_rate   -0.0119 [-0.0214, -0.0007]
+parse_failure_rate +0.0000 [+0.0000, +0.0000]
+
+=== Per-label test (all 33; main_table=False: insufficient support, not interpreted) ===
+                             label  contracts  segments  precision  recall  main_table    f1  f1_lo  f1_hi    ap  ap_lo  ap_hi  f1_n
+           Third Party Beneficiary          3         3      0.143   1.000       False 0.250  0.087  0.435 0.107  0.049  0.239  1948
+                Volume Restriction         14        24      0.385   0.208        True 0.270  0.143  0.387 0.216  0.106  0.356  2000
+ Competitive Restriction Exception         13        17      0.290   0.529        True 0.375  0.200  0.526 0.382  0.178  0.617  2000
+         Post-Termination Services         37        74      0.412   0.378        True 0.394  0.288  0.482 0.290  0.204  0.399  2000
+                 Affiliate License          9        14      0.500   0.429       False 0.462  0.211  0.714 0.433  0.189  0.770  2000
+                 Warranty Duration         17        44      0.467   0.477        True 0.472  0.354  0.617 0.440  0.284  0.685  2000
+                 Change Of Control         20        42      0.562   0.429        True 0.486  0.333  0.615 0.396  0.272  0.545  2000
+                Minimum Commitment         35        86      0.625   0.407        True 0.493  0.328  0.636 0.426  0.261  0.593  2000
+           Ip Ownership Assignment         22        38      0.654   0.447        True 0.531  0.344  0.694 0.518  0.324  0.722  2000
+                 Non-Disparagement          6        11      0.833   0.455       False 0.588  0.222  0.870 0.548  0.227  1.000  1998
+           No-Solicit Of Customers          7        10      0.714   0.500       False 0.588  0.285  0.737 0.653  0.338  0.872  2000
+                Uncapped Liability         19        25      0.552   0.640        True 0.593  0.444  0.727 0.477  0.324  0.684  2000
+            Revenue/Profit Sharing         32        83      0.545   0.663        True 0.598  0.484  0.698 0.545  0.382  0.731  2000
+                       Non-Compete         22        43      0.580   0.674        True 0.624  0.484  0.727 0.605  0.403  0.753  2000
+                       Exclusivity         36        76      0.602   0.658        True 0.629  0.533  0.730 0.546  0.425  0.697  2000
+                Liquidated Damages         14        30      0.714   0.667        True 0.690  0.541  0.862 0.569  0.389  0.864  2000
+               Covenant Not To Sue         20        33      0.833   0.606        True 0.702  0.559  0.836 0.578  0.407  0.774  2000
+               Most Favored Nation          6         8      0.833   0.625       False 0.714  0.333  0.923 0.750  0.400  1.000  1997
+       Termination For Convenience         38        50      0.691   0.760        True 0.724  0.646  0.800 0.660  0.529  0.797  2000
+                Joint Ip Ownership          9        19      1.000   0.579       False 0.733  0.444  0.947 0.667  0.362  0.990  2000
+                      Audit Rights         39        77      0.907   0.636        True 0.748  0.667  0.832 0.690  0.592  0.798  2000
+                  Cap On Liability         56       121      0.830   0.686        True 0.751  0.698  0.812 0.670  0.588  0.762  2000
+                    Rofr/Rofo/Rofn         14        46      0.761   0.761        True 0.761  0.617  0.845 0.750  0.568  0.871  2000
+          Non-Transferable License         24        47      0.912   0.660        True 0.765  0.652  0.857 0.715  0.586  0.835  2000
+                     License Grant         46       112      0.832   0.839        True 0.836  0.781  0.889 0.827  0.746  0.902  2000
+Notice Period To Terminate Renewal         24        27      0.821   0.852        True 0.836  0.737  0.929 0.823  0.685  0.962  2000
+                   Expiration Date         75        78      0.833   0.897        True 0.864  0.810  0.915 0.860  0.789  0.925  2000
+  Irrevocable Or Perpetual License          9        18      0.810   0.944       False 0.872  0.759  0.955 0.841  0.643  0.978  2000
+                   Anti-Assignment         71        91      0.919   0.868        True 0.893  0.853  0.938 0.901  0.846  0.959  2000
+                         Insurance         28        73      0.835   0.973        True 0.899  0.850  0.934 0.934  0.881  0.976  2000
+                      Renewal Term         36        37      0.837   0.973        True 0.900  0.833  0.961 0.911  0.829  0.992  2000
+           No-Solicit Of Employees         12        15      0.882   1.000        True 0.938  0.857  1.000 0.866  0.676  1.000  2000
+                     Governing Law         81        87      0.977   0.989        True 0.983  0.966  1.000 0.997  0.994  1.000  2000
+
+=== Per-label shift, Rule C labels, combined ===
+                             label  contracts  segments  precision  recall    f1  f1_lo  f1_hi    ap  ap_lo  ap_hi  f1_n
+                Volume Restriction         11        31      0.200   0.032 0.056  0.000  0.171 0.046  0.005  0.126  2000
+                Minimum Commitment         14        58      0.571   0.138 0.222  0.109  0.348 0.147  0.071  0.277  2000
+         Post-Termination Services         10        31      0.333   0.258 0.291  0.123  0.414 0.216  0.131  0.323  2000
+            Revenue/Profit Sharing         11        25      0.875   0.280 0.424  0.167  0.667 0.370  0.155  0.620  2000
+                   Anti-Assignment         20        45      0.481   0.556 0.515  0.404  0.638 0.506  0.379  0.660  2000
+                       Exclusivity         10        22      0.455   0.682 0.545  0.286  0.724 0.446  0.159  0.725  2000
+                Liquidated Damages         10        19      0.500   0.737 0.596  0.414  0.727 0.627  0.372  0.824  2000
+                     License Grant         10        25      0.636   0.560 0.596  0.377  0.816 0.540  0.299  0.839  2000
+Notice Period To Terminate Renewal         11        14      0.667   0.571 0.615  0.421  0.778 0.477  0.345  0.699  2000
+                  Cap On Liability         14        24      0.593   0.667 0.627  0.444  0.857 0.579  0.327  0.881  2000
+                      Renewal Term         15        33      0.889   0.485 0.627  0.480  0.800 0.593  0.481  0.827  2000
+               Covenant Not To Sue         10        22      0.765   0.591 0.667  0.514  0.857 0.584  0.438  0.801  2000
+                       Non-Compete         11        53      0.638   0.698 0.667  0.585  0.784 0.688  0.535  0.849  2000
+                   Expiration Date         23        26      0.600   0.923 0.727  0.617  0.842 0.885  0.774  0.980  2000
+                      Audit Rights         13        43      0.848   0.651 0.737  0.580  0.886 0.710  0.570  0.867  2000
+                         Insurance         15        67      0.644   0.866 0.739  0.582  0.868 0.780  0.620  0.925  2000
+                     Governing Law         23        24      0.688   0.917 0.786  0.677  0.909 0.772  0.646  0.925  2000
+
+=== Calibration on test (all segment-label pairs pooled) ===
+Pooled ECE: 0.0019 [0.0016, 0.0021]
+       bin  count  mean_predicted  observed_rate
+[0.0, 0.1) 307069          0.0000         0.0011
+[0.1, 0.2)    169          0.1342         0.0533
+[0.2, 0.3)    158          0.2063         0.0633
+[0.3, 0.4)    292          0.3041         0.1541
+[0.4, 0.5)    176          0.4014         0.1989
+[0.5, 0.6)    207          0.5068         0.2947
+[0.6, 0.7)    271          0.6013         0.4908
+[0.7, 0.8)    209          0.7132         0.6268
+[0.8, 0.9)    332          0.8341         0.7651
+[0.9, 1.0]    591          0.9256         0.9137
+
+Per-label, Rule A labels (mean predicted vs observed positive rate):
+                             label    ece  mean_predicted  observed_rate
+         Post-Termination Services 0.0091          0.0131         0.0079
+                Minimum Commitment 0.0066          0.0053         0.0092
+                  Cap On Liability 0.0052          0.0084         0.0129
+            Revenue/Profit Sharing 0.0048          0.0107         0.0089
+                       Exclusivity 0.0046          0.0080         0.0081
+                     License Grant 0.0041          0.0114         0.0119
+                 Warranty Duration 0.0035          0.0030         0.0047
+                      Audit Rights 0.0033          0.0067         0.0082
+           Ip Ownership Assignment 0.0032          0.0049         0.0041
+                 Change Of Control 0.0029          0.0044         0.0045
+          Non-Transferable License 0.0024          0.0040         0.0050
+                   Anti-Assignment 0.0023          0.0101         0.0097
+                Volume Restriction 0.0022          0.0008         0.0026
+                    Rofr/Rofo/Rofn 0.0022          0.0034         0.0049
+       Termination For Convenience 0.0021          0.0052         0.0053
+               Covenant Not To Sue 0.0020          0.0021         0.0035
+                   Expiration Date 0.0019          0.0066         0.0083
+                       Non-Compete 0.0019          0.0044         0.0046
+ Competitive Restriction Exception 0.0017          0.0020         0.0018
+                Liquidated Damages 0.0016          0.0027         0.0032
+                Uncapped Liability 0.0015          0.0030         0.0027
+                     Governing Law 0.0011          0.0097         0.0093
+Notice Period To Terminate Renewal 0.0011          0.0027         0.0029
+                         Insurance 0.0010          0.0080         0.0078
+                      Renewal Term 0.0010          0.0043         0.0039
+           No-Solicit Of Employees 0.0001          0.0016         0.0016
+
+=== Error analysis on VALIDATION (not test) ===
+Top confused pairs (segments truly labeled A that were also predicted B, B wrong):
+                             true                   predicted  segments
+                    License Grant           Affiliate License         9
+                 Cap On Liability          Uncapped Liability         8
+ Irrevocable Or Perpetual License           Affiliate License         8
+         Non-Transferable License           Affiliate License         7
+                  Expiration Date                Renewal Term         6
+                  Expiration Date Termination For Convenience         5
+                      Non-Compete                 Exclusivity         5
+                    License Grant                 Non-Compete         4
+                  Anti-Assignment     Third Party Beneficiary         3
+Competitive Restriction Exception                 Exclusivity         3
+                      Exclusivity          Minimum Commitment         3
+                  Anti-Assignment               License Grant         2
+                  Anti-Assignment    Non-Transferable License         2
+                  Anti-Assignment                Renewal Term         2
+Competitive Restriction Exception              Rofr/Rofo/Rofn         2
+
+Failing labels on validation: ['Post-Termination Services', 'Volume Restriction']
+
+[Post-Termination Services | false_negative | 15_118 | p=0.000]
+true=['Post-Termination Services']
+predicted=[]
+22 (k) During the period ending on the fifth anniversary of the expiration of the fiscal year during which the closing of the transactions contemplated hereby occurs, the Company will furnish to the Agent (i) as soon as publicly available, a copy of each report or other document of the Company furnished generally to stockholders of the Company or furnished to or filed with the Commission under the
+
+[Post-Termination Services | false_negative | 53_77 | p=0.000]
+true=['Post-Termination Services']
+predicted=[]
+(A) pay you (or your authorised representative or estate if the termination is due to your death) an amount equal to nine (9) months of your salary as of the Termination Date (which payment shall not be reduced by either the value of any salary paid to you during your notice period or by any payment in lieu of notice made pursuant to paragraph 11.2); and (B) pay you (or your authorised representat
+
+[Post-Termination Services | false_negative | 180_93 | p=0.000]
+true=['Audit Rights', 'Post-Termination Services']
+predicted=['Audit Rights']
+(e) Books and Records: Each party shall keep accurate and complete books and records as they relate hereto for the greater of three years from the Effective Date or two years from the termination or expiration of the Term. On reasonable notice, each party shall have the right to examine said books and records; provided that such examination will be made no more than twice in any given twelve month
+
+[Post-Termination Services | false_negative | 214_95 | p=0.000]
+true=['Post-Termination Services']
+predicted=[]
+(i) Inktomi then owns all of the Returned Collateral and has [*] the Returned Collateral [*], and [*] other than Lender;
+
+[Post-Termination Services | false_negative | 508_23 | p=0.000]
+true=['Post-Termination Services']
+predicted=[]
+after its entry or levy. 8.3 Party Liability Upon Termination a) Manufacturer Termination Without Cause. If the Manufacturer terminates this Agreement or cancels any purchase order without cause pursuant to Section 8.2, Subcontractor will stop all shipments and retain all inventory. Subcontractor may, at its sole discretion, assist Manufacturer in the liquidation of any inventory that is generic t
+
+[Post-Termination Services | false_positive | 34_215 | p=0.800]
+true=[]
+predicted=['Post-Termination Services']
+(d) [***]. (e) Except with respect to AMAG's right to sell off existing inventory as set forth in Section 7.6(d), the Parties acknowledge and agree that following any expiration or termination of this Agreement, all rights and licenses granted to AMAG under this Agreement or the Development and License Agreement shall terminate and AMAG shall cease using and selling any Products, sample Products o
+
+[Post-Termination Services | false_positive | 201_561 | p=0.800]
+true=[]
+predicted=['Post-Termination Services']
+(c) subject to Section 12.10.2 and Section 12.7 (solely following the License Option Exercise Closing Date), AbbVie shall cease any and all Exploitation of Licensed Compounds and Licensed Products and transfer to Harpoon, or destroy (at Harpoon's sole election), copies of all data and Information generated by AbbVie in connection with the Exploitation of Licensed Compounds or Licensed Products, an
+
+[Post-Termination Services | false_positive | 307_257 | p=0.850]
+true=[]
+predicted=['Post-Termination Services']
+16.6. EFFECT OF TERMINATION. 16.6.1. Upon notice of termination of this Agreement for any reason whatsoever, the parties shall execute rapidly and efficiently the procedure for termination of the Manufacturing Outsourcing Services by Contractor and the transfer of production to NICE as set forth hereunder and agreed between the parties, provided that Contractor will not be required to incur additi
+
+[Post-Termination Services | false_positive | 307_259 | p=0.700]
+true=[]
+predicted=['Post-Termination Services']
+connection with the Manufacturing Outsourcing Services, whether prepared by NICE or by Contractor, and all NICE Proprietary Information which is in the possession of Contractor or anyone on its behalf, including its Permitted Subcontractors. Upon termination of this Agreement, Contractor shall return any such information to NICE notwithstanding the provisions of Section 10.6. above.
+
+[Post-Termination Services | false_positive | 431_151 | p=0.750]
+true=[]
+predicted=['Post-Termination Services']
+Source: STAMPS.COM INC, 10-Q, 11/14/2000 each party shall, at its own expense, destroy or return to the Company and make no further use of, any property, materials or other items of the other party and shall certify, in writing that it has done so
+
+[Volume Restriction | false_negative | 17_29 | p=0.000]
+true=['Volume Restriction']
+predicted=[]
+(e) Videotapes. KI will participate in the production of up to one (1) product information/sales video per License Year during the period of this Agreement on behalf of Diplomat at a mutually acceptable time and place. The video production sessions shall be scheduled at KI's convenience upon not less than two (2) weeks prior notice, and shall be subject to KI's preexisting personal and professiona
+
+[Volume Restriction | false_negative | 51_254 | p=0.000]
+true=['Volume Restriction']
+predicted=[]
+(b) Dedicated FTEs; Key Persons. In addition to its obligations set forth in Section 5.4.1(a) (Personnel - Generally), during the period beginning [***] ([***]) Business Days after the Effective Date and ending on the [***] ([***]) anniversary of the Effective Date, BLI shall [***] provide Ginkgo with [***] ([***]) FTEs to work on-site at Ginkgo to aid in [***]. Following the [***] ([***]) anniver
+
+[Volume Restriction | false_negative | 51_262 | p=0.000]
+true=['Volume Restriction']
+predicted=[]
+(c) Short Supply. Without limiting anything to the contrary in this Agreement, in the event that any Beacon Optofluidic Machines (including related Hardware and Software), Consumables or the Services are in short supply, i.e., [***], BLI shall notify Ginkgo in writing of such circumstances as soon as possible, including the underlying reasons for such shortage, the date such inability is expected 
+
+[Volume Restriction | false_negative | 180_275 | p=0.000]
+true=['Volume Restriction']
+predicted=[]
+"TBD" Wireless Products Up to: 1 Java Game (2-D or 3-D to be mutually agreed provided that if the parties are unable to reach an agreement, Licensee's decision will prevail)
+
+[Volume Restriction | false_negative | 357_1 | p=0.000]
+true=['Volume Restriction']
+predicted=[]
+In Clotamin-related press releases. D. In connection with any HDS' usage of Celebrity Attributes as outlined above in Paragraphs 3(A)-(C), HDS will feature the following disclaimer in close proximity to said usage: "PAUL SILAS IS NOT A MEDICAL AUTHORITY. THESE STATEMENTS HAVE NOT BEEN EVALUATED BY THE FOOD AND DRUG ADMINISTRATION. THIS PRODUCT IS NOT INTENDED TO DIAGNOSE, TREAT, CURE OR PREVENT AN
+
+[Volume Restriction | false_positive | 71_19 | p=0.600]
+true=[]
+predicted=['Volume Restriction']
+(h) Within the [***] of each calendar month during the Term, Heritage shall provide to Premier a [***] rolling production forecast which shall set forth Heritage's good faith estimated maximum monthly unit volume ("Maximum Volume") for each Facility during such [***] period. Modifications to the Maximum Volume shall be negotiated in good faith and agreed upon by both Parties in writing or email by
+
+[Volume Restriction | false_positive | 214_219 | p=0.750]
+true=[]
+predicted=['Volume Restriction']
+If [*] for a [*] exceeds its agreed capacity provisioning (as determined in accordance with Sections 2.2 and 2.8, then Microsoft's [*] will be [*] ([*] if the [*] is by [*], or [*] if such [*] is by [*]) in accordance with the following computation: [*] the [*] ("[*]") times the [*] of the provisioned capacity ("[*]"). Note that the over-utilization could apply to [*] in any [*].
+
+[Volume Restriction | false_positive | 226_6 | p=0.500]
+true=['Minimum Commitment']
+predicted=['Minimum Commitment', 'Volume Restriction']
+Source: IMINE CORP, S-1, 7/25/2018 4.2 Purchase Orders. The Distributor shall initiate purchases under this Agreement by submitting written purchase orders (each, an "Order") to JRVS. Such orders shall state unit quantities, unit descriptions, requested delivery dates, and shipping instructions. No purchase order shall be binding upon JRVS until accepted by JRVS in writing. JRVS reserves the right
+
+[Volume Restriction | false_positive | 253_9 | p=0.300]
+true=['Competitive Restriction Exception', 'Exclusivity', 'Minimum Commitment']
+predicted=['Exclusivity', 'Minimum Commitment', 'Volume Restriction']
+2. EXCLUSIVITY a. Schoolpop shall have the exclusive right to resell Cards in the NPO Marketplace. Notwithstanding the foregoing, Schoolpop shall fund from AEIS a minimum of $52,000,000 of Cards (the "Guaranteed Minimum") in each Contract Year in order to maintain the exclusive right to sell Cards in the NPO Marketplace. A Contract Year shall be the period of August 1 through July 31 of the succee
+
+[Volume Restriction | false_positive | 437_15 | p=0.300]
+true=[]
+predicted=['Volume Restriction']
+- 10 - TELKOM CONTRACT NO. 076C/01 3. 8. Unless agreed by the parties to the contrary, TELKOM may only USE the program modules referred to in the definition of SOFTWARE even if TELKOM is technically able to USE other modules from the SOFTWARE supplied. 3. 9. It is recorded that the SOFTWARE licensed in terms of this AGREEMENT, and its functionality, enables, and is to be USED to establish, operate
+
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/data/eval/fireworks-deepseek.json
