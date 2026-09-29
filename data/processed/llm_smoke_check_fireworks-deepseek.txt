@@ -1,0 +1,4 @@
+fireworks-deepseek smoke PASS  (judged invocation 2026-09-29T16:15:46+00:00; setup reruns before it: 0)
+  reasoning tokens 0; max output 56 tokens; max latency 2131 ms; cost per call $0.00178
+  remaining iteration calls 354, then validation, test, shift and repeat
+  projection {'iteration': 0.63, 'val_test_shift': 4.12, 'n1_upper_bound': 0.0, 'repeat': 0.11, 'total': 4.86}; spent $53.71; after 6b about $58.57 (soft checkpoint $100, hard cap $150)

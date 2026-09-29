@@ -1,0 +1,12 @@
+{
+  "status": "finished",
+  "run_utc": "2026-09-29T16:15:46+00:00",
+  "completed": [
+    "c15_w0_n10_15_0",
+    "c15_w1_n10_15_10",
+    "c15_w2_n10_15_20"
+  ],
+  "failed": {},
+  "stopped": null,
+  "setup_reruns": []
+}

@@ -1,0 +1,29 @@
+/Users/owner/Dropbox/My Resume/Code/CCC/src/llm/run.py:410: RuntimeWarning: Mean of empty slice
+  "macro_ap_sparse_lower_bound" if sparse else "macro_ap": float(np.nanmean(ap)),
+Checkpoint: spent $53.71 so far; this command projects $0.01 (offline estimate (no v3 N=10 history)); total $53.71; soft checkpoint $100.00, hard cap $150.00
+Model fireworks-deepseek (accounts/fireworks/models/deepseek-v4p1-flash), prompt v3, batch size 10 (SMOKE TEST: partial sample, not saved)
+
+Validation iteration metrics at threshold 0.5:
+  segments: 30
+  contracts: 1
+  micro_f1: 0.0
+  macro_f1: nan
+  macro_ap_sparse_lower_bound: nan
+  none_fp_rate_parsed: 0.0
+  parse_failure_rate: 0.0
+
+Usage:
+  calls: 3
+  new_calls_this_run: 3
+  attempts: 3
+  parse_retries: 0
+  transport_retries: 0
+  tokens: {'cached_tokens': 0, 'completion_tokens': 168, 'prompt_tokens': 23832, 'reasoning_tokens': 0}
+  cost_usd_all_calls: 0.0054
+  cost_per_1000_segments: 0.1785
+  latency_per_call_ms: {'median': 1924.8822499066591, 'p95': 2110.5339873814955}
+  latency_per_segment_ms_median: 192.4882
+  latency_label: 10 targets per call, call-amortized per segment
+  served_models: ['accounts/fireworks/models/deepseek-v4p1-flash']
+  record_window_utc: ['2026-09-29T16:15:43+00:00', '2026-09-29T16:15:46+00:00']
+  run_health: {'calls': 3, 'below_floor_calls': 0, 'below_floor_share': 0.0, 'unreadable_attempts': 0, 'empty_set_share': 1.0, 'mean_labels_listed': 0.0, 'parse_failed_segments': 0}
