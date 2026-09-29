@@ -1,0 +1,83 @@
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 6607.07it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+u-lr2e-5/epoch-1       macro-AP 0.0463  macro-F1 0.0452  micro-F1 0.0420
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 3535.56it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+u-lr2e-5/epoch-2       macro-AP 0.3324  macro-F1 0.3811  micro-F1 0.3621
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 8396.96it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+u-lr2e-5/epoch-3       macro-AP 0.4571  macro-F1 0.4962  micro-F1 0.6068
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 8606.64it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+u-lr2e-5/epoch-4       macro-AP 0.5093  macro-F1 0.5436  micro-F1 0.6424
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 8277.42it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+u-lr2e-5/epoch-5       macro-AP 0.5146  macro-F1 0.5552  micro-F1 0.6546
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 8598.57it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+u-lr5e-5/epoch-1       macro-AP 0.2058  macro-F1 0.2514  micro-F1 0.1265
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 8444.23it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+u-lr5e-5/epoch-2       macro-AP 0.4411  macro-F1 0.4804  micro-F1 0.5708
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 8045.11it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+u-lr5e-5/epoch-3       macro-AP 0.5193  macro-F1 0.5555  micro-F1 0.6441
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 8531.39it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+u-lr5e-5/epoch-4       macro-AP 0.5485  macro-F1 0.5809  micro-F1 0.6736
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 7946.53it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+u-lr5e-5/epoch-5       macro-AP 0.5685  macro-F1 0.5926  micro-F1 0.6813
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 8424.15it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+w-lr2e-5/epoch-1       macro-AP 0.4641  macro-F1 0.4980  micro-F1 0.5811
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 7988.54it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+w-lr2e-5/epoch-2       macro-AP 0.5472  macro-F1 0.5708  micro-F1 0.6455
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 8525.96it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+w-lr2e-5/epoch-3       macro-AP 0.5738  macro-F1 0.5901  micro-F1 0.6601
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 8985.30it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+w-lr2e-5/epoch-4       macro-AP 0.5894  macro-F1 0.6269  micro-F1 0.6763
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 7898.73it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+w-lr2e-5/epoch-5       macro-AP 0.5907  macro-F1 0.6234  micro-F1 0.6756
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 6096.24it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+w-lr5e-5/epoch-1       macro-AP 0.4318  macro-F1 0.4831  micro-F1 0.5669
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 8699.45it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+w-lr5e-5/epoch-2       macro-AP 0.4910  macro-F1 0.5347  micro-F1 0.6184
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 7995.14it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+w-lr5e-5/epoch-3       macro-AP 0.5495  macro-F1 0.5939  micro-F1 0.6449
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 7698.15it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+w-lr5e-5/epoch-4       macro-AP 0.5695  macro-F1 0.6008  micro-F1 0.6657
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 8502.48it/s]
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (582 > 512). Running this sequence through the model will result in indexing errors
+w-lr5e-5/epoch-5       macro-AP 0.5757  macro-F1 0.6225  micro-F1 0.6732
+
+=== Validation, 33 labels, per candidate (descriptive, one seed; F1 at Rule B thresholds tuned here) ===
+       candidate      run  epoch  pos_weight  lr  macro_ap  macro_f1  micro_f1
+u-lr2e-5/epoch-1 u-lr2e-5      1       False 0.0    0.0463    0.0452    0.0420
+u-lr2e-5/epoch-2 u-lr2e-5      2       False 0.0    0.3324    0.3811    0.3621
+u-lr2e-5/epoch-3 u-lr2e-5      3       False 0.0    0.4571    0.4962    0.6068
+u-lr2e-5/epoch-4 u-lr2e-5      4       False 0.0    0.5093    0.5436    0.6424
+u-lr2e-5/epoch-5 u-lr2e-5      5       False 0.0    0.5146    0.5552    0.6546
+u-lr5e-5/epoch-1 u-lr5e-5      1       False 0.0    0.2058    0.2514    0.1265
+u-lr5e-5/epoch-2 u-lr5e-5      2       False 0.0    0.4411    0.4804    0.5708
+u-lr5e-5/epoch-3 u-lr5e-5      3       False 0.0    0.5193    0.5555    0.6441
+u-lr5e-5/epoch-4 u-lr5e-5      4       False 0.0    0.5485    0.5809    0.6736
+u-lr5e-5/epoch-5 u-lr5e-5      5       False 0.0    0.5685    0.5926    0.6813
+w-lr2e-5/epoch-1 w-lr2e-5      1        True 0.0    0.4641    0.4980    0.5811
+w-lr2e-5/epoch-2 w-lr2e-5      2        True 0.0    0.5472    0.5708    0.6455
+w-lr2e-5/epoch-3 w-lr2e-5      3        True 0.0    0.5738    0.5901    0.6601
+w-lr2e-5/epoch-4 w-lr2e-5      4        True 0.0    0.5894    0.6269    0.6763
+w-lr2e-5/epoch-5 w-lr2e-5      5        True 0.0    0.5907    0.6234    0.6756
+w-lr5e-5/epoch-1 w-lr5e-5      1        True 0.0    0.4318    0.4831    0.5669
+w-lr5e-5/epoch-2 w-lr5e-5      2        True 0.0    0.4910    0.5347    0.6184
+w-lr5e-5/epoch-3 w-lr5e-5      3        True 0.0    0.5495    0.5939    0.6449
+w-lr5e-5/epoch-4 w-lr5e-5      4        True 0.0    0.5695    0.6008    0.6657
+w-lr5e-5/epoch-5 w-lr5e-5      5        True 0.0    0.5757    0.6225    0.6732

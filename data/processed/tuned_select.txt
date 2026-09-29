@@ -1,0 +1,30 @@
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 19488.10it/s]
+=== Candidates by validation macro-AP (33 labels; F1 at Rule B thresholds tuned on validation) ===
+       candidate      run  epoch  pos_weight  lr  macro_ap  macro_f1  micro_f1
+w-lr2e-5/epoch-5 w-lr2e-5      5        True 0.0    0.5907    0.6234    0.6756
+w-lr2e-5/epoch-4 w-lr2e-5      4        True 0.0    0.5894    0.6269    0.6763
+w-lr5e-5/epoch-5 w-lr5e-5      5        True 0.0    0.5757    0.6225    0.6732
+w-lr2e-5/epoch-3 w-lr2e-5      3        True 0.0    0.5738    0.5901    0.6601
+w-lr5e-5/epoch-4 w-lr5e-5      4        True 0.0    0.5695    0.6008    0.6657
+u-lr5e-5/epoch-5 u-lr5e-5      5       False 0.0    0.5685    0.5926    0.6813
+w-lr5e-5/epoch-3 w-lr5e-5      3        True 0.0    0.5495    0.5939    0.6449
+u-lr5e-5/epoch-4 u-lr5e-5      4       False 0.0    0.5485    0.5809    0.6736
+w-lr2e-5/epoch-2 w-lr2e-5      2        True 0.0    0.5472    0.5708    0.6455
+u-lr5e-5/epoch-3 u-lr5e-5      3       False 0.0    0.5193    0.5555    0.6441
+u-lr2e-5/epoch-5 u-lr2e-5      5       False 0.0    0.5146    0.5552    0.6546
+u-lr2e-5/epoch-4 u-lr2e-5      4       False 0.0    0.5093    0.5436    0.6424
+w-lr5e-5/epoch-2 w-lr5e-5      2        True 0.0    0.4910    0.5347    0.6184
+w-lr2e-5/epoch-1 w-lr2e-5      1        True 0.0    0.4641    0.4980    0.5811
+u-lr2e-5/epoch-3 u-lr2e-5      3       False 0.0    0.4571    0.4962    0.6068
+u-lr5e-5/epoch-2 u-lr5e-5      2       False 0.0    0.4411    0.4804    0.5708
+w-lr5e-5/epoch-1 w-lr5e-5      1        True 0.0    0.4318    0.4831    0.5669
+u-lr2e-5/epoch-2 u-lr2e-5      2       False 0.0    0.3324    0.3811    0.3621
+u-lr5e-5/epoch-1 u-lr5e-5      1       False 0.0    0.2058    0.2514    0.1265
+u-lr2e-5/epoch-1 u-lr2e-5      1       False 0.0    0.0463    0.0452    0.0420
+
+Within 0.005 of the best macro-AP: ['w-lr2e-5/epoch-4', 'w-lr2e-5/epoch-5']
+Failed runs (no candidates): none
+Selected: w-lr2e-5/epoch-4 (w-lr2e-5/epoch-4|d51fe0f8601b)
+Single-segment latency: median 8.52 ms, p95 16.41 ms
+
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/models/transformer_tuned/selected.json and /Users/owner/Dropbox/My Resume/Code/CCC/data/predictions/transformer-tuned_val.parquet

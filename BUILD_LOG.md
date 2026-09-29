@@ -2725,3 +2725,33 @@ Fixed 2026-09-28, before any 6c training.
 
 ### Problems hit and how we solved them
 - Part of the chain ran on battery (the adapter was disconnected). The macOS power log (`pmset -g log`) shows no sleep event from the start of training through 17:34 during run 2, and the per-run times (1.87 to 1.98 h) are consistent with no pause. The display turning off does not pause training.
+
+### Numbers measured (validation and selection, before test)
+- Commands: `python -m src.transformer_tuned validate 2>&1 | tee data/processed/tuned_validate.txt`; `python -m src.transformer_tuned select 2>&1 | tee data/processed/tuned_select.txt`. Files: `models/transformer_tuned/<run>/epoch-<e>/{run.json,thresholds.json,labels.json}`, `models/transformer_tuned/selected.json`, `data/predictions/transformer-tuned_val.parquet`.
+- All 20 candidates validated (no failed run). Validation, 33 labels, F1 at Rule B thresholds tuned on validation (optimistic); descriptive, one seed:
+
+  | Run | Metric | Epoch 1 | Epoch 2 | Epoch 3 | Epoch 4 | Epoch 5 |
+  |---|---|---|---|---|---|---|
+  | u-lr2e-5 | macro-AP | 0.0463 | 0.3324 | 0.4571 | 0.5093 | 0.5146 |
+  | u-lr2e-5 | macro-F1 | 0.0452 | 0.3811 | 0.4962 | 0.5436 | 0.5552 |
+  | u-lr2e-5 | micro-F1 | 0.0420 | 0.3621 | 0.6068 | 0.6424 | 0.6546 |
+  | u-lr5e-5 | macro-AP | 0.2058 | 0.4411 | 0.5193 | 0.5485 | 0.5685 |
+  | u-lr5e-5 | macro-F1 | 0.2514 | 0.4804 | 0.5555 | 0.5809 | 0.5926 |
+  | u-lr5e-5 | micro-F1 | 0.1265 | 0.5708 | 0.6441 | 0.6736 | 0.6813 |
+  | w-lr2e-5 | macro-AP | 0.4641 | 0.5472 | 0.5738 | 0.5894 | 0.5907 |
+  | w-lr2e-5 | macro-F1 | 0.4980 | 0.5708 | 0.5901 | 0.6269 | 0.6234 |
+  | w-lr2e-5 | micro-F1 | 0.5811 | 0.6455 | 0.6601 | 0.6763 | 0.6756 |
+  | w-lr5e-5 | macro-AP | 0.4318 | 0.4910 | 0.5495 | 0.5695 | 0.5757 |
+  | w-lr5e-5 | macro-F1 | 0.4831 | 0.5347 | 0.5939 | 0.6008 | 0.6225 |
+  | w-lr5e-5 | micro-F1 | 0.5669 | 0.6184 | 0.6449 | 0.6657 | 0.6732 |
+
+- Selection by the pre-registered rule: best macro-AP 0.5907 (`w-lr2e-5/epoch-5`); within 0.005 of it: `w-lr2e-5/epoch-4` (0.5894) and `w-lr2e-5/epoch-5`. Higher macro-F1 among them: **`w-lr2e-5/epoch-4`**, macro-F1 0.6269 against 0.6234. Version `w-lr2e-5/epoch-4|d51fe0f8601b`.
+- Latency of the selected candidate on local MPS: batch-amortized 4.072 ms per segment on validation; single segment median 8.52 ms, p95 16.41 ms (200 segments).
+- Reference points on the same validation set (descriptive, no claims): 6a legal-BERT macro-AP 0.4279, macro-F1 0.4551, micro-F1 0.5501; baseline macro-AP 0.5671, macro-F1 0.5670, micro-F1 0.6307 (selected from 96 configurations). The selected candidate's validation figures carry the optimism of choosing the best of 20 on the same set.
+
+### Surprises in the data or results
+- One seed per configuration, so these are observations, not claims:
+  - The weighted run has the higher macro-AP than the unweighted run at every epoch, at both learning rates.
+  - Every run's macro-AP rises at every epoch through epoch 5. The unweighted runs were still climbing at epoch 5, so the 5-epoch schedule is where they stopped, not where they plateaued. The selected run gained +0.0013 from epoch 4 to 5.
+  - At epoch 1, `u-lr2e-5` is near chance (macro-AP 0.0463). Its training loss early in epoch 2 (0.02518 at step 2200) was close to the prior-only loss (0.0266, Step 6a), so after one epoch that model had learned little beyond label frequencies.
+- The printed candidate tables show the `lr` column as `0.0` because they are rounded to 4 decimals. `selected.json` holds the actual values (2e-05, 5e-05). Display only; selection used the unrounded values.

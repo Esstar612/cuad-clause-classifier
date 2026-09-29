@@ -1,0 +1,41 @@
+{
+  "run": "u-lr5e-5",
+  "epoch": 4,
+  "model_version": "u-lr5e-5/epoch-4|90fef1f7d439",
+  "recipe": {
+    "TRANSFORMER_MAX_TOKENS": 512,
+    "TRANSFORMER_EPOCHS": 5,
+    "TRANSFORMER_BATCH_SIZE": 16,
+    "TRANSFORMER_ACCUMULATION": 4,
+    "TRANSFORMER_LR": 5e-05,
+    "TRANSFORMER_WEIGHT_DECAY": 0.01,
+    "TRANSFORMER_WARMUP": 0.1,
+    "TRANSFORMER_INFER_BATCH": 64,
+    "TUNED_ENCODER": "legal-bert",
+    "run": "u-lr5e-5",
+    "pos_weight": false
+  },
+  "seed": 42,
+  "validation_all33": {
+    "n_labels": 33,
+    "segments": 11656,
+    "macro_f1": 0.5808887860583779,
+    "micro_f1": 0.6735588972431078,
+    "macro_ap": 0.5484963011174214,
+    "none_segments": 10320,
+    "none_fp_rate": 0.02180232558139535
+  },
+  "validation_supported28": {
+    "n_labels": 28,
+    "segments": 11656,
+    "macro_f1": 0.6371307003662908,
+    "micro_f1": 0.6766581632653061,
+    "macro_ap": 0.5975798385770982,
+    "none_segments": 10320,
+    "none_fp_rate": 0.02180232558139535
+  },
+  "validation_truncated_segments": 9,
+  "validation_note": "thresholds tuned on this same validation set, so F1 is optimistic",
+  "batch_amortized_ms_per_segment": 3.3429476628398813,
+  "validated_utc": "2026-09-29T02:31:29+00:00"
+}
