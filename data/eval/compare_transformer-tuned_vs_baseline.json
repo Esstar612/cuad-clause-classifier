@@ -1,0 +1,269 @@
+{
+  "a": "transformer-tuned",
+  "b": "baseline",
+  "a_name": "transformer-tuned",
+  "a_version": "w-lr2e-5/epoch-4|d51fe0f8601b",
+  "b_name": "tfidf-ovr-logreg",
+  "b_version": "9692b04f03fb",
+  "method": "10000 contract-level bootstrap resamples, stratified by contract type, percentile 95% intervals, seed 42; paired (identical resamples); primary rows also Bonferroni-adjusted over a family of 12 (adjusted level 99.583%)",
+  "family_size": 12,
+  "sensitivity_family_size": 24,
+  "differences": {
+    "test | Rule A | macro_f1": {
+      "difference": 0.038415063144775385,
+      "ci_low": 0.018966087108515058,
+      "ci_high": 0.05952948854223993,
+      "n_resamples": 10000,
+      "primary": true,
+      "adjusted_level": 0.9958333333333333,
+      "adjusted_ci_low": 0.010721568622664358,
+      "adjusted_ci_high": 0.0700907709145193,
+      "claim": "A higher",
+      "sensitivity_level": 0.9979166666666667,
+      "sensitivity_ci_low": 0.00892700602205837,
+      "sensitivity_ci_high": 0.0719934665768962,
+      "sensitivity_claim": "A higher"
+    },
+    "test | Rule A | micro_f1": {
+      "difference": 0.022671724686443073,
+      "ci_low": 0.006238958483089123,
+      "ci_high": 0.039860724919868966,
+      "n_resamples": 10000,
+      "primary": true,
+      "adjusted_level": 0.9958333333333333,
+      "adjusted_ci_low": -0.0015912416980830245,
+      "adjusted_ci_high": 0.04712643452552097,
+      "claim": "none",
+      "sensitivity_level": 0.9979166666666667,
+      "sensitivity_ci_low": -0.004277117584161841,
+      "sensitivity_ci_high": 0.048756639530273975,
+      "sensitivity_claim": "none"
+    },
+    "test | Rule A | none_fp_rate": {
+      "difference": 0.0009795518550263262,
+      "ci_low": -0.0034942366961233247,
+      "ci_high": 0.005965639251337457,
+      "n_resamples": 10000
+    },
+    "test | Rule A | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "test | all | macro_f1": {
+      "difference": 0.06391065025986964,
+      "ci_low": 0.0406682064844881,
+      "ci_high": 0.08664953714147938,
+      "n_resamples": 10000
+    },
+    "test | all | micro_f1": {
+      "difference": 0.01992911864434277,
+      "ci_low": 0.0030830412281069794,
+      "ci_high": 0.037221713147586835,
+      "n_resamples": 10000
+    },
+    "test | all | none_fp_rate": {
+      "difference": 0.0009795518550263262,
+      "ci_low": -0.0034942366961233247,
+      "ci_high": 0.005965639251337457,
+      "n_resamples": 10000
+    },
+    "test | all | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "test | Rule C | macro_f1": {
+      "difference": 0.05111092523980376,
+      "ci_low": 0.02863482173263907,
+      "ci_high": 0.07692214139936258,
+      "n_resamples": 10000
+    },
+    "test | Rule C | micro_f1": {
+      "difference": 0.03625363604909415,
+      "ci_low": 0.018467337730179303,
+      "ci_high": 0.05441460261451456,
+      "n_resamples": 10000
+    },
+    "test | Rule C | none_fp_rate": {
+      "difference": 0.0009795518550263262,
+      "ci_low": -0.0034942366961233247,
+      "ci_high": 0.005965639251337457,
+      "n_resamples": 10000
+    },
+    "test | Rule C | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "shift | Rule C | macro_f1": {
+      "difference": 0.07092329251520202,
+      "ci_low": 0.026072808994523747,
+      "ci_high": 0.11807400922343046,
+      "n_resamples": 10000,
+      "primary": true,
+      "adjusted_level": 0.9958333333333333,
+      "adjusted_ci_low": 0.004379139419805228,
+      "adjusted_ci_high": 0.13856185971824414,
+      "claim": "A higher",
+      "sensitivity_level": 0.9979166666666667,
+      "sensitivity_ci_low": -0.0018349296525436859,
+      "sensitivity_ci_high": 0.14225338258853418,
+      "sensitivity_claim": "none"
+    },
+    "shift | Rule C | micro_f1": {
+      "difference": 0.07362007297302153,
+      "ci_low": 0.029680659576722786,
+      "ci_high": 0.11127817466146127,
+      "n_resamples": 10000,
+      "primary": true,
+      "adjusted_level": 0.9958333333333333,
+      "adjusted_ci_low": 0.006128388547317228,
+      "adjusted_ci_high": 0.12601503592331006,
+      "claim": "A higher",
+      "sensitivity_level": 0.9979166666666667,
+      "sensitivity_ci_low": 0.0019768644432194317,
+      "sensitivity_ci_high": 0.1279208927458482,
+      "sensitivity_claim": "A higher"
+    },
+    "shift | Rule C | none_fp_rate": {
+      "difference": 0.000251825736590279,
+      "ci_low": -0.007503175525079784,
+      "ci_high": 0.007118385833697914,
+      "n_resamples": 10000
+    },
+    "shift | Rule C | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "shift | all | macro_f1": {
+      "difference": 0.0878923881845251,
+      "ci_low": 0.02928662473036255,
+      "ci_high": 0.1444454321155597,
+      "n_resamples": 10000
+    },
+    "shift | all | micro_f1": {
+      "difference": 0.06599876572702656,
+      "ci_low": 0.019089850143866337,
+      "ci_high": 0.10529958262629878,
+      "n_resamples": 10000
+    },
+    "shift | all | none_fp_rate": {
+      "difference": 0.000251825736590279,
+      "ci_low": -0.007503175525079784,
+      "ci_high": 0.007118385833697914,
+      "n_resamples": 10000
+    },
+    "shift | all | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | Rule C | macro_f1": {
+      "difference": 0.060179024759922706,
+      "ci_low": 0.003548068747737487,
+      "ci_high": 0.11796927807524528,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | Rule C | micro_f1": {
+      "difference": 0.0749251969305299,
+      "ci_low": 0.015746914076200467,
+      "ci_high": 0.12038085585581361,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | Rule C | none_fp_rate": {
+      "difference": 0.0017913121361397208,
+      "ci_low": -0.011931774412378299,
+      "ci_high": 0.01222421596259327,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | Rule C | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | all | macro_f1": {
+      "difference": 0.07185028482977485,
+      "ci_low": -0.001547377921330174,
+      "ci_high": 0.12831115369138715,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | all | micro_f1": {
+      "difference": 0.0639228772710419,
+      "ci_low": -0.00012243969427854317,
+      "ci_high": 0.11075717563778582,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | all | none_fp_rate": {
+      "difference": 0.0017913121361397208,
+      "ci_low": -0.011931774412378299,
+      "ci_high": 0.01222421596259327,
+      "n_resamples": 10000
+    },
+    "shift:Franchise | all | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | Rule C | macro_f1": {
+      "difference": -0.017506289891452087,
+      "ci_low": -0.053930849480029276,
+      "ci_high": 0.06410084279044823,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | Rule C | micro_f1": {
+      "difference": 0.068050468050468,
+      "ci_low": 0.009993087591225736,
+      "ci_high": 0.1265082003056783,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | Rule C | none_fp_rate": {
+      "difference": -0.0017261219792865344,
+      "ci_low": -0.008772090247564781,
+      "ci_high": 0.006734148562286724,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | Rule C | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | all | macro_f1": {
+      "difference": 0.07305136229458753,
+      "ci_low": -0.017115479730316047,
+      "ci_high": 0.13004784724351645,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | all | micro_f1": {
+      "difference": 0.07607014773138554,
+      "ci_low": 0.007823033801044224,
+      "ci_high": 0.1380576068129006,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | all | none_fp_rate": {
+      "difference": -0.0017261219792865344,
+      "ci_low": -0.008772090247564781,
+      "ci_high": 0.006734148562286724,
+      "n_resamples": 10000
+    },
+    "shift:Transportation | all | parse_failure_rate": {
+      "difference": 0.0,
+      "ci_low": 0.0,
+      "ci_high": 0.0,
+      "n_resamples": 10000
+    }
+  },
+  "verdicts": {
+    "test | Rule A": "per metric: micro_f1 none, macro_f1 transformer-tuned higher",
+    "shift | Rule C": "transformer-tuned higher on both co-primary metrics"
+  }
+}
