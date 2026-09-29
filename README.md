@@ -1,26 +1,30 @@
 # CUAD contract clause classifier
 
-Classifies segments of commercial contracts into 33 clause types (Anti-Assignment, Change Of Control, Governing Law, and so on) using CUAD, a dataset of 510 contracts labeled by lawyers. Four approaches are compared under one evaluation protocol: a TF-IDF baseline, two prompted LLMs (Claude and Gemini), and a fine-tuned legal-BERT.
+Classifies segments of commercial contracts into 33 clause types (Anti-Assignment, Change Of Control, Governing Law, and so on) using CUAD, a dataset of 510 contracts labeled by lawyers. Five models are compared under one evaluation protocol: a TF-IDF baseline, two prompted LLMs (Claude and Gemini), a fine-tuned legal-BERT, and a tuned legal-BERT successor.
 
 The emphasis is on honest evaluation rather than a headline number:
 - **Pre-registered rules.** Metrics, thresholds, selection rules and comparison families are written down in `BUILD_LOG.md` before the results they govern exist. For Steps 4b, 5, 6a and 6c the commit history shows the pre-registration commit before the results commit.
 - **One look at test.** Every choice (hyperparameters, prompts, thresholds, model selection) is made on validation. Each model is run once on test.
 - **Contract-level splits and a shift set.** Splits are by contract, stratified by contract type. Franchise and Transportation contracts (28) are held out entirely as a distribution-shift set.
 - **Paired, contract-level bootstrap.** Model differences use 10,000 paired resamples of whole contracts, with Bonferroni-adjusted intervals across a pre-registered family of 12 comparisons. A difference is claimed only when the adjusted interval excludes zero.
-- **Failures are kept.** The fine-tuned transformer came last on test. That result stays in the record as it is; a tuned successor (Step 6c) is registered as a separate, post-hoc model.
+- **Failures are kept.** The fine-tuned transformer (6a) came last on test. That result stays in the record as it is. A tuned successor (6c) was pre-registered afterwards as a separate, post-hoc model, with a stricter interval for the second look at test.
 
 ## Results so far
 
 Test (Rule A labels) and shift (Rule C labels), point [95% contract-bootstrap CI], one held-out run per model. From [`docs/results.md`](docs/results.md), which cites the command behind every table.
 
-| Scope | Metric | baseline | claude | gemini | transformer |
-|---|---|---|---|---|---|
-| test \| Rule A | macro-F1 | 0.6311 [0.6043, 0.6532] | 0.6754 [0.6476, 0.7019] | 0.7237 [0.6997, 0.7455] | 0.5408 [0.5180, 0.5591] |
-| test \| Rule A | micro-F1 | 0.6659 [0.6434, 0.6907] | 0.7156 [0.6920, 0.7404] | 0.7506 [0.7273, 0.7757] | 0.5756 [0.5550, 0.5977] |
-| shift \| Rule C | macro-F1 | 0.4740 [0.4186, 0.5332] | 0.5246 [0.4749, 0.5853] | 0.5753 [0.5349, 0.6278] | 0.4487 [0.4052, 0.5019] |
-| shift \| Rule C | micro-F1 | 0.5027 [0.4472, 0.5631] | 0.5688 [0.5254, 0.6224] | 0.5843 [0.5453, 0.6364] | 0.4867 [0.4467, 0.5300] |
+| Scope | Metric | baseline | claude | gemini | transformer (6a) | transformer-tuned (6c) |
+|---|---|---|---|---|---|---|
+| test \| Rule A | macro-F1 | 0.6311 [0.6043, 0.6532] | 0.6754 [0.6476, 0.7019] | 0.7237 [0.6997, 0.7455] | 0.5408 [0.5180, 0.5591] | 0.6695 [0.6422, 0.6924] |
+| test \| Rule A | micro-F1 | 0.6659 [0.6434, 0.6907] | 0.7156 [0.6920, 0.7404] | 0.7506 [0.7273, 0.7757] | 0.5756 [0.5550, 0.5977] | 0.6886 [0.6650, 0.7131] |
+| shift \| Rule C | macro-F1 | 0.4740 [0.4186, 0.5332] | 0.5246 [0.4749, 0.5853] | 0.5753 [0.5349, 0.6278] | 0.4487 [0.4052, 0.5019] | 0.5449 [0.5013, 0.5913] |
+| shift \| Rule C | micro-F1 | 0.5027 [0.4472, 0.5631] | 0.5688 [0.5254, 0.6224] | 0.5843 [0.5453, 0.6364] | 0.4867 [0.4467, 0.5300] | 0.5763 [0.5329, 0.6181] |
 
-- Which differences are claimed, and which are not, is in the paired comparison sections of `docs/results.md`.
+- Paired comparisons (10,000 contract-level resamples, Bonferroni over each pre-registered family of 12):
+  - Gemini is higher than the baseline on both metrics, on test and on shift.
+  - 6a is below the baseline, Claude and Gemini on test.
+  - 6c is higher than the baseline on 3 of 4 measures, cannot be distinguished from Claude, and is below Gemini on test.
+  - The full claim tables, including which claims are marginal, are in `docs/results.md`.
 - Contamination caveat: CUAD has been public since 2021, so Claude and Gemini may have seen these contracts and labels in training. The shift set is part of the same release.
 
 ## Steps
@@ -33,7 +37,7 @@ Test (Rule A labels) and shift (Rule C labels), point [95% contract-bootstrap CI
 | 4 | Evaluation harness, paired comparisons, calibration | BUILD_LOG Step 4, `docs/results.md` |
 | 5 | Label-free drift monitoring, calibrated on validation | BUILD_LOG Step 5 |
 | 6a | Fine-tuned transformer: three encoders, one fixed recipe, selection on validation | BUILD_LOG Step 6a |
-| 6c | Tuned legal-BERT successor, post-hoc (in progress) | BUILD_LOG Step 6c |
+| 6c | Tuned legal-BERT successor, post-hoc: loss-weighting and learning-rate grid, 20 checkpoints, selection on validation | BUILD_LOG Step 6c |
 | 6b | Open model on Fireworks, prompted with the frozen LLM protocol (planned) | `docs/plan.md` |
 | 7, 8 | FastAPI service (text or PDF) and deployment (planned) | `docs/plan.md` |
 

@@ -11,6 +11,7 @@ All figures come from pasted script output. Each table cites the command and out
   - Claude: `claude-sonnet-5`, prompt v2 (hash dc2236da8a44), 10 segments per call, Rule B thresholds (hash 9b37545d9c08).
   - Gemini: `gemini-3.8-flash`, prompt v3 (hash 8ec29d0ea6ca, retrieved training examples), 10 segments per call, `seed=42`, Rule B thresholds (hash 9cf165579892).
   - Transformer (Step 6a): `nlpaueb/legal-bert-base-uncased` fine-tuned on train, version `legal-bert|82466a1eefd8`, selected on validation from three encoders by a pre-registered rule, Rule B thresholds.
+  - Transformer-tuned (Step 6c, post-hoc): the same encoder with a positive-weighted loss, selected on validation from 20 checkpoints of a pre-registered 2x2 grid, version `w-lr2e-5/epoch-4|d51fe0f8601b`, Rule B thresholds. Designed after 6a's test result, so the transformer approach has two test looks.
 - The LLMs return sparse scores: every label at confidence 0.1 or above, unlisted labels scored 0 (Rule D). All three models use Rule B thresholds tuned on validation.
 
 ## Label lists under the pre-registered rules
@@ -48,12 +49,15 @@ Thresholds are tuned on the same validation set, so validation F1 is optimistic.
 | Claude Sonnet 5, prompt v2, batch 10 | claude-sonnet-5 \| prompt v2 dc2236da8a44 \| thresholds 9b37545d9c08 | 0.6322 | 0.6825 | 0.5764 (sparse lower bound, not comparable) | not reported | 0.0306 |
 | Gemini 3.8 Flash, prompt v3, batch 10 | gemini-3.8-flash \| prompt v3 8ec29d0ea6ca \| thresholds 9cf165579892 | 0.6795 | 0.7117 | 0.6017 (sparse lower bound, not comparable) | not reported | 0.0346 |
 | Fine-tuned legal-BERT (selected transformer) | legal-bert\|82466a1eefd8 | 0.4551 | 0.5501 | 0.4279 | 0.5316 | 0.0198 |
+| Tuned legal-BERT (Step 6c, post-hoc) | w-lr2e-5/epoch-4\|d51fe0f8601b | 0.6269 | 0.6763 | 0.5894 | 0.6568 | 0.0264 |
 
 LLM rows: prompts were selected by micro-F1 at threshold 0.5 on the validation iteration sample (23 contracts), Rule B thresholds were then tuned on full validation, and full validation includes the prompt-selection contracts, so these rows are optimistic twice over. At threshold 0.5, before tuning, full validation gave micro-F1 0.6286 (Claude) and 0.6746 (Gemini). Sources: `python -m src.llm.run thresholds --model claude` and `--model gemini` (`data/processed/llm_thresholds_{claude,gemini}.txt`); `python -m src.llm.run val` (`data/processed/llm_val_{claude,gemini}.txt`).
 
 > Contamination caveat: CUAD has been public since 2021, so Claude and Gemini may have seen these contracts and labels in training, and their scores may be optimistic relative to unseen contracts. The shift set is part of the same release (docs/plan.md, Limitations).
 
 Transformer row: selected from three fine-tuned encoders by the rule in "Fine-tuned transformer (Step 6a)" below, which also lists the other two. Source: `python -m src.transformer validate | tee data/processed/transformer_validate.txt`.
+
+Tuned row: the best of 20 candidates on this same set, so optimistic twice over, like the baseline row (best of 96). Source: `python -m src.transformer_tuned validate` (`data/processed/tuned_validate.txt`, `models/transformer_tuned/w-lr2e-5/epoch-4/run.json`).
 
 Baseline source: `python -m src.baseline search | tee data/processed/baseline_search.txt` (round 2 of 2, 96 configurations; stopping rule triggered at C=64, reported as an edge result). The round 1 choice (C=16, none 5:1, version 7253e7a8662b, macro-AP 0.5598) was superseded.
 
@@ -447,6 +451,105 @@ Local MPS on an Apple M4 Pro, cost 0. Batch figures are per segment, amortized o
 
 Held-out batch runs of the selected model: 3.314 ms per segment on test, 3.754 on shift. Truncated at 512 tokens: 4 test and 3 shift segments.
 
+## Tuned successor (Step 6c, post-hoc)
+Pre-registered 2026-09-28 before any 6c training (BUILD_LOG Step 6c, commit 1d16f63). **Post-hoc:** 6c was designed after 6a's validation results, its train-data diagnostic, and its test and shift results. The transformer approach is therefore evaluated on test twice. 6c does not replace 6a, whose result above stands as recorded. The selection was committed (a805839) before the one held-out run (080491a).
+
+Design: legal-BERT at the 6a pinned revision, the 6a recipe except for a 2x2 grid over loss weighting and learning rate on a 5-epoch schedule, with a checkpoint after every epoch.
+- Weighted runs use a BCE positive weight of `sqrt(negatives / positives)` per label over train segments (min 8.55, median 17.31, max 45.28).
+- 20 candidates, against the baseline's 96 configurations. Selection by the baseline's rule: best validation macro-AP; within 0.005 of it, higher macro-F1; then the simpler candidate.
+
+### Training (train data only)
+Source: `python -m src.transformer_tuned train --run <key>` (`data/processed/tuned_train_<key>.txt`, `models/transformer_tuned/<key>/trained.json`). No run failed or crashed. Weighted and unweighted losses are on different scales.
+
+| Run | Loss | Learning rate | Hours | Epoch 1 / 2 / 3 / 4 / 5 mean loss |
+|---|---|---|---|---|
+| u-lr2e-5 | unweighted | 2e-5 | 1.98 | 0.11045 / 0.01901 / 0.01203 / 0.00897 / 0.00723 |
+| u-lr5e-5 | unweighted | 5e-5 | 1.87 | 0.07940 / 0.01455 / 0.00907 / 0.00625 / 0.00445 |
+| w-lr2e-5 | weighted | 2e-5 | 1.89 | 0.22144 / 0.07043 / 0.04299 / 0.02883 / 0.02135 |
+| w-lr5e-5 | weighted | 5e-5 | 1.87 | 0.18963 / 0.06795 / 0.04013 / 0.02366 / 0.01461 |
+
+### Validation and selection
+Source: `python -m src.transformer_tuned validate` and `select` (`data/processed/tuned_{validate,select}.txt`, `models/transformer_tuned/selected.json`). 33 labels. Each cell is macro-AP / macro-F1; F1 uses Rule B thresholds tuned on validation, so it is optimistic. Descriptive, one seed.
+
+| Run | Epoch 1 | Epoch 2 | Epoch 3 | Epoch 4 | Epoch 5 |
+|---|---|---|---|---|---|
+| u-lr2e-5 | 0.0463 / 0.0452 | 0.3324 / 0.3811 | 0.4571 / 0.4962 | 0.5093 / 0.5436 | 0.5146 / 0.5552 |
+| u-lr5e-5 | 0.2058 / 0.2514 | 0.4411 / 0.4804 | 0.5193 / 0.5555 | 0.5485 / 0.5809 | 0.5685 / 0.5926 |
+| w-lr2e-5 | 0.4641 / 0.4980 | 0.5472 / 0.5708 | 0.5738 / 0.5901 | **0.5894 / 0.6269** | 0.5907 / 0.6234 |
+| w-lr5e-5 | 0.4318 / 0.4831 | 0.4910 / 0.5347 | 0.5495 / 0.5939 | 0.5695 / 0.6008 | 0.5757 / 0.6225 |
+
+- Best macro-AP: `w-lr2e-5/epoch-5` (0.5907). Within 0.005: `w-lr2e-5/epoch-4` (0.5894). Higher macro-F1 of the two: **`w-lr2e-5/epoch-4`** (0.6269 against 0.6234), selected.
+- At both learning rates, the weighted run has the higher macro-AP at every epoch. Every run's macro-AP still rises at epoch 5, so the schedule, not a plateau, ended training. One seed per configuration: these are observations, not claims.
+
+### Test and shift, five models
+Single held-out run per model; transformer-tuned 2026-09-28. Source: `python -m src.transformer_tuned heldout` (`data/processed/tuned_heldout.txt`) and `python -m src.evaluate model transformer-tuned` (`data/processed/eval_transformer-tuned.txt`, `data/eval/transformer-tuned.json`). Point [95% CI], 2000 contract-level resamples.
+
+> Contamination caveat: CUAD has been public since 2021, so Claude and Gemini may have seen these contracts and labels in training, and their scores may be optimistic relative to unseen contracts. The shift set is part of the same release (docs/plan.md, Limitations).
+
+| Scope | Metric | baseline | claude | gemini | transformer | transformer-tuned |
+|---|---|---|---|---|---|---|
+| test \| Rule A | macro-F1 | 0.6311 [0.6043, 0.6532] | 0.6754 [0.6476, 0.7019] | 0.7237 [0.6997, 0.7455] | 0.5408 [0.5180, 0.5591] | 0.6695 [0.6422, 0.6924] |
+| test \| Rule A | micro-F1 | 0.6659 [0.6434, 0.6907] | 0.7156 [0.6920, 0.7404] | 0.7506 [0.7273, 0.7757] | 0.5756 [0.5550, 0.5977] | 0.6886 [0.6650, 0.7131] |
+| test \| all | macro-F1 | 0.5486 [0.5217, 0.5743] | 0.6440 [0.6080, 0.6746] | 0.6804 [0.6470, 0.7056] | 0.4512 [0.4298, 0.4693] | 0.6125 [0.5862, 0.6376] |
+| test \| all | micro-F1 | 0.6543 [0.6303, 0.6792] | 0.7060 [0.6837, 0.7306] | 0.7412 [0.7181, 0.7667] | 0.5405 [0.5203, 0.5613] | 0.6742 [0.6522, 0.6974] |
+| shift \| Rule C | macro-F1 | 0.4740 [0.4186, 0.5332] | 0.5246 [0.4749, 0.5853] | 0.5753 [0.5349, 0.6278] | 0.4487 [0.4052, 0.5019] | 0.5449 [0.5013, 0.5913] |
+| shift \| Rule C | micro-F1 | 0.5027 [0.4472, 0.5631] | 0.5688 [0.5254, 0.6224] | 0.5843 [0.5453, 0.6364] | 0.4867 [0.4467, 0.5300] | 0.5763 [0.5329, 0.6181] |
+| test \| all | none FP rate | 0.0255 [0.0218, 0.0296] | 0.0304 [0.0261, 0.0352] | 0.0315 [0.0260, 0.0380] | 0.0216 [0.0174, 0.0266] | 0.0264 [0.0215, 0.0324] |
+| shift \| all | none FP rate | 0.0340 [0.0256, 0.0415] | 0.0521 [0.0392, 0.0649] | 0.0497 [0.0379, 0.0613] | 0.0383 [0.0294, 0.0469] | 0.0342 [0.0259, 0.0418] |
+| test \| Rule A | macro-AP | 0.6602 [0.6408, 0.6962] | 0.6489 (sparse lower bound) | 0.6840 (sparse lower bound) | 0.5621 [0.5443, 0.5914] | 0.6986 [0.6737, 0.7347] |
+
+Transformer-tuned test minus shift, Rule C labels (independent bootstraps): macro-F1 +0.1681 [+0.1126, +0.2214], micro-F1 +0.1502 [+0.1003, +0.2032]. That is within the +0.1414 to +0.1879 macro-F1 range of the other four models.
+
+Per-label test F1 (Rule A, descriptive; `data/processed/results_tables.md`):
+- Highest of the five on Covenant Not To Sue (0.8852), Cap On Liability (0.7946), Non-Compete (0.6829), Minimum Commitment (0.5547) and Volume Restriction (0.4242, where the others score 0.0000 to 0.1481).
+- 6a's largest deficits close: Change Of Control 0.1718 to 0.5231, Liquidated Damages 0.1500 to 0.5797, Covenant Not To Sue 0.2692 to 0.8852.
+- Its lowest Rule A F1 is Competitive Restriction Exception (0.2056), then Volume Restriction (0.4242) and Post-Termination Services (0.4304). On Ip Ownership Assignment it scores 0.4828 against Gemini's 0.7246.
+
+### Model comparisons (paired, family 6c)
+Pre-registered with the 6c design: transformer-tuned minus baseline, minus Claude and minus Gemini; test Rule A and shift Rule C; micro- and macro-F1 co-primary; a family of 12 at 99.583%, 10,000 paired resamples. Because of the two test looks, each primary row also has a 24-comparison interval (99.792%), reported without verdicts. Commands: `python -m src.evaluate compare transformer-tuned <other>` (`data/processed/eval_compare_transformer-tuned_{baseline,claude,gemini}.txt`, `data/eval/compare_transformer-tuned_vs_*.json`). The six earlier compare files regenerated byte-identically after the family change (`git diff --exit-code` printed "earlier compare files unchanged").
+
+| Pair | Scope and metric | Difference | 95% CI | Adjusted CI (12) | Claim | Sensitivity CI (24) |
+|---|---|---|---|---|---|---|
+| transformer-tuned minus baseline | test \| Rule A \| macro_f1 | +0.0384 | [+0.0190, +0.0595] | [+0.0107, +0.0701] | A higher | [+0.0089, +0.0720] |
+| transformer-tuned minus baseline | test \| Rule A \| micro_f1 | +0.0227 | [+0.0062, +0.0399] | [-0.0016, +0.0471] | none | [-0.0043, +0.0488] |
+| transformer-tuned minus baseline | shift \| Rule C \| macro_f1 | +0.0709 | [+0.0261, +0.1181] | [+0.0044, +0.1386] | A higher | [-0.0018, +0.1423] |
+| transformer-tuned minus baseline | shift \| Rule C \| micro_f1 | +0.0736 | [+0.0297, +0.1113] | [+0.0061, +0.1260] | A higher | [+0.0020, +0.1279] |
+| transformer-tuned minus claude | test \| Rule A \| macro_f1 | -0.0059 | [-0.0348, +0.0222] | [-0.0488, +0.0372] | none | [-0.0526, +0.0401] |
+| transformer-tuned minus claude | test \| Rule A \| micro_f1 | -0.0270 | [-0.0491, -0.0045] | [-0.0584, +0.0058] | none | [-0.0601, +0.0092] |
+| transformer-tuned minus claude | shift \| Rule C \| macro_f1 | +0.0203 | [-0.0277, +0.0652] | [-0.0511, +0.0867] | none | [-0.0568, +0.0918] |
+| transformer-tuned minus claude | shift \| Rule C \| micro_f1 | +0.0075 | [-0.0381, +0.0477] | [-0.0574, +0.0659] | none | [-0.0606, +0.0697] |
+| transformer-tuned minus gemini | test \| Rule A \| macro_f1 | -0.0542 | [-0.0815, -0.0268] | [-0.0956, -0.0116] | B higher | [-0.0998, -0.0093] |
+| transformer-tuned minus gemini | test \| Rule A \| micro_f1 | -0.0620 | [-0.0835, -0.0395] | [-0.0919, -0.0293] | B higher | [-0.0946, -0.0260] |
+| transformer-tuned minus gemini | shift \| Rule C \| macro_f1 | -0.0304 | [-0.0666, +0.0040] | [-0.0847, +0.0212] | none | [-0.0888, +0.0254] |
+| transformer-tuned minus gemini | shift \| Rule C \| micro_f1 | -0.0080 | [-0.0457, +0.0258] | [-0.0623, +0.0403] | none | [-0.0645, +0.0436] |
+
+Reading:
+- 5 of 12 claims. Transformer-tuned is higher than the baseline on test macro-F1 and on both shift metrics. The test micro-F1 difference is not claimed; its adjusted lower bound is -0.0016.
+- Transformer-tuned and Claude cannot be distinguished on either metric in either scope. On test micro-F1 the 95% interval excludes zero in Claude's favour, but the adjusted interval does not.
+- Gemini is higher on both metrics on test. On shift the two cannot be distinguished.
+- Sensitivity check: 4 of the 5 claims hold at the 24-comparison level. Transformer-tuned over the baseline on shift macro-F1 does not (lower bound -0.0018).
+- Two claims are marginal: the shift claims over the baseline have adjusted lower bounds of +0.0044 (macro) and +0.0061 (micro), and the surviving shift micro-F1 sensitivity bound is +0.0020. The 24-comparison tails rest on about 10 of the 10,000 resamples, so they carry Monte Carlo error of that order.
+
+### Transformer-tuned minus transformer (6a), secondary, no claims
+Source: `python -m src.evaluate compare transformer-tuned transformer` (`data/processed/eval_compare_transformer-tuned_transformer.txt`). 10,000 paired resamples, 95% intervals.
+
+| Scope and metric | Difference | 95% CI |
+|---|---|---|
+| test \| Rule A \| macro_f1 | +0.1287 | [+0.1087, +0.1497] |
+| test \| Rule A \| micro_f1 | +0.1130 | [+0.0980, +0.1280] |
+| shift \| Rule C \| macro_f1 | +0.0962 | [+0.0644, +0.1298] |
+| shift \| Rule C \| micro_f1 | +0.0895 | [+0.0606, +0.1213] |
+| test \| all \| none_fp_rate | +0.0049 | [+0.0018, +0.0081] |
+| shift \| all \| none_fp_rate | -0.0040 | [-0.0096, +0.0006] |
+
+### What 6c can and cannot say
+- It shows that a tuned legal-BERT, chosen on validation from 20 candidates, moves from last of four to above the baseline on three of four co-primary measures, indistinguishable from Claude, and below Gemini on test.
+- It does not show that the 6a gap was caused by the recipe. 6c is post-hoc and motivated by 6a's test result, validation was already used for the 6a selection, and there is one run per configuration. The grid points to loss weighting (weighted runs led at every epoch on validation), but that is a one-seed observation.
+- Unlike Claude and Gemini, the encoder's scores carry no caveat about seeing CUAD labels in pretraining. They do carry the two-look caveat above.
+
+### Latency and cost
+Local MPS on an Apple M4 Pro, cost 0. Validation: batch 4.072 ms per segment; single segment median 8.52 ms, p95 16.41 ms (200 segments). Held-out batch runs: 3.324 ms per segment on test, 3.643 on shift. Truncated at 512 tokens: 4 test and 3 shift segments.
+
 ## Drift monitoring (Step 5)
 Question: would a monitor with no labels notice the contract-type shift that costs every model 0.16 to 0.19 F1? Rules pre-registered in BUILD_LOG Step 5 before any drift statistic was computed; thresholds frozen from validation (`python -m src.drift calibrate | tee data/processed/drift_calibrate.txt`, `models/drift/reference.json`, freeze_id 5f2143f3067c) and committed before one evaluation run (`python -m src.drift evaluate | tee data/processed/drift_evaluate.txt`, `data/eval/drift.json`). Tables: `python -m src.report`.
 
@@ -554,27 +657,28 @@ Spearman rank correlation between each statistic and each model's batch micro-F1
 - Establishing detection power with intervals needs more shifted contracts than this dataset holds for any one type; with 13 to 15, the contract-level uncertainty dominates.
 
 ## Calibration across models, test
-Every (segment, label) pair is one prediction; 10 equal-width bins. Each cell: pairs, mean predicted vs observed positive rate. Source: `python -m src.report | tee data/processed/results_tables.md`, generated from `data/eval/{baseline,claude,gemini,transformer}.json` (`python -m src.evaluate model <name>`).
+Every (segment, label) pair is one prediction; 10 equal-width bins. Each cell: pairs, mean predicted vs observed positive rate. Source: `python -m src.report | tee data/processed/results_tables.md`, generated from `data/eval/{baseline,claude,gemini,transformer,transformer-tuned}.json` (`python -m src.evaluate model <name>`).
 
 > Contamination caveat: CUAD has been public since 2021, so Claude and Gemini may have seen these contracts and labels in training, and their scores may be optimistic relative to unseen contracts. The shift set is part of the same release (docs/plan.md, Limitations).
 
-| Bin | baseline | claude | gemini | transformer |
-|---|---|---|---|---|
-| [0.0, 0.1) | 306,899: 0.0010 vs 0.0014 | 306,360: 0.0000 vs 0.0011 | 307,333: 0.0000 vs 0.0010 | 306,996: 0.0036 vs 0.0017 |
-| [0.1, 0.2) | 590: 0.1393 vs 0.1288 | 268: 0.1267 vs 0.0112 | 23: 0.1422 vs 0.0000 | 1,004: 0.1416 vs 0.1444 |
-| [0.2, 0.3) | 251: 0.2474 vs 0.2191 | 486: 0.2000 vs 0.0329 | 102: 0.2255 vs 0.0784 | 427: 0.2437 vs 0.2740 |
-| [0.3, 0.4) | 197: 0.3482 vs 0.2538 | 548: 0.3001 vs 0.1606 | 130: 0.3342 vs 0.1308 | 179: 0.3474 vs 0.4804 |
-| [0.4, 0.5) | 125: 0.4498 vs 0.2880 | 236: 0.4000 vs 0.2119 | 153: 0.4111 vs 0.2222 | 173: 0.4459 vs 0.5491 |
-| [0.5, 0.6) | 123: 0.5539 vs 0.3577 | 307: 0.5000 vs 0.3648 | 68: 0.5154 vs 0.3088 | 118: 0.5533 vs 0.7458 |
-| [0.6, 0.7) | 102: 0.6496 vs 0.4118 | 306: 0.6000 vs 0.5229 | 64: 0.6266 vs 0.2031 | 118: 0.6476 vs 0.7373 |
-| [0.7, 0.8) | 119: 0.7494 vs 0.5882 | 187: 0.7029 vs 0.6310 | 157: 0.7385 vs 0.3248 | 205: 0.7566 vs 0.8683 |
-| [0.8, 0.9) | 127: 0.8533 vs 0.5512 | 365: 0.8314 vs 0.8137 | 401: 0.8365 vs 0.4713 | 254: 0.8395 vs 0.9803 |
-| [0.9, 1.0] | 941: 0.9753 vs 0.7439 | 411: 0.9139 vs 0.9513 | 1,043: 0.9523 vs 0.8917 | 0: none |
-| Share of pairs in [0.0, 0.1) | 99.17% | 98.99% | 99.31% | 99.20% |
-| Pooled ECE, point [95% CI] | 0.0015 [0.0009, 0.0025] | 0.0021 [0.0018, 0.0024] | 0.0022 [0.0019, 0.0025] | 0.0024 [0.0022, 0.0027] |
+| Bin | baseline | claude | gemini | transformer | transformer-tuned |
+|---|---|---|---|---|---|
+| [0.0, 0.1) | 306,899: 0.0010 vs 0.0014 | 306,360: 0.0000 vs 0.0011 | 307,333: 0.0000 vs 0.0010 | 306,996: 0.0036 vs 0.0017 | 302,955: 0.0046 vs 0.0008 |
+| [0.1, 0.2) | 590: 0.1393 vs 0.1288 | 268: 0.1267 vs 0.0112 | 23: 0.1422 vs 0.0000 | 1,004: 0.1416 vs 0.1444 | 2,695: 0.1376 vs 0.0156 |
+| [0.2, 0.3) | 251: 0.2474 vs 0.2191 | 486: 0.2000 vs 0.0329 | 102: 0.2255 vs 0.0784 | 427: 0.2437 vs 0.2740 | 819: 0.2434 vs 0.0366 |
+| [0.3, 0.4) | 197: 0.3482 vs 0.2538 | 548: 0.3001 vs 0.1606 | 130: 0.3342 vs 0.1308 | 179: 0.3474 vs 0.4804 | 478: 0.3455 vs 0.0753 |
+| [0.4, 0.5) | 125: 0.4498 vs 0.2880 | 236: 0.4000 vs 0.2119 | 153: 0.4111 vs 0.2222 | 173: 0.4459 vs 0.5491 | 338: 0.4461 vs 0.1065 |
+| [0.5, 0.6) | 123: 0.5539 vs 0.3577 | 307: 0.5000 vs 0.3648 | 68: 0.5154 vs 0.3088 | 118: 0.5533 vs 0.7458 | 254: 0.5440 vs 0.1457 |
+| [0.6, 0.7) | 102: 0.6496 vs 0.4118 | 306: 0.6000 vs 0.5229 | 64: 0.6266 vs 0.2031 | 118: 0.6476 vs 0.7373 | 219: 0.6499 vs 0.1324 |
+| [0.7, 0.8) | 119: 0.7494 vs 0.5882 | 187: 0.7029 vs 0.6310 | 157: 0.7385 vs 0.3248 | 205: 0.7566 vs 0.8683 | 232: 0.7514 vs 0.2241 |
+| [0.8, 0.9) | 127: 0.8533 vs 0.5512 | 365: 0.8314 vs 0.8137 | 401: 0.8365 vs 0.4713 | 254: 0.8395 vs 0.9803 | 349: 0.8539 vs 0.4040 |
+| [0.9, 1.0] | 941: 0.9753 vs 0.7439 | 411: 0.9139 vs 0.9513 | 1,043: 0.9523 vs 0.8917 | 0: none | 1,135: 0.9622 vs 0.8132 |
+| Share of pairs in [0.0, 0.1) | 99.17% | 98.99% | 99.31% | 99.20% | 97.89% |
+| Pooled ECE, point [95% CI] | 0.0015 [0.0009, 0.0025] | 0.0021 [0.0018, 0.0024] | 0.0022 [0.0019, 0.0025] | 0.0024 [0.0022, 0.0027] | 0.0083 [0.0075, 0.0094] |
 
 - Pooled ECE is near zero for every model because 98.99% to 99.31% of pairs fall in the lowest bin; the bins above 0.1 carry the calibration evidence.
 - The transformer is underconfident in every bin from 0.2 to 0.9, for example 0.8395 against 0.9803 in [0.8, 0.9) (254 pairs), and never scores 0.9 or above. This fits the suppressed positive scores in the Step 6a diagnostic.
+- Transformer-tuned is overconfident in every bin from 0.1 up: 0.8539 against 0.4040 in [0.8, 0.9) (349 pairs), 0.9622 against 0.8132 in [0.9, 1.0] (1,135 pairs). Its pooled ECE, 0.0083 [0.0075, 0.0094], is the highest of the five, and fewer of its pairs sit in the lowest bin (97.89%). This is the expected effect of the positive weight, which raises positive scores. Rule B thresholds absorb it for F1, but its scores should not be read as probabilities.
 - Gemini is overconfident from 0.6 to 0.9: mean predicted 0.7385 against observed 0.3248 in [0.7, 0.8), and 0.8365 against 0.4713 in [0.8, 0.9) (401 pairs). Its Rule B thresholds, above 0.5 for 19 of 28 labels (BUILD_LOG 3ag), are consistent with this.
 - Claude tracks the observed rate above 0.7 (0.8314 against 0.8137, 0.9139 against 0.9513) and is overconfident from 0.1 to 0.4 (for example 0.2000 against 0.0329). Its bin means fall on exact tenths (0.2000, 0.4000, 0.5000, 0.6000), consistent with rounded verbal confidences.
 - The baseline is overconfident at the top: 0.9753 against 0.7439 in [0.9, 1.0] (class_weight="balanced", docs/plan.md Step 4).
