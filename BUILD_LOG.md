@@ -2707,3 +2707,21 @@ Fixed 2026-09-28, before any 6c training.
   - Secondary, no claim: `transformer-tuned` minus `transformer` (6a), with 95% intervals.
   - The six earlier compare files must regenerate byte-identically.
 - **What 6c can say:** whether a tuned legal-BERT, chosen on validation, closes the gap on test and shift. It cannot attribute the 6a gap to the recipe: 6c is post-hoc and was motivated by a test result, validation was already used for the 6a selection, and there is one run per configuration.
+
+### Numbers measured (training, before any validation output)
+- Commands: `caffeinate -i python -m src.transformer_tuned train --run <key> 2>&1 | tee data/processed/tuned_train_<key>.txt`, four runs chained with `;`. Files: `models/transformer_tuned/<key>/{trained.json,train_log.csv}` (weights not committed).
+- Every run loaded legal-BERT at revision 15b570cbf88259610b082a167dacc190124f60f6 on MPS and trained on 34,871 train segments, 10,900 optimizer steps. Each run finished and wrote `trained.json`: no failed run, no crash, no restart.
+- Positive weights (weighted runs), `sqrt(neg/pos)` over train: min 8.55, median 17.31, max 45.28.
+- Hours (checkpoint saves included) and per-epoch mean training loss, epochs 1 to 5:
+
+  | Run | Hours | Epoch 1 | Epoch 2 | Epoch 3 | Epoch 4 | Epoch 5 |
+  |---|---|---|---|---|---|---|
+  | u-lr2e-5 | 1.98 | 0.11045 | 0.01901 | 0.01203 | 0.00897 | 0.00723 |
+  | u-lr5e-5 | 1.87 | 0.07940 | 0.01455 | 0.00907 | 0.00625 | 0.00445 |
+  | w-lr2e-5 | 1.89 | 0.22144 | 0.07043 | 0.04299 | 0.02883 | 0.02135 |
+  | w-lr5e-5 | 1.87 | 0.18963 | 0.06795 | 0.04013 | 0.02366 | 0.01461 |
+
+  Total 7.61 h against the 7.4 h projection. Weighted and unweighted losses are on different scales and are not compared. Training loss says nothing about validation performance, which does not exist yet.
+
+### Problems hit and how we solved them
+- Part of the chain ran on battery (the adapter was disconnected). The macOS power log (`pmset -g log`) shows no sleep event from the start of training through 17:34 during run 2, and the per-run times (1.87 to 1.98 h) are consistent with no pause. The display turning off does not pause training.

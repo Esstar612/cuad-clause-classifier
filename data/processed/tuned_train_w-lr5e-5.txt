@@ -1,0 +1,91 @@
+[transformers] You passed `num_labels=33` which is incompatible to the `id2label` map of length `2`.
+Loading weights:   0%|          | 0/199 [00:00<?, ?it/s]Loading weights: 100%|██████████| 199/199 [00:00<00:00, 61022.55it/s]
+[transformers] [1mBertForSequenceClassification LOAD REPORT[0m from: /Users/owner/.cache/huggingface/hub/models--nlpaueb--legal-bert-base-uncased/snapshots/15b570cbf88259610b082a167dacc190124f60f6
+Key                                        | Status     | 
+-------------------------------------------+------------+-
+cls.predictions.decoder.weight             | UNEXPECTED | 
+cls.predictions.decoder.bias               | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.bias   | UNEXPECTED | 
+cls.predictions.transform.LayerNorm.weight | UNEXPECTED | 
+cls.predictions.bias                       | UNEXPECTED | 
+cls.predictions.transform.dense.bias       | UNEXPECTED | 
+cls.seq_relationship.bias                  | UNEXPECTED | 
+cls.seq_relationship.weight                | UNEXPECTED | 
+cls.predictions.transform.dense.weight     | UNEXPECTED | 
+classifier.bias                            | MISSING    | 
+classifier.weight                          | MISSING    | 
+
+Notes:
+- UNEXPECTED:	can be ignored when loading from different task/architecture; not ok if you expect identical arch.
+- MISSING:	those params were newly initialized because missing from the checkpoint. Consider training on your downstream task.
+Training w-lr5e-5 (legal-bert) on 34871 train segments, device mps, recipe {'TRANSFORMER_MAX_TOKENS': 512, 'TRANSFORMER_EPOCHS': 5, 'TRANSFORMER_BATCH_SIZE': 16, 'TRANSFORMER_ACCUMULATION': 4, 'TRANSFORMER_LR': 5e-05, 'TRANSFORMER_WEIGHT_DECAY': 0.01, 'TRANSFORMER_WARMUP': 0.1, 'TRANSFORMER_INFER_BATCH': 64, 'TUNED_ENCODER': 'legal-bert', 'run': 'w-lr5e-5', 'pos_weight': True}
+Positive weights sqrt(neg/pos): min 8.55, median 17.31, max 45.28
+[transformers] Token indices sequence length is longer than the specified maximum sequence length for this model (601 > 512). Running this sequence through the model will result in indexing errors
+  epoch 1 step 200/10900 mean loss 0.59648 elapsed 2.1 min, remaining about 112.3 min
+  epoch 1 step 400/10900 mean loss 0.43363 elapsed 4.1 min, remaining about 108.1 min
+  epoch 1 step 600/10900 mean loss 0.36070 elapsed 6.2 min, remaining about 106.2 min
+  epoch 1 step 800/10900 mean loss 0.32264 elapsed 8.3 min, remaining about 105.4 min
+  epoch 1 step 1000/10900 mean loss 0.28844 elapsed 10.5 min, remaining about 103.5 min
+  epoch 1 step 1200/10900 mean loss 0.26091 elapsed 12.6 min, remaining about 101.5 min
+  epoch 1 step 1400/10900 mean loss 0.23988 elapsed 14.6 min, remaining about 99.3 min
+  epoch 1 step 1600/10900 mean loss 0.22379 elapsed 16.8 min, remaining about 97.4 min
+  epoch 1 step 1800/10900 mean loss 0.21024 elapsed 18.9 min, remaining about 95.4 min
+  epoch 1 step 2000/10900 mean loss 0.19876 elapsed 20.9 min, remaining about 93.2 min
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.45it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.44it/s]
+  epoch 2 step 2200/10900 mean loss 0.06804 elapsed 23.1 min, remaining about 91.3 min
+  epoch 2 step 2400/10900 mean loss 0.06632 elapsed 25.2 min, remaining about 89.1 min
+  epoch 2 step 2600/10900 mean loss 0.07217 elapsed 27.3 min, remaining about 87.1 min
+  epoch 2 step 2800/10900 mean loss 0.07501 elapsed 29.3 min, remaining about 84.8 min
+  epoch 2 step 3000/10900 mean loss 0.07260 elapsed 31.3 min, remaining about 82.5 min
+  epoch 2 step 3200/10900 mean loss 0.07201 elapsed 33.3 min, remaining about 80.2 min
+  epoch 2 step 3400/10900 mean loss 0.07090 elapsed 35.4 min, remaining about 78.0 min
+  epoch 2 step 3600/10900 mean loss 0.07083 elapsed 37.4 min, remaining about 75.9 min
+  epoch 2 step 3800/10900 mean loss 0.06941 elapsed 39.4 min, remaining about 73.7 min
+  epoch 2 step 4000/10900 mean loss 0.06875 elapsed 41.4 min, remaining about 71.5 min
+  epoch 2 step 4200/10900 mean loss 0.06853 elapsed 43.5 min, remaining about 69.3 min
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.01it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.99it/s]
+  epoch 3 step 4400/10900 mean loss 0.03922 elapsed 45.5 min, remaining about 67.2 min
+  epoch 3 step 4600/10900 mean loss 0.04407 elapsed 47.5 min, remaining about 65.1 min
+  epoch 3 step 4800/10900 mean loss 0.04482 elapsed 49.6 min, remaining about 63.1 min
+  epoch 3 step 5000/10900 mean loss 0.04344 elapsed 51.6 min, remaining about 60.9 min
+  epoch 3 step 5200/10900 mean loss 0.04208 elapsed 53.6 min, remaining about 58.8 min
+  epoch 3 step 5400/10900 mean loss 0.04295 elapsed 55.7 min, remaining about 56.8 min
+  epoch 3 step 5600/10900 mean loss 0.04256 elapsed 57.8 min, remaining about 54.7 min
+  epoch 3 step 5800/10900 mean loss 0.04157 elapsed 59.8 min, remaining about 52.6 min
+  epoch 3 step 6000/10900 mean loss 0.04128 elapsed 61.8 min, remaining about 50.5 min
+  epoch 3 step 6200/10900 mean loss 0.04136 elapsed 63.9 min, remaining about 48.4 min
+  epoch 3 step 6400/10900 mean loss 0.04018 elapsed 65.9 min, remaining about 46.3 min
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.77it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  1.77it/s]
+  epoch 4 step 6600/10900 mean loss 0.02106 elapsed 68.0 min, remaining about 44.3 min
+  epoch 4 step 6800/10900 mean loss 0.02409 elapsed 70.0 min, remaining about 42.2 min
+  epoch 4 step 7000/10900 mean loss 0.02429 elapsed 72.1 min, remaining about 40.1 min
+  epoch 4 step 7200/10900 mean loss 0.02406 elapsed 74.1 min, remaining about 38.1 min
+  epoch 4 step 7400/10900 mean loss 0.02507 elapsed 76.1 min, remaining about 36.0 min
+  epoch 4 step 7600/10900 mean loss 0.02504 elapsed 78.2 min, remaining about 34.0 min
+  epoch 4 step 7800/10900 mean loss 0.02500 elapsed 80.2 min, remaining about 31.9 min
+  epoch 4 step 8000/10900 mean loss 0.02464 elapsed 82.3 min, remaining about 29.8 min
+  epoch 4 step 8200/10900 mean loss 0.02381 elapsed 84.3 min, remaining about 27.8 min
+  epoch 4 step 8400/10900 mean loss 0.02423 elapsed 86.3 min, remaining about 25.7 min
+  epoch 4 step 8600/10900 mean loss 0.02379 elapsed 88.4 min, remaining about 23.6 min
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.58it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.55it/s]
+  epoch 5 step 8800/10900 mean loss 0.01859 elapsed 90.5 min, remaining about 21.6 min
+  epoch 5 step 9000/10900 mean loss 0.01561 elapsed 92.6 min, remaining about 19.5 min
+  epoch 5 step 9200/10900 mean loss 0.01394 elapsed 94.7 min, remaining about 17.5 min
+  epoch 5 step 9400/10900 mean loss 0.01379 elapsed 96.8 min, remaining about 15.5 min
+  epoch 5 step 9600/10900 mean loss 0.01361 elapsed 98.9 min, remaining about 13.4 min
+  epoch 5 step 9800/10900 mean loss 0.01374 elapsed 100.9 min, remaining about 11.3 min
+  epoch 5 step 10000/10900 mean loss 0.01450 elapsed 103.0 min, remaining about 9.3 min
+  epoch 5 step 10200/10900 mean loss 0.01455 elapsed 105.0 min, remaining about 7.2 min
+  epoch 5 step 10400/10900 mean loss 0.01450 elapsed 107.0 min, remaining about 5.1 min
+  epoch 5 step 10600/10900 mean loss 0.01448 elapsed 109.0 min, remaining about 3.1 min
+  epoch 5 step 10800/10900 mean loss 0.01451 elapsed 111.0 min, remaining about 1.0 min
+  epoch 5 step 10900/10900 mean loss 0.01461 elapsed 112.0 min, remaining about 0.0 min
+Writing model shards:   0%|          | 0/1 [00:00<?, ?it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.95it/s]Writing model shards: 100%|██████████| 1/1 [00:00<00:00,  2.84it/s]
+
+w-lr5e-5: trained in 1.87 h (checkpoint saves included); per-epoch mean loss:
+  epoch 1: 0.18963
+  epoch 2: 0.06795
+  epoch 3: 0.04013
+  epoch 4: 0.02366
+  epoch 5: 0.01461
+Wrote epoch-1..5 checkpoints and /Users/owner/Dropbox/My Resume/Code/CCC/models/transformer_tuned/w-lr5e-5/trained.json (no validation output)
