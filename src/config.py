@@ -65,9 +65,11 @@ COMPARE_FAMILIES = {
     "4b": (("claude", "baseline"), ("gemini", "baseline"), ("gemini", "claude")),
     "6a": (("transformer", "baseline"), ("transformer", "claude"), ("transformer", "gemini")),
     "6c": (("transformer-tuned", "baseline"), ("transformer-tuned", "claude"), ("transformer-tuned", "gemini")),
+    "6b": (("fireworks-deepseek", "baseline"), ("fireworks-deepseek", "claude"), ("fireworks-deepseek", "gemini")),
 }
 COMPARE_PAIRS = tuple(p for pairs in COMPARE_FAMILIES.values() for p in pairs)
-COMPARE_SECONDARY = (("transformer-tuned", "transformer"),)  # reported with 95% intervals, no claims
+COMPARE_SECONDARY = (("transformer-tuned", "transformer"),  # reported with 95% intervals, no claims
+                     ("fireworks-deepseek", "transformer-tuned"))
 COMPARE_SENSITIVITY = {"6c": 24}  # extra adjusted interval: the transformer approach has two test looks
 assert all(len(p) * len(COMPARE_PRIMARY_SCOPES) * len(COMPARE_PRIMARY_METRICS) == COMPARE_FAMILY_SIZE
            for p in COMPARE_FAMILIES.values())
@@ -100,7 +102,13 @@ LLM_MODELS = {
     "gemini": {"provider": "google", "model_id": "gemini-3.8-flash",
                "price_in": 0.75, "price_out": 3.75, "price_cache_read": 0.075,
                "price_cache_write": 0.0, "thinking_level": "low", "max_tokens": 8000},
+    # Step 6b: Fireworks serverless Standard tier (docs pricing table, 2026-09-28)
+    "fireworks-deepseek": {"provider": "fireworks", "model_id": "accounts/fireworks/models/deepseek-v4p1-flash",
+                           "price_in": 0.30, "price_out": 1.20, "price_cache_read": 0.006,
+                           "price_cache_write": 0.0, "reasoning_effort": "none", "seed": SEED, "max_tokens": 8000,
+                           "frozen_protocol": {"prompt": "v3", "batch_size": 10}},
 }
+STEP3_MODELS = ("claude", "gemini")  # historical Step 3 commands: estimate, yardstick, estimate-version, gate-v4
 LLM_WINDOW_SIZE = 10             # fixed context window; batch size is 10 (whole window) or 1
 LLM_CONFIDENCE_FLOOR = 0.1       # models list every label with confidence >= this; others score 0
 LLM_ITERATION_MIN_SEGMENTS = 1500

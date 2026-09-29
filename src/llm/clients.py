@@ -51,6 +51,13 @@ def gemini_cost(usage: dict, spec: dict) -> float:
             + out * spec["price_out"]) / 1e6
 
 
+def fireworks_cost(usage: dict, spec: dict) -> float:
+    """completion_tokens already includes reasoning tokens."""
+    cached = usage.get("cached_tokens") or 0
+    return ((usage.get("prompt_tokens", 0) - cached) * spec["price_in"] + cached * spec["price_cache_read"]
+            + usage.get("completion_tokens", 0) * spec["price_out"]) / 1e6
+
+
 def worst_case_cost(system: str, user: str, spec: dict) -> float:
     """Upper bound for the budget check: ~3 characters per token, nothing cached, and the
     full max_tokens of output."""
@@ -208,6 +215,61 @@ class GeminiClassifier:
                        gemini_cost(usage, self.spec), latency, retries, backoff, errors)
 
 
+FIREWORKS_URL = "https://api.fireworks.ai/inference/v1/chat/completions"
+
+
+class FireworksClassifier:
+    """Raw HTTP to the OpenAI-compatible endpoint, so the request body is exactly what the cache hashes."""
+
+    def __init__(self, spec: dict):
+        import httpx
+
+        self._httpx = httpx
+        self.spec = spec
+        self.client = httpx.Client(timeout=config.LLM_TIMEOUT_S,
+                                   headers={"Authorization": f"Bearer {os.environ.get('FIREWORKS_API_KEY')}"})
+        self.limiter = RateLimiter(config.LLM_RPM)
+
+    def payload(self, system: str, user: str, schema: dict) -> dict:
+        """Temperature is left at the provider default, as for Gemini; the seed is best effort only."""
+        return {"model": self.spec["model_id"], "max_tokens": self.spec["max_tokens"], "seed": self.spec["seed"],
+                "reasoning_effort": self.spec["reasoning_effort"],
+                "messages": [{"role": "system", "content": system}, {"role": "user", "content": user}],
+                "response_format": {"type": "json_schema", "json_schema": {"name": "segments", "schema": schema}}}
+
+    def send(self, payload: dict) -> Attempt:
+        h = self._httpx
+
+        def call():
+            try:
+                r = self.client.post(FIREWORKS_URL, json=payload)
+            except h.TransportError as e:  # includes timeouts
+                raise _Transient(f"connection: {e}") from e
+            if r.status_code in (408, 429) or r.status_code >= 500:
+                raise _Transient(f"{r.status_code}: {r.text[:200]}")
+            r.raise_for_status()
+            return r.json()
+
+        body, latency, retries, backoff, errors = _with_retries(call, self.limiter)
+        choice = body["choices"][0]
+        reason = choice.get("finish_reason")
+        finish = {"stop": "ok", "length": "max_tokens", "content_filter": "refusal"}.get(reason, f"other:{reason}")
+        u = body.get("usage") or {}
+        usage = {"prompt_tokens": u.get("prompt_tokens", 0), "completion_tokens": u.get("completion_tokens", 0),
+                 "cached_tokens": (u.get("prompt_tokens_details") or {}).get("cached_tokens") or 0,
+                 "reasoning_tokens": (u.get("completion_tokens_details") or {}).get("reasoning_tokens") or 0}
+        cost = fireworks_cost(usage, self.spec)
+        if "prompt_tokens" not in u or "completion_tokens" not in u:  # never book a paid call as free
+            usage["usage_missing"] = 1
+            messages = payload["messages"]
+            cost = worst_case_cost(messages[0]["content"], messages[1]["content"], self.spec)
+        return Attempt(choice["message"].get("content"), finish, body.get("model") or payload["model"], usage,
+                       cost, latency, retries, backoff, errors)
+
+
+CLASSIFIERS = {"anthropic": AnthropicClassifier, "google": GeminiClassifier, "fireworks": FireworksClassifier}
+
+
 def make_classifier(model_key: str, **overrides):
     spec = {**config.LLM_MODELS[model_key], **overrides}
-    return (AnthropicClassifier if spec["provider"] == "anthropic" else GeminiClassifier)(spec)
+    return CLASSIFIERS[spec["provider"]](spec)

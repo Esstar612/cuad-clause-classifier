@@ -2802,3 +2802,81 @@ None after selection. The selection was committed (a805839) before the held-out 
 
 ### Resume-worthy
 - Diagnosed a fine-tuned legal-BERT that came last of four, pre-registered a post-hoc successor (loss weighting and learning-rate grid, validation-only selection, a stricter interval for the second test look), which beat a TF-IDF baseline and was statistically indistinguishable from Claude Sonnet 5 on held-out contracts; both results are reported.
+
+## 2026-09-29: Step 6b, open model on Fireworks pre-registered and code placed (before any call)
+
+### What we built
+- `src/llm/clients.py`: `FireworksClassifier`, raw `httpx` to Fireworks' OpenAI-compatible chat completions endpoint, so the request body is exactly what the cache hashes. `fireworks_cost` (completion tokens include reasoning tokens). A response without token usage is charged the worst-case cost and flagged, so a paid call is never booked as free. `make_classifier` dispatches through a provider dict, and an unknown provider raises instead of falling through to Gemini.
+- `src/llm/run.py`:
+  - `iteration_run`, extracted from `iterate` without changing its behaviour: the iteration windows plus the casebook windows.
+  - `smoke-check`: judges the `--limit 3` smoke with the Step 3 `smoke_check` criteria and projects the remaining spend from the measured cost per call.
+  - The pre-registered rules are enforced in code for any model with a `frozen_protocol` in its config (`fireworks-deepseek`):
+    - `iterate` runs only prompt v3 at batch size 10, without `--rerun` or `--subset`, and its smoke is exactly `--limit 3`.
+    - The smoke writes `models/<key>/smoke_<version>.json` before any call (status "started") and again when it finishes, with the calls that returned and the failures of that invocation. `smoke-check` judges only those calls, so a later rerun cannot fill a gap. An interrupted smoke stays "started" and counts as a failure: no resume.
+    - A second smoke is refused unless the judged invocation finished with no model output and only setup errors (HTTP 401, 402, 403 or 404, or an exception in our own code), and `--after-setup-fix` is given. The earlier invocation is kept in the marker. A 400 or 422, or exhausted retries, count as a smoke failure.
+    - A full `iterate` is refused unless the judged smoke passed.
+  - `RUN_SETTINGS` gains `reasoning_effort`. Claude's and Gemini's frozen settings are unchanged, because a spec without the key contributes nothing.
+  - The Step 3 commands `estimate`, `yardstick`, `estimate-version` and `gate-v4` loop over `config.STEP3_MODELS` (Claude, Gemini), so their historical output is unchanged.
+- `src/config.py`: the `fireworks-deepseek` spec, `STEP3_MODELS`, the 6b comparison family, and a second secondary pair. `src/report.py`: the `fireworks-deepseek` column.
+- `pyproject.toml`: `httpx` declared (already in the lock at 0.28.1). `.env.example`: `FIREWORKS_API_KEY`.
+- Tests (offline, `httpx.MockTransport`):
+  - the payload fields;
+  - usage, cost, and reasoning tokens counted once;
+  - a 429 retried, a 400 raised, a timeout recorded as `connection:` and failing the smoke check;
+  - unknown finish reasons and missing cache counts;
+  - provider dispatch;
+  - unchanged frozen Claude and Gemini settings;
+  - an end-to-end `run_calls` with the config spec and a ledger;
+  - `iteration_run` matching `iterate`, and the smoke reading its first three calls;
+  - `smoke-check` output and registration;
+  - the 6b family and unchanged 4b, 6a and 6c report tables.
+- Plan reviews: `docs/reviews/2026-09-28-6b-r1.md` and `-r2.md`.
+
+### Decisions made
+Fixed before any Fireworks call.
+- **Question:** can an open-weights model, served by Fireworks under the frozen LLM protocol with no prompt iteration of its own, match Claude and Gemini? Every other model's validation, test and shift results were known when this was fixed; no DeepSeek output was.
+- **Model:** DeepSeek V4.1 Flash, key `fireworks-deepseek`, ID `accounts/fireworks/models/deepseek-v4p1-flash`.
+  - Prices from the Fireworks docs pricing table (Standard tier, per 1M tokens): input $0.30, cached input $0.006, output $1.20. The model card shows $0.22 / $0.66; the higher figures are used for the budget.
+  - The ID, the three prices, JSON-schema support and `reasoning_effort` "none" are checked on the model page before any call. Any difference is amended here and in config, and logged, before the smoke run.
+  - Standard (global) tier: CUAD is public.
+  - Alternatives considered: GLM 5.3 Flash (cheaper), GLM 5.3 and Qwen 3.8 Max (stronger, about $31 and $44 by a rough estimate).
+  - Why rejected: DeepSeek V4.1 Flash is in the same tier as Gemini 3.8 Flash at low cost. GLM 5.3 Flash is kept as the fallback.
+- **Protocol:** Gemini's frozen v3 (prompt hash 8ec29d0ea6ca: the v2 instructions plus retrieved train examples), batch size 10, sparse scores at 0.1 or above, Rule B thresholds on full validation. No iteration and no other version.
+- **Run settings (frozen with the prompt):**
+  - `seed` 42 (best effort, and part of the frozen run settings, so a changed seed is refused after freezing); temperature at the provider default, as for Gemini; `max_tokens` 8000.
+  - `reasoning_effort` "none". Gemini ran at thinking level "low" but recorded 0 thought tokens across its v3 calls, and JSON-schema mode disables reasoning output on Fireworks. Reasoning tokens are printed by the smoke check and reported descriptively, not as a failure criterion.
+- **Smoke gate:** `iterate --limit 3`, judged on its first invocation only, with no resume, by the Step 3 `smoke_check` criteria. A failure means any of:
+  - fewer than 3 records;
+  - an output above 6,000 tokens or a latency above 90 s;
+  - a `connection:`, `408` or `504` retry error;
+  - a segment unparsed after its retry.
+
+  **Setup errors are not smoke failures.** A request that never reached the model is fixed, logged and rerun: 401, 402, 403, 404, or an exception in our own code. The judged invocation is the first one the endpoint accepts. A 400 or 422 rejecting the schema or `reasoning_effort`, retries that give up, and a budget stop count as failures.
+- **Fallback:** on a smoke failure, GLM 5.3 Flash (`accounts/fireworks/models/glm-5p3-flash`; $0.15 input, $0.03 cached, $0.50 output) replaces DeepSeek once, under the same protocol, settings and gate.
+  - The switch changes the `LLM_MODELS` entry (key `fireworks-glm-flash`), `COMPARE_FAMILIES["6b"]`, the secondary pair and `report.MODELS`, with the matching tests and commands.
+  - It is committed and logged before the new smoke. If GLM also fails, 6b ends with no model.
+  - After a pass, nothing triggers the switch, whatever the iteration or validation output shows.
+  - If the model is retired, or keeps returning non-transient errors before the held-out run completes, 6b ends without a held-out result, and that is logged.
+- **Health, repeat check and held-out:** as for Claude and Gemini (Steps 3af to 3ah):
+  - a validation or held-out run above the 5% below-floor share is redone once;
+  - the repeat check uses 30 windows with 2 extra runs;
+  - one held-out run on test and shift.
+- **Budget:** the same ledger, $150 hard cap and $100 soft checkpoint, with about $53.70 spent (3ah).
+  - 6b makes about 2,727 calls: 357 iteration (reused by validation), 855 new validation, 60 repeat, 985 test and 470 shift.
+  - The smoke check projects the rest from the measured cost per call before the full run.
+- **Comparisons, family 6b:** `fireworks-deepseek` minus baseline, minus Claude and minus Gemini, on test Rule A and shift Rule C, with micro- and macro-F1 co-primary.
+  - 12 comparisons at 99.583%, with 10,000 paired resamples.
+  - No sensitivity check: this is the model's first and only test look.
+  - Secondary, no claim: `fireworks-deepseek` minus `transformer-tuned`.
+  - The ten earlier compare files must regenerate byte-identically.
+- **What 6b can say:** whether this open model, under a protocol it did not shape, reaches the proprietary LLMs on this data. Limits:
+  - Against Claude, both the model and the prompt differ (v3 against v2).
+  - v3 was selected on Gemini's own iteration run, which favours Gemini.
+  - Fireworks serving (quantization, kernels) may differ from self-hosted weights, so self-hosting is a direction, not a measurement.
+  - DeepSeek carries the CUAD contamination caveat.
+  - The recorded served model is the requested ID, not a weights version.
+- **Roadmap after 6b:**
+  - Step 7, the service, designed for human review: highlighted clauses with confidence, and a high-recall option tuned on validation only.
+  - Step 8, deployment.
+  - Step 9, a fresh test set of non-CUAD contracts, which also removes the contamination caveat.
+  - Step 10, an ensemble (for example the tuned legal-BERT with Gemini), evaluated only on Step 9's set.

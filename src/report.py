@@ -1,10 +1,10 @@
-"""Markdown tables for docs/results.md, generated from saved evaluation JSON only (Steps 4b, 5, 6a, 6c).
+"""Markdown tables for docs/results.md, generated from saved evaluation JSON only (Steps 4b, 5, 6a, 6c, 6b).
 
   python -m src.report | tee data/processed/results_tables.md
 
-Reads data/eval/{baseline,claude,gemini,transformer,transformer-tuned}.json, the ten compare files (the nine of
-the pre-registered families in config.COMPARE_FAMILIES and config.COMPARE_SECONDARY), and data/eval/drift.json
-when it exists.
+Reads data/eval/{baseline,claude,gemini,transformer,transformer-tuned,fireworks-deepseek}.json, the fourteen
+compare files (the twelve of the pre-registered families in config.COMPARE_FAMILIES and the two in
+config.COMPARE_SECONDARY), and data/eval/drift.json when it exists.
 Composes no claims: claims and verdicts come from the compare files.
 """
 
@@ -15,7 +15,7 @@ from pathlib import Path
 
 from src import config
 
-MODELS = ("baseline", "claude", "gemini", "transformer", "transformer-tuned")
+MODELS = ("baseline", "claude", "gemini", "transformer", "transformer-tuned", "fireworks-deepseek")
 SPARSE_NOTE = "sparse lower bound, not interpreted"
 LEVEL = f"{config.CI_LEVEL:.0%}"
 

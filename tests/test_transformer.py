@@ -258,9 +258,9 @@ def test_selection_rule_parsimony_and_size_tolerance(world):
 def test_compare_families_and_report_tables():
     from src import evaluate, report
 
-    assert len(config.COMPARE_PAIRS) == 9 and ("transformer", "baseline") in config.COMPARE_PAIRS
+    assert len(config.COMPARE_PAIRS) == 12 and ("transformer", "baseline") in config.COMPARE_PAIRS
     assert ("baseline", "transformer") not in config.COMPARE_PAIRS
-    assert ("transformer-tuned", "transformer") not in config.COMPARE_PAIRS
+    assert not set(config.COMPARE_SECONDARY) & set(config.COMPARE_PAIRS) and len(config.COMPARE_SECONDARY) == 2
     assert evaluate.ADJUSTED_LEVEL == pytest.approx(1 - 0.05 / 12) and "family of 12" in evaluate.COMPARE_METHOD
     row = {"difference": 0.1, "ci_low": 0.05, "ci_high": 0.15, "primary": True, "adjusted_level": 0.99583,
            "adjusted_ci_low": 0.01, "adjusted_ci_high": 0.2, "claim": "A higher"}
@@ -272,14 +272,19 @@ def test_compare_families_and_report_tables():
     secondary = {"family_size": 12, "verdicts": {},
                  "differences": {"test | all | macro_f1": {"difference": 0.02, "ci_low": -0.01, "ci_high": 0.05}}}
     earlier = {p: comp for f in ("4b", "6a") for p in config.COMPARE_FAMILIES[f]}
-    everything = {**earlier, **{p: sens for p in config.COMPARE_FAMILIES["6c"]},
+    before_6b = {**earlier, **{p: sens for p in config.COMPARE_FAMILIES["6c"]},
+                 config.COMPARE_SECONDARY[0]: secondary}
+    everything = {**before_6b, **{p: comp for p in config.COMPARE_FAMILIES["6b"]},
                   **{p: secondary for p in config.COMPARE_SECONDARY}}
     md = report.comparison_tables(everything)
-    assert all(f"family {f}" in md for f in ("4b", "6a", "6c")) and md.count("#### Primary comparisons") == 3
+    assert all(f"family {f}" in md for f in ("4b", "6a", "6c", "6b")) and md.count("#### Primary comparisons") == 4
     assert md.count("#### Sensitivity") == 1 and "#### Sensitivity, family 6c (family of 24; 99.792%" in md
     assert "transformer-tuned minus transformer | test \\| all \\| macro_f1" in md
-    before = report.comparison_tables(earlier)
-    for f in ("4b", "6a"):
-        for head in (f"#### Primary comparisons, family {f}", f"#### Verdicts, family {f}"):
+    assert "fireworks-deepseek minus transformer-tuned | test \\| all \\| macro_f1" in md
+    for base, families in ((report.comparison_tables(earlier), ("4b", "6a")),
+                           (report.comparison_tables(before_6b), ("4b", "6a", "6c"))):
+        heads = [f"#### {kind}, family {f}" for f in families for kind in ("Primary comparisons", "Verdicts")]
+        heads += ["#### Sensitivity, family 6c"] if "6c" in families else []
+        for head in heads:
             section = lambda text: text[text.index(head):].split("\n\n####")[0]
-            assert section(md) == section(before)
+            assert section(md) == section(base)

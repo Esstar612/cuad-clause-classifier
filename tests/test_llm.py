@@ -1193,3 +1193,288 @@ def test_val_healthy_run_records_health(tmp_path, monkeypatch):
     state = json.loads((tmp_path / "models" / "claude" / "val_run.json").read_text())
     assert "val" in state["health"] and "invalid" not in state
     assert (tmp_path / "pred" / "claude_val.parquet").exists()
+
+
+# ----------------------------------------------------------------------------- Step 6b: Fireworks
+
+FW = "fireworks-deepseek"
+
+
+def _fw_body(content="{}", finish="stop", usage=None):
+    return {"model": config.LLM_MODELS[FW]["model_id"],
+            "choices": [{"finish_reason": finish, "message": {"content": content}}],
+            "usage": usage if usage is not None else {"prompt_tokens": 1000, "completion_tokens": 50}}
+
+
+class _NoWait:
+    def wait(self):
+        pass
+
+
+def _fw_client(monkeypatch, handler):
+    import httpx
+
+    from src.llm import clients
+
+    monkeypatch.setattr(clients.time, "sleep", lambda _s: None)
+    clf = clients.FireworksClassifier(config.LLM_MODELS[FW])
+    clf.client = httpx.Client(transport=httpx.MockTransport(handler), headers=clf.client.headers)
+    clf.limiter = _NoWait()
+    return clf
+
+
+def test_fireworks_payload_has_exactly_the_registered_fields():
+    from src.llm.clients import FireworksClassifier
+
+    assert config.LLM_MODELS[FW]["seed"] == config.SEED
+    p = FireworksClassifier(config.LLM_MODELS[FW]).payload("sys", "usr", {"type": "object"})
+    assert p == {"model": "accounts/fireworks/models/deepseek-v4p1-flash", "max_tokens": 8000, "seed": config.SEED,
+                 "reasoning_effort": "none",
+                 "messages": [{"role": "system", "content": "sys"}, {"role": "user", "content": "usr"}],
+                 "response_format": {"type": "json_schema",
+                                     "json_schema": {"name": "segments", "schema": {"type": "object"}}}}
+
+
+def test_fireworks_send_maps_usage_cost_and_counts_reasoning_once(monkeypatch):
+    import httpx
+
+    from src.llm.clients import fireworks_cost
+    from src.llm.run import _output_tokens
+
+    usage = {"prompt_tokens": 1000, "completion_tokens": 50, "prompt_tokens_details": {"cached_tokens": 400},
+             "completion_tokens_details": {"reasoning_tokens": 20}}
+    a = _fw_client(monkeypatch, lambda r: httpx.Response(200, json=_fw_body('{"segments": {}}', usage=usage))).send(
+        {"model": "m"})
+    assert a.finish == "ok" and a.text == '{"segments": {}}' and a.transport_retries == 0
+    assert a.usage == {"prompt_tokens": 1000, "completion_tokens": 50, "cached_tokens": 400, "reasoning_tokens": 20}
+    expected = (600 * 0.30 + 400 * 0.006 + 50 * 1.20) / 1e6
+    assert a.cost_usd == pytest.approx(expected) and fireworks_cost(a.usage, config.LLM_MODELS[FW]) == a.cost_usd
+    assert _output_tokens(a.usage) == 50
+
+
+def test_fireworks_429_is_retried_and_400_raises(monkeypatch):
+    import httpx
+
+    replies = [httpx.Response(429, text="slow down"), httpx.Response(200, json=_fw_body())]
+    a = _fw_client(monkeypatch, lambda r: replies.pop(0)).send({"model": "m"})
+    assert a.transport_retries == 1 and a.retry_errors[0].startswith("429")
+    with pytest.raises(httpx.HTTPStatusError):
+        _fw_client(monkeypatch, lambda r: httpx.Response(400, text="bad schema")).send({"model": "m"})
+
+
+def test_fireworks_timeout_is_a_connection_error_that_fails_the_smoke_check(monkeypatch):
+    import httpx
+
+    from src.llm.run import is_timeout, smoke_check
+
+    replies = [httpx.ReadTimeout("timed out"), httpx.Response(200, json=_fw_body())]
+
+    def handler(request):
+        reply = replies.pop(0)
+        if isinstance(reply, Exception):
+            raise reply
+        return reply
+
+    a = _fw_client(monkeypatch, handler).send({"model": "m"})
+    assert a.retry_errors[0].startswith("connection:") and is_timeout(a.retry_errors[0])
+    clean = [_smoke_record(f"k{i}") for i in range(2)]
+    assert smoke_check(clean + [_smoke_record("t", retry_errors=a.retry_errors)], 3, LABELS)
+
+
+def test_fireworks_unknown_finish_missing_cache_counts_and_missing_usage(monkeypatch):
+    import httpx
+
+    from src.llm.clients import worst_case_cost
+
+    usage = {"prompt_tokens": 10, "completion_tokens": 2, "prompt_tokens_details": {"cached_tokens": None}}
+    a = _fw_client(monkeypatch, lambda r: httpx.Response(200, json=_fw_body(finish="tool_calls", usage=usage))).send(
+        {"model": "m"})
+    assert a.finish == "other:tool_calls" and a.usage["cached_tokens"] == 0 and a.usage["reasoning_tokens"] == 0
+    payload = _fw_client(monkeypatch, None).payload("s" * 300, "u" * 300, {})
+    b = _fw_client(monkeypatch, lambda r: httpx.Response(200, json=_fw_body(usage={}))).send(payload)
+    assert b.usage["usage_missing"] == 1 and b.cost_usd == pytest.approx(
+        worst_case_cost("s" * 300, "u" * 300, config.LLM_MODELS[FW])) and b.cost_usd > 0
+
+
+def test_make_classifier_dispatches_by_provider_and_refuses_unknown():
+    from src.llm.clients import CLASSIFIERS, FireworksClassifier, make_classifier
+
+    assert {s["provider"] for s in config.LLM_MODELS.values()} <= set(CLASSIFIERS)
+    assert isinstance(make_classifier(FW), FireworksClassifier)
+    with pytest.raises(KeyError):
+        make_classifier(FW, provider="unknown")
+
+
+def test_step3_frozen_settings_unchanged_and_step3_commands_skip_the_new_model():
+    import inspect
+
+    from src.llm import run
+
+    for model in config.STEP3_MODELS:
+        frozen = json.loads((config.MODELS_DIR / model / "prompt.json").read_text())
+        assert run.run_settings(model) == frozen["run_settings"]
+    assert run.run_settings(FW)["reasoning_effort"] == "none" and run.run_settings(FW)["seed"] == config.SEED
+    for fn in (run.cmd_estimate, run.cmd_yardstick, run.cmd_estimate_version, run.cmd_gate_v4):
+        src = inspect.getsource(fn)
+        assert "STEP3_MODELS" in src and "LLM_MODELS.items()" not in src and "in config.LLM_MODELS:" not in src
+
+
+@needs_data
+def test_fireworks_run_calls_end_to_end_with_the_config_spec(tmp_path, monkeypatch):
+    import httpx
+
+    from src.llm.clients import fireworks_cost
+    from src.llm.run import run_calls
+
+    monkeypatch.setenv("FIREWORKS_API_KEY", "test-key")
+    calls = build_calls(_segments({7: 2}), WINDOW)
+    answer = _resp([{"id": "S1", "labels": [{"label": "Governing Law", "confidence": 0.7}]},
+                    {"id": "S2", "labels": []}])
+    seen = []
+
+    def handler(request):
+        seen.append((request.headers["authorization"], json.loads(request.content)))
+        return httpx.Response(200, json=_fw_body(answer))
+
+    clf = _fw_client(monkeypatch, handler)
+    ledger = Ledger(tmp_path / "ledger.jsonl", cap_usd=1.0)
+    res = run_calls(FW, calls, "v1", "v1", _label_order(), classifier=clf, ledger=ledger,
+                    cache_root=tmp_path, workers=1)
+    rec = res.records[calls[0].key]
+    assert rec["parse_failures"] == [] and rec["scores"]["7_0"] == {"Governing Law": 0.7}
+    auth, body = seen[0]
+    assert auth == "Bearer test-key" and body["response_format"]["type"] == "json_schema" and body["seed"] == config.SEED
+    entries = [json.loads(line) for line in (tmp_path / "ledger.jsonl").read_text().splitlines()]
+    assert len(entries) == 1 and entries[0]["cost_usd"] == pytest.approx(
+        fireworks_cost({"prompt_tokens": 1000, "completion_tokens": 50}, config.LLM_MODELS[FW]))
+
+
+@needs_data
+def test_iteration_run_matches_iterate_and_a_full_iterate_needs_the_smoke_and_reaches_the_casebook(
+        tmp_path, monkeypatch, capsys):
+    import argparse
+
+    from src.llm import run
+
+    segments, _, _ = run.load_inputs()
+    monkeypatch.setattr(config, "MODELS_DIR", tmp_path / "models")
+    monkeypatch.setattr(config, "LLM_ITERATION_DIR", tmp_path / "iteration")
+    monkeypatch.setattr(run, "soft_checkpoint", lambda *a, **k: None)
+    sent = {}
+
+    def records_for(calls):
+        return {c.key: {**_val_record(c.targets, 0.8), "call_key": c.key} for c in calls}
+
+    def fake_run_calls(model, calls, *a, **k):
+        sent["keys"] = [c.key for c in calls]
+        return run.RunResult(records=records_for(calls))
+
+    monkeypatch.setattr(run, "run_calls", fake_run_calls)
+    monkeypatch.setattr(run, "_cached_records", lambda model, calls, *a: records_for(calls))
+    args = dict(model=FW, prompt="v3", batch_size=WINDOW, subset=None, rerun=None, max_cost=None,
+                past_checkpoint=False, after_setup_fix=False)
+    calls, to_run = run.iteration_run(segments, WINDOW)
+    assert len(to_run) - 3 == 354 and run.iteration_run(segments, WINDOW, 3)[1] == calls[:3]
+    with pytest.raises(SystemExit, match="missing"):
+        run.cmd_iterate(argparse.Namespace(**args, limit=None))
+    for limit, expected in ((3, calls[:3]), (None, to_run)):
+        run.cmd_iterate(argparse.Namespace(**args, limit=limit))
+        assert sent["keys"] == [c.key for c in expected]
+        out = capsys.readouterr().out
+        assert "SMOKE TEST" in out if limit else ("Casebook" in out and "Wrote" in out)
+    assert json.loads(run.smoke_marker_path(FW, "v3").read_text())["status"] == "finished"
+
+
+@pytest.mark.parametrize("change,match", [({"prompt": "v2"}, "registered protocol"),
+                                          ({"batch_size": 1}, "registered protocol"),
+                                          ({"rerun": "r2"}, "registered protocol"),
+                                          ({"limit": 2}, "--limit 3")])
+def test_protocol_guard_allows_only_the_registered_protocol(change, match):
+    import argparse
+
+    from src.llm import run
+
+    args = dict(model=FW, prompt="v3", batch_size=WINDOW, subset=None, rerun=None, limit=3)
+    run.protocol_guard(argparse.Namespace(**args))
+    run.protocol_guard(argparse.Namespace(**{**args, "model": "claude", **change}))
+    with pytest.raises(SystemExit, match=match):
+        run.protocol_guard(argparse.Namespace(**{**args, **change}))
+
+
+@pytest.mark.parametrize("error,setup", [
+    ("HTTPStatusError: Client error '401 Unauthorized' for url 'x'", True),
+    ("HTTPStatusError: Client error '402 Payment Required' for url 'x'", True),
+    ("HTTPStatusError: Client error '404 Not Found' for url 'x'", True),
+    ("KeyError: 'choices'", True),
+    ("HTTPStatusError: Client error '400 Bad Request' for url 'x'", False),
+    ("HTTPStatusError: Client error '422 Unprocessable Entity' for url 'x'", False),
+    ("RuntimeError: gave up after 8 attempts: ['429: slow']", False)])
+def test_setup_errors_are_only_the_preregistered_ones(error, setup):
+    from src.llm.run import is_setup_error
+
+    assert is_setup_error(error) is setup
+
+
+def test_smoke_marker_keeps_the_first_invocation_and_allows_only_setup_reruns(tmp_path, monkeypatch):
+    from src.llm import run
+
+    monkeypatch.setattr(config, "MODELS_DIR", tmp_path)
+    RunResult = run.RunResult
+    assert run.smoke_guard(FW, "v3", False) == []
+    unauthorized = {"k0": "HTTPStatusError: Client error '401 Unauthorized' for url 'x'"}
+    run.write_smoke_marker(FW, "v3", "finished", RunResult(failed=unauthorized), [])
+    with pytest.raises(SystemExit, match="--after-setup-fix"):
+        run.smoke_guard(FW, "v3", False)
+    history = run.smoke_guard(FW, "v3", True)
+    assert history[0]["failed"] == unauthorized
+    for result in (RunResult(failed={"k0": "HTTPStatusError: Client error '400 Bad Request' for url 'x'"}),
+                   RunResult(failed={"k0": "RuntimeError: gave up after 8 attempts: []"}),
+                   RunResult(stopped="run cap reached")):
+        run.write_smoke_marker(FW, "v3", "finished", result, [])
+        with pytest.raises(SystemExit, match="not setup errors"):
+            run.smoke_guard(FW, "v3", True)
+    run.write_smoke_marker(FW, "v3", "started", RunResult(), history)
+    with pytest.raises(SystemExit, match="interrupted"):
+        run.smoke_guard(FW, "v3", True)
+    run.write_smoke_marker(FW, "v3", "finished", RunResult(records={"k0": {}, "k1": {}}, failed={"k2": "x"}), history)
+    marker = json.loads(run.smoke_marker_path(FW, "v3").read_text())
+    assert marker["completed"] == ["k0", "k1"] and len(marker["setup_reruns"]) == 1
+    for fix in (False, True):
+        with pytest.raises(SystemExit, match="was judged"):
+            run.smoke_guard(FW, "v3", fix)
+
+
+def test_smoke_check_judges_only_the_marked_invocation(tmp_path, monkeypatch, capsys):
+    import argparse
+
+    from src.llm import run
+
+    to_run = list(range(357))
+    monkeypatch.setattr(config, "MODELS_DIR", tmp_path)
+    monkeypatch.setattr(config, "LLM_LEDGER", tmp_path / "ledger.jsonl")
+    monkeypatch.setattr(run, "load_inputs", lambda: (None, None, sorted(LABELS)))
+    monkeypatch.setattr(run, "iteration_run", lambda seg, n: (to_run[:345], to_run))
+    monkeypatch.setattr(run, "make_classifier", lambda m: None)
+    monkeypatch.setattr(run, "_cached_records", lambda *a: {f"k{i}": _smoke_record(f"k{i}") for i in range(3)})
+    with pytest.raises(SystemExit, match="missing"):
+        run.cmd_smoke_check(argparse.Namespace(model=FW, prompt="v3"))
+    three = ["k0", "k1", "k2"]
+    for status, completed, failed, verdict in (("finished", three, {}, "PASS"),
+                                               ("finished", three[:2], {"k2": "gave up"}, "FAIL"),
+                                               ("started", three, {}, "FAIL")):
+        run.write_smoke_marker(FW, "v3", status, run.RunResult(records=dict.fromkeys(completed), failed=failed), [])
+        run.cmd_smoke_check(argparse.Namespace(model=FW, prompt="v3"))
+        out = capsys.readouterr().out
+        assert f"{FW} smoke {verdict}" in out and "remaining iteration calls 354" in out
+
+
+def test_smoke_check_is_registered(monkeypatch):
+    import sys
+
+    from src.llm import run
+
+    got = []
+    monkeypatch.setattr(run, "cmd_smoke_check", got.append)
+    monkeypatch.setattr(sys, "argv", ["run", "smoke-check", "--model", FW, "--prompt", "v3"])
+    run.main()
+    assert got[0].model == FW and got[0].prompt == "v3"

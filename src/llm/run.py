@@ -5,10 +5,12 @@
   python -m src.llm.run yardstick                           baseline on the iteration sample (no API)
   python -m src.llm.run estimate-version --prompt V --base B  retrieval version cost from B's measured run (no API)
   python -m src.llm.run gate-v4                             v4 cost gate from the smoke runs (no API)
+  python -m src.llm.run smoke-check --model M --prompt V    Step 6b gate on the cached --limit 3 run (no API)
   python -m src.llm.run n1-sample                           seeded half of the iteration contracts for N=1 (no API)
   python -m src.llm.run breakdown --model M --prompt V [--batch-size N]   per-label P/R/F1 vs baseline (no API)
   python -m src.llm.run probe [--max-cost X]                Step 3i diagnostic probe (Claude; 4 variants)
   python -m src.llm.run iterate --model M --prompt V --batch-size N [--limit K] [--max-cost X] [--rerun TAG]
+                                  [--after-setup-fix]   (Step 6b smoke: rerun only after a setup error)
   python -m src.llm.run compare --model M --a V:N --b V:N   paired unstratified bootstrap, A minus B
   python -m src.llm.run freeze --model M --prompt V --batch-size N
   python -m src.llm.run val --model M [--max-cost X]        frozen prompt on full validation
@@ -19,7 +21,9 @@
 Paid commands (iterate, val, repeat, heldout) stop before any call if spend so far plus their
 projected cost would pass the $100 soft checkpoint; rerun with --past-checkpoint to approve.
 
-Models: claude (claude-sonnet-5), gemini (gemini-3.8-flash); see src/config.py.
+Models: claude (claude-sonnet-5), gemini (gemini-3.8-flash), fireworks-deepseek (DeepSeek V4.1 Flash on
+Fireworks, Step 6b); see src/config.py. The Step 3 commands estimate, yardstick, estimate-version and gate-v4
+cover claude and gemini only.
 """
 
 from __future__ import annotations
@@ -487,7 +491,7 @@ def cmd_estimate(_args) -> None:
         out_tokens = (targets * config.LLM_EST_OUTPUT_TOKENS_PER_TARGET
                       + len(calls) * config.LLM_EST_THINKING_TOKENS_PER_CALL)
         row = {"phase": name, "segments": targets, "calls": len(calls), "runs": reps}
-        for key, spec in config.LLM_MODELS.items():
+        for key, spec in ((k, config.LLM_MODELS[k]) for k in config.STEP3_MODELS):
             if spec["provider"] == "anthropic":
                 prefix_cost = (prefix_tokens * spec["price_cache_write"]
                                + (len(calls) - 1) * prefix_tokens * spec["price_cache_read"])
@@ -498,7 +502,7 @@ def cmd_estimate(_args) -> None:
         rows.append(row)
     table = pd.DataFrame(rows)
     print(table.to_string(index=False))
-    totals = {k: round(float(table[f"{k}_usd"].sum()), 2) for k in config.LLM_MODELS}
+    totals = {k: round(float(table[f"{k}_usd"].sum()), 2) for k in config.STEP3_MODELS}
     print(f"\nTotals: " + ", ".join(f"{k} ${v:.2f}" for k, v in totals.items())
           + f"; combined ${sum(totals.values()):.2f}; cap ${config.LLM_BUDGET_USD:.2f}")
     print("Validation reuses cached iteration calls for the frozen version at the same batch size, "
@@ -556,6 +560,22 @@ def _n1_half_segments(segments):
     return seg[seg["contract_id"].isin(draw["contract_id"])]
 
 
+def casebook_calls(segments, batch_size) -> tuple[pd.DataFrame, list]:
+    cases = casebook(pd.read_parquet(config.PREDICTIONS_DIR / "baseline_val.parquet"))
+    return cases, [c for c in build_calls(segments[segments["split"] == "val"], batch_size)
+                   if set(c.targets) & set(cases["segment_id"])]
+
+
+def iteration_run(segments, batch_size, limit=None) -> tuple[list, list]:
+    """The iteration windows, and everything a full iterate sends: those windows plus the casebook
+    windows not already among them. --limit keeps the first windows and drops the casebook."""
+    calls = build_calls(_iteration_segments(segments), batch_size)
+    _, case_calls = casebook_calls(segments, batch_size)
+    if limit:
+        calls, case_calls = calls[:limit], []
+    return calls, calls + [c for c in case_calls if c.key not in {k.key for k in calls}]
+
+
 def cmd_iterate(args) -> None:
     if args.subset and (args.batch_size != 1 or args.rerun or args.limit):
         raise SystemExit("--subset n1-half runs at batch size 1 only, without --rerun or --limit")
@@ -563,19 +583,28 @@ def cmd_iterate(args) -> None:
     segments, _, label_order = load_inputs()
     if args.prompt not in PROMPT_VERSIONS:
         raise SystemExit(f"unknown prompt version {args.prompt}")
-    seg = _n1_half_segments(segments) if args.subset else _iteration_segments(segments)
-    calls = build_calls(seg, args.batch_size)
-    case_calls = []
-    if not args.subset:
-        cases = casebook(pd.read_parquet(config.PREDICTIONS_DIR / "baseline_val.parquet"))
-        case_calls = [c for c in build_calls(segments[segments["split"] == "val"], args.batch_size)
-                      if set(c.targets) & set(cases["segment_id"])]
-    if args.limit:
-        calls, case_calls = calls[:args.limit], []
-    to_run = calls + [c for c in case_calls if c.key not in {k.key for k in calls}]
+    cases, case_calls = None, []
+    if args.subset:
+        calls = to_run = build_calls(_n1_half_segments(segments), args.batch_size)
+    else:
+        calls, to_run = iteration_run(segments, args.batch_size, args.limit)
+        if not args.limit:
+            cases, case_calls = casebook_calls(segments, args.batch_size)
     run_label = f"{args.prompt}-{args.rerun}" if args.rerun else args.prompt
+    protocol_guard(args)
+    judged_smoke = bool(args.limit) and "frozen_protocol" in config.LLM_MODELS[args.model]
+    if judged_smoke:
+        previous = smoke_guard(args.model, args.prompt, args.after_setup_fix)
+    elif "frozen_protocol" in config.LLM_MODELS[args.model]:
+        reasons = judge_smoke(args.model, args.prompt, segments, label_order)[0]
+        if reasons:
+            raise SystemExit(f"{args.model}: the judged smoke did not pass ({reasons}); no full run")
     soft_checkpoint(args.model, [(to_run, args.prompt, run_label)], label_order, args.past_checkpoint)
+    if judged_smoke:
+        write_smoke_marker(args.model, args.prompt, "started", RunResult(), previous)
     result = run_calls(args.model, to_run, args.prompt, run_label, label_order, max_cost=args.max_cost)
+    if judged_smoke:
+        write_smoke_marker(args.model, args.prompt, "finished", result, previous)
     complete_or_exit(result, calls)
     served = served_models(result)
     frame = build_frame(segments, calls, result, label_order, {}, args.model,
@@ -619,7 +648,7 @@ def cmd_yardstick(_args) -> None:
     for name, frame in (("tuned Rule B thresholds (optimistic)", base), ("threshold 0.5", at_half)):
         print(f"\nBaseline {name}:")
         _print(score(frame, label_order, sparse=False), "  ")
-    for m in config.LLM_MODELS:
+    for m in config.STEP3_MODELS:
         for f in sorted(config.LLM_ITERATION_DIR.glob(f"{m}_v*_n{WINDOW}.parquet")):
             run_label = f.stem.removeprefix(f"{m}_").removesuffix(f"_n{WINDOW}")
             print(f"\n{m} {run_label} N={WINDOW} minus baseline (tuned), paired unstratified bootstrap:")
@@ -758,7 +787,7 @@ def cmd_estimate_version(args) -> None:
           f"mean example characters {np.mean([len(e['text']) for e in shown]):.0f}")
     it_extra = sum(_example_chars(c) for c in it_calls)
     final_extra = sum(_example_chars(c) for c in final_calls)
-    for model, spec in config.LLM_MODELS.items():
+    for model, spec in ((m, config.LLM_MODELS[m]) for m in config.STEP3_MODELS):
         classifier = make_classifier(model)
         base = _cached_records(model, it_calls, args.base, args.base, label_order, classifier)
         if len(base) < len(it_calls):
@@ -819,7 +848,7 @@ def model_dir(model_key) -> Path:
     return config.MODELS_DIR / model_key
 
 
-RUN_SETTINGS = ("model_id", "effort", "thinking_level", "max_tokens")
+RUN_SETTINGS = ("model_id", "effort", "thinking_level", "reasoning_effort", "seed", "max_tokens")
 
 
 def run_settings(model_key) -> dict:
@@ -1107,7 +1136,7 @@ def is_timeout(error: str) -> bool:
 
 def _output_tokens(usage: dict) -> int:
     return (usage.get("output_tokens", 0) + usage.get("candidates_token_count", 0)
-            + usage.get("thoughts_token_count", 0))
+            + usage.get("thoughts_token_count", 0) + usage.get("completion_tokens", 0))
 
 
 def _input_cost(usage: dict, spec: dict) -> float:
@@ -1191,6 +1220,103 @@ def _complete(records: dict, calls, what: str) -> list:
     return list(records.values())
 
 
+SMOKE_CALLS = 3
+SETUP_STATUSES = (401, 402, 403, 404)
+
+
+def smoke_marker_path(model_key, version) -> Path:
+    return model_dir(model_key) / f"smoke_{version}.json"
+
+
+def is_setup_error(error: str) -> bool:
+    """Pre-registered (Step 6b): the request never reached the model. An HTTP 401, 402, 403 or 404, or an
+    exception raised in our own code. Other HTTP errors (400, 422), exhausted retries and a budget stop are
+    smoke failures."""
+    if error.startswith("RuntimeError: gave up"):
+        return False
+    status = re.match(r"HTTPStatusError: \w+ error '(\d{3}) ", error)
+    return int(status.group(1)) in SETUP_STATUSES if status else not error.startswith("HTTPStatusError")
+
+
+def smoke_guard(model_key, version, after_setup_fix) -> list:
+    """Step 6b: the first smoke invocation is the judged one, with no resume. A rerun is allowed only when
+    that invocation finished with no model output and only setup errors, and only with --after-setup-fix;
+    the earlier invocation stays in the marker."""
+    path = smoke_marker_path(model_key, version)
+    if not path.exists():
+        return []
+    marker = json.loads(path.read_text())
+    if marker["status"] != "finished":
+        raise SystemExit(f"{path}: the judged smoke was interrupted; it is judged as is and not resumed")
+    if marker["completed"]:
+        raise SystemExit(f"{path}: the smoke run was judged; it is not rerun")
+    not_setup = ([e for e in marker["failed"].values() if not is_setup_error(e)]
+                 + ([f"stopped: {marker['stopped']}"] if marker["stopped"] else []))
+    if not_setup:
+        raise SystemExit(f"{path}: failures that are not setup errors count as a smoke failure: {not_setup}")
+    if not after_setup_fix:
+        raise SystemExit(f"{path}: no model output and only setup errors ({marker['failed']}). After fixing, "
+                         "rerun with --after-setup-fix and log it.")
+    return marker["setup_reruns"] + [{k: marker[k] for k in ("run_utc", "failed", "stopped")}]
+
+
+def write_smoke_marker(model_key, version, status, result, previous) -> None:
+    path = smoke_marker_path(model_key, version)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps({"status": status, "run_utc": _now(), "completed": sorted(result.records),
+                                "failed": result.failed, "stopped": result.stopped, "setup_reruns": previous},
+                               indent=2))
+
+
+def judge_smoke(model_key, version, segments, label_order):
+    """Reasons the judged smoke fails (empty on a pass), its records, the full iteration call list, the marker."""
+    path = smoke_marker_path(model_key, version)
+    if not path.exists():
+        raise SystemExit(f"{path} missing: run iterate --limit {SMOKE_CALLS} first")
+    marker = json.loads(path.read_text())
+    calls, to_run = iteration_run(segments, WINDOW)
+    cached = _cached_records(model_key, calls[:SMOKE_CALLS], version, version, label_order,
+                             make_classifier(model_key))
+    records = [rec for key, rec in cached.items() if key in marker["completed"]]  # the judged invocation only
+    reasons = (smoke_check(records, SMOKE_CALLS, set(label_order))
+               + [f"{k}: {e}" for k, e in marker["failed"].items()]
+               + ([f"stopped: {marker['stopped']}"] if marker["stopped"] else [])
+               + (["interrupted: the judged invocation did not finish"] if marker["status"] != "finished" else []))
+    return reasons, records, to_run, marker
+
+
+def protocol_guard(args) -> None:
+    """Step 6b models run only their registered protocol; a full iteration run needs a passing smoke."""
+    protocol = config.LLM_MODELS[args.model].get("frozen_protocol")
+    if protocol is None:
+        return
+    if (args.prompt, args.batch_size) != (protocol["prompt"], protocol["batch_size"]) or args.rerun or args.subset:
+        raise SystemExit(f"{args.model} runs only its registered protocol: prompt {protocol['prompt']}, "
+                         f"batch size {protocol['batch_size']}, no --rerun or --subset")
+    if args.limit and args.limit != SMOKE_CALLS:
+        raise SystemExit(f"the {args.model} smoke is --limit {SMOKE_CALLS}")
+
+
+def cmd_smoke_check(args) -> None:
+    """Step 6b gate: the judged --limit 3 invocation (the first 3 iteration windows)."""
+    load_dotenv()
+    segments, _, label_order = load_inputs()
+    reasons, records, to_run, marker = judge_smoke(args.model, args.prompt, segments, label_order)
+    stats = _run_stats(records)
+    rest = project(stats["cost_per_call"], 0.0, 0, iteration_calls=len(to_run) - SMOKE_CALLS)
+    spent = Ledger(config.LLM_LEDGER).prior_total
+    attempts = [a for r in records for a in r["attempts"]]
+    print(f"{args.model} smoke {'PASS' if not reasons else 'FAIL'} {reasons or ''} "
+          f"(judged invocation {marker['run_utc']}; setup reruns before it: {len(marker['setup_reruns'])})")
+    print(f"  reasoning tokens {sum(a['usage'].get('reasoning_tokens', 0) for a in attempts)}; max output "
+          f"{max((_output_tokens(a['usage']) for a in attempts), default=0)} tokens; max latency "
+          f"{max((a['latency_ms'] for a in attempts), default=0):.0f} ms; cost per call ${stats['cost_per_call']:.5f}")
+    print(f"  remaining iteration calls {len(to_run) - SMOKE_CALLS}, then validation, test, shift and repeat")
+    print(f"  projection {({k: round(v, 2) for k, v in rest.items()})}; spent ${spent:.2f}; after 6b about "
+          f"${spent + rest['total']:.2f} (soft checkpoint ${config.LLM_SOFT_CHECKPOINT_USD:.0f}, "
+          f"hard cap ${config.LLM_BUDGET_USD:.0f})")
+
+
 def cmd_gate_v4(_args) -> None:
     load_dotenv()
     segments, _, label_order = load_inputs()
@@ -1201,7 +1327,7 @@ def cmd_gate_v4(_args) -> None:
     n1_calls = int(sample["segments"].nlargest(-(-len(sample) // 2)).sum())
     spent = Ledger(config.LLM_LEDGER).prior_total
     rows, ok = {}, {}
-    for model, spec in config.LLM_MODELS.items():
+    for model, spec in ((m, config.LLM_MODELS[m]) for m in config.STEP3_MODELS):
         clf = make_classifier(model)
         v4_smoke = list(_cached_records(model, smoke_calls, "v4", "v4", label_order, clf).values())
         v3_records = _cached_records(model, calls, "v3", "v3", label_order, clf)
@@ -1257,6 +1383,9 @@ def main() -> None:
     p.add_argument("--max-cost", type=float)
     p.add_argument("--past-checkpoint", action="store_true",
                    help="approve continuing past the $100 soft checkpoint (Rule E)")
+    p = sub.add_parser("smoke-check")
+    p.add_argument("--model", choices=models, required=True)
+    p.add_argument("--prompt", required=True)
     p = sub.add_parser("breakdown")
     p.add_argument("--model", choices=models, required=True)
     p.add_argument("--prompt", required=True)
@@ -1269,6 +1398,8 @@ def main() -> None:
     p.add_argument("--max-cost", type=float)
     p.add_argument("--rerun", help="fresh cache namespace for the same prompt, e.g. r2")
     p.add_argument("--subset", choices=["n1-half"], help="the seeded half of the iteration contracts, N=1 only")
+    p.add_argument("--after-setup-fix", action="store_true",
+                   help="Step 6b: rerun a smoke whose judged invocation produced no model output (setup error)")
     p.add_argument("--past-checkpoint", action="store_true",
                    help="approve continuing past the $100 soft checkpoint (Rule E)")
     p = sub.add_parser("compare")
@@ -1297,7 +1428,7 @@ def main() -> None:
     args = parser.parse_args()
     {"sample": cmd_sample, "estimate": cmd_estimate, "yardstick": cmd_yardstick,
      "breakdown": cmd_breakdown, "probe": cmd_probe, "estimate-version": cmd_estimate_version,
-     "gate-v4": cmd_gate_v4, "n1-sample": cmd_n1_sample,
+     "gate-v4": cmd_gate_v4, "n1-sample": cmd_n1_sample, "smoke-check": cmd_smoke_check,
      "iterate": cmd_iterate, "compare": cmd_compare,
      "freeze": cmd_freeze, "val": cmd_val, "thresholds": cmd_thresholds, "repeat": cmd_repeat,
      "heldout": cmd_heldout}[args.cmd](args)
