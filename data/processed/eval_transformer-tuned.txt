@@ -1,0 +1,226 @@
+Model: transformer-tuned   version: w-lr2e-5/epoch-4|d51fe0f8601b
+Method: 2000 contract-level bootstrap resamples, stratified by contract type, percentile 95% intervals, seed 42
+  bootstrapping AP for 'test' (96 contracts, 9378 segments)...
+  bootstrapping AP for 'shift' (28 contracts, 4584 segments)...
+  bootstrapping AP for 'shift:Franchise' (15 contracts, 2694 segments)...
+  bootstrapping AP for 'shift:Transportation' (13 contracts, 1890 segments)...
+
+=== Scopes: point [95% CI]  (none_fp_rate on parsed segments only; parse failures count as empty predictions for F1) ===
+test | Rule A                    labels=26 contracts= 96  macro_f1=0.6695 [0.6422, 0.6924]  micro_f1=0.6886 [0.6650, 0.7131]  macro_ap=0.6986 [0.6737, 0.7347]  none_fp_rate=0.0264 [0.0215, 0.0324]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+test | all                       labels=33 contracts= 96  macro_f1=0.6125 [0.5862, 0.6376]  micro_f1=0.6742 [0.6522, 0.6974]  macro_ap=0.6343 [0.6110, 0.6756]  none_fp_rate=0.0264 [0.0215, 0.0324]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+test | Rule C                    labels=17 contracts= 96  macro_f1=0.7130 [0.6808, 0.7417]  micro_f1=0.7265 [0.6997, 0.7549]  macro_ap=0.7404 [0.7111, 0.7758]  none_fp_rate=0.0264 [0.0215, 0.0324]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift | Rule C                   labels=17 contracts= 28  macro_f1=0.5449 [0.5013, 0.5913]  micro_f1=0.5763 [0.5329, 0.6181]  macro_ap=0.5752 [0.5325, 0.6511]  none_fp_rate=0.0342 [0.0259, 0.0418]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift | all                      labels=32 contracts= 28  macro_f1=0.4493 [0.4113, 0.4993]  micro_f1=0.5342 [0.4970, 0.5722]  macro_ap=0.5233 [0.4938, 0.5947]  none_fp_rate=0.0342 [0.0259, 0.0418]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift:Franchise | Rule C         labels=17 contracts= 15  macro_f1=0.5079 [0.4789, 0.5708]  micro_f1=0.5890 [0.5483, 0.6297]  macro_ap=0.5409 [0.5041, 0.6610]  none_fp_rate=0.0461 [0.0364, 0.0569]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift:Franchise | all            labels=30 contracts= 15  macro_f1=0.4252 [0.4043, 0.4744]  micro_f1=0.5333 [0.4994, 0.5724]  macro_ap=0.5054 [0.4750, 0.5945]  none_fp_rate=0.0461 [0.0364, 0.0569]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift:Transportation | Rule C    labels=16 contracts= 13  macro_f1=0.4116 [0.3508, 0.5826]  micro_f1=0.5421 [0.4408, 0.6549]  macro_ap=0.5129 [0.4713, 0.7247]  none_fp_rate=0.0190 [0.0087, 0.0286]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+shift:Transportation | all       labels=24 contracts= 13  macro_f1=0.4314 [0.3493, 0.5529]  micro_f1=0.5407 [0.4426, 0.6476]  macro_ap=0.5344 [0.4887, 0.6835]  none_fp_rate=0.0190 [0.0087, 0.0286]  parse_failure_rate=0.0000 [0.0000, 0.0000]
+
+=== Test minus shift, Rule C labels (independent bootstraps) ===
+macro_f1       +0.1681 [+0.1126, +0.2214]
+micro_f1       +0.1502 [+0.1003, +0.2032]
+macro_ap       +0.1653 [+0.0837, +0.2193]
+none_fp_rate   -0.0078 [-0.0173, +0.0026]
+parse_failure_rate +0.0000 [+0.0000, +0.0000]
+
+=== Per-label test (all 33; main_table=False: insufficient support, not interpreted) ===
+                             label  contracts  segments  precision  recall  main_table    f1  f1_lo  f1_hi    ap  ap_lo  ap_hi  f1_n
+           Third Party Beneficiary          3         3      0.000   0.000       False 0.000  0.000  0.000 0.113  0.000  0.603  1948
+                 Affiliate License          9        14      0.091   0.286       False 0.138  0.000  0.275 0.061  0.014  0.169  2000
+ Competitive Restriction Exception         13        17      0.122   0.647        True 0.206  0.130  0.270 0.286  0.151  0.498  2000
+           No-Solicit Of Customers          7        10      0.200   0.300       False 0.240  0.000  0.412 0.121  0.037  0.309  2000
+                 Non-Disparagement          6        11      0.500   0.182       False 0.267  0.000  0.571 0.263  0.024  0.627  1998
+                Volume Restriction         14        24      0.778   0.292        True 0.424  0.167  0.615 0.405  0.196  0.591  2000
+         Post-Termination Services         37        74      0.405   0.459        True 0.430  0.311  0.537 0.460  0.321  0.592  2000
+           Ip Ownership Assignment         22        38      0.700   0.368        True 0.483  0.282  0.667 0.618  0.457  0.775  2000
+                 Warranty Duration         17        44      0.576   0.432        True 0.494  0.333  0.655 0.478  0.300  0.711  2000
+                 Change Of Control         20        42      0.739   0.405        True 0.523  0.417  0.620 0.542  0.438  0.663  2000
+               Most Favored Nation          6         8      1.000   0.375       False 0.545  0.000  0.889 0.523  0.201  0.833  1997
+                       Exclusivity         36        76      0.600   0.513        True 0.553  0.465  0.646 0.577  0.479  0.702  2000
+                Minimum Commitment         35        86      0.745   0.442        True 0.555  0.469  0.644 0.560  0.488  0.648  2000
+                Liquidated Damages         14        30      0.513   0.667        True 0.580  0.341  0.769 0.540  0.288  0.805  2000
+            Revenue/Profit Sharing         32        83      0.513   0.699        True 0.592  0.473  0.699 0.631  0.477  0.771  2000
+       Termination For Convenience         38        50      0.682   0.600        True 0.638  0.532  0.737 0.666  0.553  0.785  2000
+          Non-Transferable License         24        47      0.630   0.723        True 0.673  0.571  0.767 0.639  0.537  0.777  2000
+                       Non-Compete         22        43      0.718   0.651        True 0.683  0.520  0.795 0.655  0.447  0.799  2000
+                Uncapped Liability         19        25      0.636   0.840        True 0.724  0.577  0.836 0.612  0.452  0.816  2000
+Notice Period To Terminate Renewal         24        27      0.818   0.667        True 0.735  0.600  0.850 0.843  0.730  0.942  2000
+                      Audit Rights         39        77      0.812   0.675        True 0.738  0.662  0.815 0.780  0.684  0.888  2000
+                Joint Ip Ownership          9        19      0.812   0.684       False 0.743  0.500  0.952 0.717  0.433  0.998  2000
+                    Rofr/Rofo/Rofn         14        46      0.679   0.826        True 0.745  0.588  0.852 0.834  0.675  0.935  2000
+                     License Grant         46       112      0.863   0.732        True 0.792  0.736  0.845 0.846  0.785  0.907  2000
+                  Cap On Liability         56       121      0.864   0.736        True 0.795  0.743  0.850 0.782  0.712  0.856  2000
+           No-Solicit Of Employees         12        15      0.700   0.933        True 0.800  0.688  0.900 0.899  0.804  0.970  2000
+                   Expiration Date         75        78      0.847   0.782        True 0.813  0.753  0.867 0.880  0.818  0.939  2000
+                   Anti-Assignment         71        91      0.809   0.835        True 0.822  0.771  0.874 0.882  0.833  0.938  2000
+                         Insurance         28        73      0.884   0.836        True 0.859  0.788  0.914 0.917  0.865  0.962  2000
+  Irrevocable Or Perpetual License          9        18      0.810   0.944       False 0.872  0.757  0.950 0.973  0.926  1.000  2000
+               Covenant Not To Sue         20        33      0.964   0.818        True 0.885  0.800  0.963 0.867  0.740  0.975  2000
+                      Renewal Term         36        37      0.914   0.865        True 0.889  0.825  0.949 0.973  0.936  0.997  2000
+                     Governing Law         81        87      0.988   0.966        True 0.977  0.955  0.994 0.989  0.967  1.000  2000
+
+=== Per-label shift, Rule C labels, combined ===
+                             label  contracts  segments  precision  recall    f1  f1_lo  f1_hi    ap  ap_lo  ap_hi  f1_n
+                Volume Restriction         11        31      0.333   0.032 0.059  0.000  0.200 0.122  0.054  0.265  2000
+                Minimum Commitment         14        58      0.688   0.190 0.297  0.169  0.473 0.400  0.284  0.554  2000
+Notice Period To Terminate Renewal         11        14      1.000   0.214 0.353  0.000  0.667 0.589  0.338  0.906  2000
+         Post-Termination Services         10        31      0.429   0.484 0.455  0.323  0.556 0.344  0.231  0.514  2000
+                       Exclusivity         10        22      0.875   0.318 0.467  0.160  0.692 0.419  0.158  0.650  2000
+                      Renewal Term         15        33      0.846   0.333 0.478  0.333  0.727 0.499  0.358  0.816  2000
+                   Anti-Assignment         20        45      0.522   0.533 0.527  0.432  0.634 0.517  0.416  0.637  2000
+            Revenue/Profit Sharing         11        25      0.486   0.680 0.567  0.430  0.702 0.548  0.291  0.833  2000
+                       Non-Compete         11        53      0.821   0.434 0.568  0.364  0.738 0.680  0.531  0.838  2000
+                     License Grant         10        25      1.000   0.400 0.571  0.296  0.774 0.585  0.339  0.851  2000
+                Liquidated Damages         10        19      0.500   0.684 0.578  0.364  0.727 0.567  0.339  0.801  2000
+                      Audit Rights         13        43      0.743   0.605 0.667  0.598  0.778 0.714  0.633  0.849  2000
+                  Cap On Liability         14        24      0.680   0.708 0.694  0.585  0.842 0.745  0.583  0.942  2000
+               Covenant Not To Sue         10        22      0.778   0.636 0.700  0.513  0.865 0.594  0.358  0.850  2000
+                         Insurance         15        67      0.679   0.821 0.743  0.600  0.853 0.791  0.655  0.901  2000
+                   Expiration Date         23        26      0.792   0.731 0.760  0.652  0.857 0.823  0.701  0.940  2000
+                     Governing Law         23        24      0.657   0.958 0.780  0.652  0.936 0.840  0.693  0.978  2000
+
+=== Calibration on test (all segment-label pairs pooled) ===
+Pooled ECE: 0.0083 [0.0075, 0.0094]
+       bin  count  mean_predicted  observed_rate
+[0.0, 0.1) 302955          0.0046         0.0008
+[0.1, 0.2)   2695          0.1376         0.0156
+[0.2, 0.3)    819          0.2434         0.0366
+[0.3, 0.4)    478          0.3455         0.0753
+[0.4, 0.5)    338          0.4461         0.1065
+[0.5, 0.6)    254          0.5440         0.1457
+[0.6, 0.7)    219          0.6499         0.1324
+[0.7, 0.8)    232          0.7514         0.2241
+[0.8, 0.9)    349          0.8539         0.4040
+[0.9, 1.0]   1135          0.9622         0.8132
+
+Per-label, Rule A labels (mean predicted vs observed positive rate):
+                             label    ece  mean_predicted  observed_rate
+         Post-Termination Services 0.0172          0.0251         0.0079
+                Minimum Commitment 0.0143          0.0235         0.0092
+                 Change Of Control 0.0138          0.0183         0.0045
+            Revenue/Profit Sharing 0.0121          0.0210         0.0089
+                   Anti-Assignment 0.0118          0.0215         0.0097
+                    Rofr/Rofo/Rofn 0.0106          0.0155         0.0049
+                       Exclusivity 0.0105          0.0186         0.0081
+                     License Grant 0.0105          0.0224         0.0119
+                   Expiration Date 0.0102          0.0185         0.0083
+                Uncapped Liability 0.0098          0.0125         0.0027
+ Competitive Restriction Exception 0.0094          0.0112         0.0018
+                      Audit Rights 0.0091          0.0173         0.0082
+          Non-Transferable License 0.0090          0.0140         0.0050
+       Termination For Convenience 0.0081          0.0135         0.0053
+                       Non-Compete 0.0081          0.0126         0.0046
+                Volume Restriction 0.0072          0.0097         0.0026
+                  Cap On Liability 0.0070          0.0199         0.0129
+                         Insurance 0.0068          0.0145         0.0078
+           Ip Ownership Assignment 0.0064          0.0105         0.0041
+                 Warranty Duration 0.0061          0.0108         0.0047
+               Covenant Not To Sue 0.0060          0.0091         0.0035
+                      Renewal Term 0.0058          0.0097         0.0039
+                Liquidated Damages 0.0054          0.0081         0.0032
+Notice Period To Terminate Renewal 0.0048          0.0077         0.0029
+                     Governing Law 0.0039          0.0130         0.0093
+           No-Solicit Of Employees 0.0037          0.0053         0.0016
+
+=== Error analysis on VALIDATION (not test) ===
+Top confused pairs (segments truly labeled A that were also predicted B, B wrong):
+                            true                          predicted  segments
+                   License Grant                  Affiliate License        48
+        Non-Transferable License                  Affiliate License        33
+Irrevocable Or Perpetual License                  Affiliate License        27
+                   License Grant           Non-Transferable License        27
+                     Non-Compete  Competitive Restriction Exception        20
+Irrevocable Or Perpetual License           Non-Transferable License        15
+               Affiliate License           Non-Transferable License        14
+                     Exclusivity           Non-Transferable License        10
+                Cap On Liability                 Uncapped Liability         9
+                     Exclusivity                  Affiliate License         8
+                     Exclusivity  Competitive Restriction Exception         8
+                 Expiration Date                       Renewal Term         5
+               Affiliate License                      License Grant         4
+                 Expiration Date Notice Period To Terminate Renewal         4
+Irrevocable Or Perpetual License                      License Grant         4
+
+Failing labels on validation: ['Competitive Restriction Exception', 'No-Solicit Of Customers']
+
+[Competitive Restriction Exception | false_negative | 34_108 | p=0.128]
+true=['Competitive Restriction Exception', 'Exclusivity']
+predicted=[]
+(a) Starting on the Effective Date, Antares or its Subcontractor shall provide the Manufacturing Services in order to manufacture Devices, Products, sample Products and Trainers exclusively for AMAG for the Territory, all in accordance with the Specifications, Applicable Laws, Quality Agreement and this Agreement. For the avoidance of doubt, subject to, and without limiting or amending the exclusi
+
+[Competitive Restriction Exception | false_negative | 326_7 | p=0.027]
+true=['Competitive Restriction Exception', 'Minimum Commitment']
+predicted=['Minimum Commitment']
+(a) COMWARE must purchase no less than $22,710.00 worth of Products, in any combination, by April 15, 2000. This initial order shall be evidenced by valid purchase order from COMWARE to be received by ITS no later than 5:00PM April 1, 2000, with payment to be received by ITS no later than April 15, 2000. In the event either of these dates are not met, this Agreement will automatically and immediat
+
+[Competitive Restriction Exception | false_negative | 326_11 | p=0.001]
+true=['Competitive Restriction Exception']
+predicted=[]
+(INTERNATIONAL TEST SYSTEMS RESERVES THE RIGHT TO CHANGE THE RETAIL PRICE AT ANY TIME, WITH NOTICE TO COMWARE.)
+
+[Competitive Restriction Exception | false_negative | 326_13 | p=0.002]
+true=['Competitive Restriction Exception']
+predicted=[]
+SUBSEQUENT DISCOUNTS: PRODUCT IDENTIFICATION SUGGESTED RETAIL PRICE DISCOUNT PRICE TO COMWARE ------------------------------------------------------------------------------------------------- CircuiTest 2000S $5,995.00 50% $2,997.50 CircuiTest 2100 Scanner $2,995.00 60% $1,198.00
+
+[Competitive Restriction Exception | false_negative | 464_83 | p=0.002]
+true=['Competitive Restriction Exception']
+predicted=[]
+2.20 Extract Requirements. SutroVax agrees to purchase all its requirements of Extract from Sutro in accordance with this Agreement, except to the extent SutroVax is allowed to purchase Extract from (a) Alternate Suppliers engaged by Sutro in accordance with Section 2.15 of this Agreement; (b) a CMO engaged or established and authorized by Sutro under Section 3.l(d) of the License Agreement; or (c
+
+[Competitive Restriction Exception | false_positive | 11_107 | p=0.619]
+true=[]
+predicted=['Competitive Restriction Exception', 'Non-Compete']
+10.11 After Distributor has received Airspan's Confidential Information and know-how, it will be impossible to segregate Airspan's knowledge and know- how from other knowledge acquired independently by Distributor. Accordingly, during the performance of this Agreement and for three (3) months after termination of services under this Agreement, Distributor will not offer services to third parties w
+
+[Competitive Restriction Exception | false_positive | 151_194 | p=0.382]
+true=[]
+predicted=['Competitive Restriction Exception', 'Exclusivity']
+8.3.5 Activities in Astellas Territory by FG During the term of this Agreement, FG shall not Commercialize by itself or through its Sublicensee any Lead Compound or other compound, whether or not designated as a Lead Compound, within the Field in the Astellas Territory, or any Lead Compound outside the Field in the Astellas Territory, provided, however, that FG may develop a Lead Compound or other
+
+[Competitive Restriction Exception | false_positive | 300_97 | p=0.369]
+true=['Non-Compete']
+predicted=['Competitive Restriction Exception', 'Non-Compete']
+Section 10.1 NONCOMPETITION. Each of Licensor and Licensee understands and acknowledges that Licensor shall be entitled to protect and preserve the going concern value of Licensor's business to the extent permitted by law and that Licensor would not have entered into this Agreement absent the provisions of this Section 10.1 and, therefore, each of Licensor and Licensee agrees that during the term 
+
+[Competitive Restriction Exception | false_positive | 347_51 | p=0.374]
+true=[]
+predicted=['Competitive Restriction Exception']
+2.3 ELEPHANT TALK will not enter into any discussions or agreement on the provisioning of (similar) Hosting Services as defined in Appendix 1 with any *** in the Netherlands for the duration of the Initial Term of the Agreement. In case ELEPHANT TALK has provided to T-Mobile the twelve month termination notice in accordance with article 17.2, ELEPHANT TALK ***.
+
+[Competitive Restriction Exception | false_positive | 438_28 | p=0.309]
+true=['No-Solicit Of Employees']
+predicted=['Competitive Restriction Exception', 'No-Solicit Of Customers', 'No-Solicit Of Employees']
+10 20.1.1 immediately deliver to the Company all documents, books, materials, records, correspondence, papers, Copies, Confidential Information and other business information (on whatever media and wherever located) relating to the business or affairs of any Group Company or its business contacts, any keys and any other property of any Group Company, which is in the Executive's possession or contr
+
+[No-Solicit Of Customers | false_negative | 460_26 | p=0.456]
+true=['No-Solicit Of Customers', 'Non-Compete']
+predicted=['Competitive Restriction Exception']
+4.01 RESTRICTIONS. Affiliate shall not, without the express written consent of Network 1: i. Contact or otherwise deal directly with, VISA, MasterCard or the Member Bank; or ii. Make any representations with respect to Network 1, VISA, MasterCard or the Member Bank; or iii. Make contact with or contract with any vendor of Network 1 or its subsidiaries including other Affiliate's, direct sponsored 
+
+[No-Solicit Of Customers | false_negative | 460_34 | p=0.496]
+true=['No-Solicit Of Customers']
+predicted=['Competitive Restriction Exception', 'Post-Termination Services']
+5.03 EFFECT OF TERMINATION. Upon termination of this Agreement, except in the event of termination due to an uncured default by Affiliate pursuant to Section 5.02 [TERMINATION]A, Network 1 shall continue to pay to the Affiliate the Affiliate's Fee described in Section 3.01 [AMOUNT]B for so long as Network 1 continues to process transactions of the Merchants in accordance with Schedule B attached h
+
+[No-Solicit Of Customers | false_positive | 53_114 | p=0.873]
+true=['Non-Compete']
+predicted=['Competitive Restriction Exception', 'No-Solicit Of Customers', 'No-Solicit Of Employees', 'Non-Compete']
+12 (c) in the Restricted Territory, compete with the business of the Company or any Group Company either on your own account or for any person, firm or company directly or indirectly in competition with the Restricted Business by soliciting or endeavouring to solicit or entice the business or custom of any Restricted Customer or Prospective Customer and with whom you personally dealt in respect of
+
+[No-Solicit Of Customers | false_positive | 368_8 | p=0.851]
+true=['No-Solicit Of Employees', 'Non-Compete']
+predicted=['Competitive Restriction Exception', 'No-Solicit Of Customers', 'No-Solicit Of Employees']
+Each Seller agrees that this covenant is reasonable with respect to its duration, geographical area and scope. For purposes of this Agreement, the term "control" (including the terms "controlled by" and "under common control with") means the possession, directly or indirectly, of the power to direct or cause the direction of the management and policies of a Person, whether through the ownership of
+
+[No-Solicit Of Customers | false_positive | 431_77 | p=0.822]
+true=[]
+predicted=['Competitive Restriction Exception', 'No-Solicit Of Customers', 'No-Solicit Of Employees']
+The Company, MBE, affiliates of the Company and MBE, and the MBE Centers may each use the Customer Data for marketing and other purposes in accordance with a mutually agreed upon privacy policy and in accordance with any mutually agreed upon privacy policy displayed to customers in connection with the Service. Notwithstanding the foregoing, the Company agrees not to use any Customer Data to solici
+
+[No-Solicit Of Customers | false_positive | 438_28 | p=0.797]
+true=['No-Solicit Of Employees']
+predicted=['Competitive Restriction Exception', 'No-Solicit Of Customers', 'No-Solicit Of Employees']
+10 20.1.1 immediately deliver to the Company all documents, books, materials, records, correspondence, papers, Copies, Confidential Information and other business information (on whatever media and wherever located) relating to the business or affairs of any Group Company or its business contacts, any keys and any other property of any Group Company, which is in the Executive's possession or contr
+
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/data/eval/transformer-tuned.json
