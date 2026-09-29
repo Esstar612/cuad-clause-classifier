@@ -1247,7 +1247,7 @@ def test_fireworks_send_maps_usage_cost_and_counts_reasoning_once(monkeypatch):
         {"model": "m"})
     assert a.finish == "ok" and a.text == '{"segments": {}}' and a.transport_retries == 0
     assert a.usage == {"prompt_tokens": 1000, "completion_tokens": 50, "cached_tokens": 400, "reasoning_tokens": 20}
-    expected = (600 * 0.30 + 400 * 0.006 + 50 * 1.20) / 1e6
+    expected = (600 * 0.22 + 400 * 0.007 + 50 * 0.66) / 1e6
     assert a.cost_usd == pytest.approx(expected) and fireworks_cost(a.usage, config.LLM_MODELS[FW]) == a.cost_usd
     assert _output_tokens(a.usage) == 50
 

@@ -102,9 +102,9 @@ LLM_MODELS = {
     "gemini": {"provider": "google", "model_id": "gemini-3.8-flash",
                "price_in": 0.75, "price_out": 3.75, "price_cache_read": 0.075,
                "price_cache_write": 0.0, "thinking_level": "low", "max_tokens": 8000},
-    # Step 6b: Fireworks serverless Standard tier (docs pricing table, 2026-09-28)
+    # Step 6b: Fireworks serverless Standard tier (model page, 2026-09-29)
     "fireworks-deepseek": {"provider": "fireworks", "model_id": "accounts/fireworks/models/deepseek-v4p1-flash",
-                           "price_in": 0.30, "price_out": 1.20, "price_cache_read": 0.006,
+                           "price_in": 0.22, "price_out": 0.66, "price_cache_read": 0.007,
                            "price_cache_write": 0.0, "reasoning_effort": "none", "seed": SEED, "max_tokens": 8000,
                            "frozen_protocol": {"prompt": "v3", "batch_size": 10}},
 }

@@ -2880,3 +2880,15 @@ Fixed before any Fireworks call.
   - Step 8, deployment.
   - Step 9, a fresh test set of non-CUAD contracts, which also removes the contamination caveat.
   - Step 10, an ensemble (for example the tuned legal-BERT with Gemini), evaluated only on Step 9's set.
+
+## 2026-09-29: Step 6b, model page check before any call (amendment)
+
+### Decisions made
+- **Prices amended to the model page.** The DeepSeek V4.1 Flash page (Serverless, Standard) lists input $0.22, cached input $0.007 and output $0.66 per 1M tokens. The pre-registration used the docs table ($0.30, $0.006, $1.20). Config and tests now use the model page prices, so the ledger and the reported cost per call match what Fireworks bills.
+  - Alternatives considered: keep the higher figure of each pair for the budget.
+  - Why rejected: it would inflate the reported cost per call, and the budget has ample room at either price.
+- **Confirmed, unchanged:**
+  - the ID `accounts/fireworks/models/deepseek-v4p1-flash` (status Ready, serverless);
+  - JSON-schema output in the request shape used (`response_format` of type `json_schema` with `name` and `schema`, per the Structured Outputs guide);
+  - `reasoning_effort` "none" disables reasoning (chat completions API reference).
+- No Fireworks call had been made. Nothing else in the pre-registration changes.
