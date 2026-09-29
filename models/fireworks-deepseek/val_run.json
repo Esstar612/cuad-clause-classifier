@@ -1,0 +1,1 @@
+{"freeze_id": "dbcc6b0c2612", "health": {"val": {"calls": 1212, "below_floor_calls": 1, "below_floor_share": 0.0008250825082508251, "unreadable_attempts": 0, "empty_set_share": 0.8214653397391901, "mean_labels_listed": 0.2363589567604667, "parse_failed_segments": 0}}}

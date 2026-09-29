@@ -1,0 +1,77 @@
+{
+  "segments": 295,
+  "runs": [
+    "v3",
+    "v3_repeat1",
+    "v3_repeat2"
+  ],
+  "pairwise_exact_agreement": {
+    "v3 vs v3_repeat1": 0.9728813559322034,
+    "v3 vs v3_repeat2": 0.9728813559322034,
+    "v3_repeat1 vs v3_repeat2": 0.9796610169491525
+  },
+  "none_vs_some_flip_rate": {
+    "v3 vs v3_repeat1": 0.02711864406779661,
+    "v3 vs v3_repeat2": 0.023728813559322035,
+    "v3_repeat1 vs v3_repeat2": 0.01694915254237288
+  },
+  "mean_abs_confidence_diff_listed_in_both": {
+    "v3 vs v3_repeat1": 0.09305555555555556,
+    "v3 vs v3_repeat2": 0.07588235294117646,
+    "v3_repeat1 vs v3_repeat2": 0.09333333333333334
+  },
+  "all_runs_exact_agreement": 0.9627118644067797,
+  "parse_failures_per_run": [
+    0,
+    0,
+    0
+  ],
+  "run_health": {
+    "v3": {
+      "calls": 30,
+      "below_floor_calls": 0,
+      "below_floor_share": 0.0,
+      "unreadable_attempts": 0,
+      "empty_set_share": 0.847457627118644,
+      "mean_labels_listed": 0.16610169491525423,
+      "parse_failed_segments": 0
+    },
+    "v3_repeat1": {
+      "calls": 30,
+      "below_floor_calls": 0,
+      "below_floor_share": 0.0,
+      "unreadable_attempts": 0,
+      "empty_set_share": 0.823728813559322,
+      "mean_labels_listed": 0.18983050847457628,
+      "parse_failed_segments": 0
+    },
+    "v3_repeat2": {
+      "calls": 30,
+      "below_floor_calls": 0,
+      "below_floor_share": 0.0,
+      "unreadable_attempts": 0,
+      "empty_set_share": 0.8779661016949153,
+      "mean_labels_listed": 0.1423728813559322,
+      "parse_failed_segments": 0
+    }
+  },
+  "per_label_all_runs_agreement": {
+    "Audit Rights": 1.0,
+    "Cap On Liability": 1.0,
+    "Covenant Not To Sue": 0.9966101694915255,
+    "Exclusivity": 1.0,
+    "Expiration Date": 0.9932203389830508,
+    "Governing Law": 1.0,
+    "Insurance": 0.9932203389830508,
+    "Ip Ownership Assignment": 0.9966101694915255,
+    "License Grant": 1.0,
+    "Minimum Commitment": 1.0,
+    "Most Favored Nation": 1.0,
+    "Post-Termination Services": 0.9966101694915255,
+    "Revenue/Profit Sharing": 0.9932203389830508,
+    "Rofr/Rofo/Rofn": 0.9966101694915255,
+    "Termination For Convenience": 1.0,
+    "Third Party Beneficiary": 0.9966101694915255
+  },
+  "new_spend_usd": 0.011901318000000001
+}
