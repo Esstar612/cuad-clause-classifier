@@ -2892,3 +2892,71 @@ Fixed before any Fireworks call.
   - JSON-schema output in the request shape used (`response_format` of type `json_schema` with `name` and `schema`, per the Structured Outputs guide);
   - `reasoning_effort` "none" disables reasoning (chat completions API reference).
 - No Fireworks call had been made. Nothing else in the pre-registration changes.
+
+## 2026-09-29: Step 6b, DeepSeek on Fireworks evaluated once and compared (Step 6b complete)
+
+### What we built
+Nothing new in `src/` after the price amendment (f0d385c). `docs/results.md` gained an "Open model on Fireworks (Step 6b)" section, a calibration column and cost rows. `docs/plan.md` marks 6b complete and sets the roadmap. `README.md` shows six models.
+
+### Decisions made
+- None after the smoke gate. The gate passed on its first judged invocation, so the GLM 5.3 Flash fallback was not used. Validation and the held-out run were healthy, so neither was redone. The held-out run ran once.
+- **Roadmap after 6b:**
+  - Step 7, the service, designed for human review: highlighted clauses with confidence, and a high-recall option tuned on validation only.
+  - Step 8, deployment.
+  - Step 9, a fresh non-CUAD test set, which also removes the contamination caveat.
+  - Step 10, an ensemble, evaluated only on Step 9's set.
+  - Alternatives considered: an ensemble evaluated on the CUAD test set now.
+  - Why rejected: every component has already been seen on that test set, so a combination chosen after those results would be judged on data that shaped it.
+
+### Numbers measured
+- Smoke: `python -m src.llm.run iterate --model fireworks-deepseek --prompt v3 --batch-size 10 --limit 3 --max-cost 1` and `smoke-check`; files `data/processed/llm_smoke_fireworks-deepseek.txt`, `data/processed/llm_smoke_check_fireworks-deepseek.txt`, `models/fireworks-deepseek/smoke_v3.json`.
+  - PASS, judged invocation 2026-09-29T16:15:46 UTC, 0 setup reruns. 3 calls, 0 retries, 0 parse failures, 0 reasoning tokens, maximum output 56 tokens, maximum latency 2,131 ms, $0.00178 per call. Projection for the rest of 6b: $4.86.
+  - All 30 segments were predicted empty; none has a gold label, and Gemini's cached v3 responses for the same windows are also empty.
+- Iteration: `python -m src.llm.run iterate --model fireworks-deepseek --prompt v3 --batch-size 10 --max-cost 1`; file `data/processed/llm_iterate_fireworks-deepseek_v3.txt`.
+  - 23 contracts, 3,354 segments, threshold 0.5: micro-F1 0.626, macro-F1 0.6042, macro-AP sparse 0.5778, none FP 0.0557, parse failures 0.0.
+  - 345 calls (354 new including the casebook), 0 parse retries, 0 transport retries; tokens prompt 2,624,440, cached 1,252,958, completion 31,270, reasoning 0; cost $0.3311; latency per call median 1,689 ms, p95 3,503 ms. Health 0 of 345 below floor; empty-set share 0.8232; mean labels listed 0.2257.
+  - Casebook: 10 of 14 pass (not a selection criterion).
+- Freeze: `python -m src.llm.run freeze --model fireworks-deepseek --prompt v3 --batch-size 10`; file `data/processed/llm_freeze_fireworks-deepseek.txt`, `models/fireworks-deepseek/prompt.json` (v3, hash 8ec29d0ea6ca).
+- Full validation: `python -m src.llm.run val --model fireworks-deepseek --max-cost 3`; file `data/processed/llm_val_fireworks-deepseek.txt`.
+  - 97 contracts, 11,656 segments, threshold 0.5: micro-F1 0.6444, macro-F1 0.6038, macro-AP sparse 0.5791, none FP 0.0472, parse failures 0.0.
+  - 1,212 calls, 855 new; 0 parse retries, 0 transport retries; cost all calls $0.9735; latency per call median 1,606 ms, p95 3,456 ms. Health 1 of 1,212 below floor (share 0.0008; outside the iteration contracts 0.0012); empty-set share 0.8215; mean labels listed 0.2364.
+- Rule B thresholds: `python -m src.llm.run thresholds --model fireworks-deepseek`; file `data/processed/llm_thresholds_fireworks-deepseek.txt`, `models/fireworks-deepseek/thresholds.json`. Pooled labels as pre-registered (5), pooled threshold 0.61; per-class thresholds 0.2 to 0.81. Validation with Rule B (optimistic): micro-F1 0.677, macro-F1 0.6455, none FP 0.0398.
+- Repeat check: `python -m src.llm.run repeat --model fireworks-deepseek`; file `data/processed/llm_repeat_fireworks-deepseek.txt`, `data/eval/llm_repeat_fireworks-deepseek.json`. 295 segments, 3 runs: all-runs exact agreement 0.9627; pairwise 0.9729, 0.9729, 0.9797; none-versus-some flip rate 0.0271, 0.0237, 0.0169; mean absolute confidence difference 0.0759 to 0.0933; per-label agreement 0.993 to 1.000; parse failures 0, 0, 0. New spend $0.0119.
+- Held-out run, once: `python -m src.llm.run heldout --model fireworks-deepseek --max-cost 4`; file `data/processed/llm_heldout_fireworks-deepseek.txt`.
+  - Test: 985 calls, 9,378 segments, 0 parse failures, 0 retries; health 3 below floor (share 0.0030); cost $0.7452; latency per call median 1,524 ms, p95 3,560 ms. Record window 2026-09-29T17:35:20 to 17:55:01 UTC.
+  - Shift: 470 calls, 4,584 segments, 0 parse failures, 0 retries; health 0 below floor; cost $0.3726; latency per call median 1,885 ms, p95 4,193 ms. Record window 17:55:03 to 18:04:28 UTC.
+- Metrics and intervals: `python -m src.evaluate model fireworks-deepseek`; files `data/processed/eval_fireworks-deepseek.txt`, `data/eval/fireworks-deepseek.json`. Version `accounts/fireworks/models/deepseek-v4p1-flash|prompt v3 8ec29d0ea6ca|thresholds 01261b8608c6`. 2000 resamples.
+  - Test Rule A (26 labels): macro-F1 0.6828 [0.6570, 0.7076], micro-F1 0.7136 [0.6904, 0.7398], macro-AP sparse 0.6383 [0.6138, 0.6771], none FP rate 0.0370 [0.0320, 0.0430].
+  - Test, all 33: macro-F1 0.6655 [0.6351, 0.6918], micro-F1 0.7087 [0.6857, 0.7345].
+  - Shift Rule C (17 labels): macro-F1 0.5552 [0.4984, 0.6199], micro-F1 0.5842 [0.5284, 0.6440], none FP rate 0.0489 [0.0398, 0.0568]. Franchise macro-F1 0.5225 [0.4688, 0.6000]; Transportation 0.5143 [0.4115, 0.6469].
+  - Test minus shift, Rule C: macro-F1 +0.1571 [+0.0888, +0.2183], micro-F1 +0.1543 [+0.0903, +0.2153].
+  - Calibration on test: pooled ECE 0.0019 [0.0016, 0.0021]; overconfident from 0.1 to 0.8 (for example 0.5068 against 0.2947 in [0.5, 0.6), 207 pairs), close at the top (0.9256 against 0.9137 in [0.9, 1.0], 591 pairs).
+  - Failing labels on validation: Post-Termination Services and Volume Restriction.
+- Paired comparisons, family 6b (10,000 resamples, Bonferroni over 12 at 99.583%): `python -m src.evaluate compare fireworks-deepseek {baseline,claude,gemini}`; printouts `data/processed/eval_compare_fireworks-deepseek_{baseline,claude,gemini}.txt`, files `data/eval/compare_fireworks-deepseek_vs_*.json`. DeepSeek minus the other model, macro-F1 then micro-F1, point [adjusted CI]:
+  - Baseline, test Rule A: +0.0518 [+0.0106, +0.0953] and +0.0477 [+0.0143, +0.0790], DeepSeek higher on both. Shift Rule C: +0.0812 [+0.0046, +0.1634] and +0.0815 [+0.0152, +0.1497], DeepSeek higher on both.
+  - Claude, test: +0.0075 [-0.0238, +0.0411] and -0.0019 [-0.0263, +0.0234]; shift: +0.0306 [-0.0275, +0.0812] and +0.0154 [-0.0404, +0.0614]. No claim.
+  - Gemini, test: -0.0408 [-0.0698, -0.0107] and -0.0370 [-0.0593, -0.0140], Gemini higher on both; shift: -0.0202 [-0.0652, +0.0226] and -0.0001 [-0.0497, +0.0450], no claim.
+  - 6 of 12 claims.
+- Secondary, DeepSeek minus transformer-tuned, 95%, no claims (`data/processed/eval_compare_fireworks-deepseek_transformer-tuned.txt`): test Rule A macro-F1 +0.0133 [-0.0099, +0.0370], micro-F1 +0.0250 [+0.0031, +0.0463]; shift Rule C macro-F1 +0.0103 [-0.0371, +0.0571], micro-F1 +0.0079 [-0.0326, +0.0509]; test none FP rate +0.0105 [+0.0070, +0.0144].
+- Regression check: the ten earlier compare files regenerated byte-identically (`git diff --exit-code` printed "earlier compare files unchanged").
+- Tables: `python -m src.report | tee data/processed/results_tables.md > /dev/null`. Against the previous version, only additions: the fireworks-deepseek column, the 6b family and verdict tables, and secondary rows for the four 6b pairs. No earlier value changed.
+- Spend: ledger $53.71 before the smoke, $54.05 before validation, $54.68 before the repeat check, $54.69 before the held-out run, which added $1.1178. About $2.10 for 6b; ledger total about $55.81 of the $150 cap.
+
+### Problems hit and how we solved them
+- Fireworks refused to create an API key while the account had no credit (suspended, CREDIT_DEPLETED). Credit was added before any call.
+- The direct model-page URL on fireworks.ai returned 404; the page was found through the Model Library search.
+
+### Surprises in the data or results
+- DeepSeek was close to Gemini on the iteration contracts (macro-F1 0.6042 against 0.6118 at 0.5) but behind it on full validation (0.6038 against 0.6455) and on test.
+- It had 0 transport retries in its iteration, validation and held-out runs; Gemini had 181 in its 345 iteration calls.
+- About 59% of its test prompt tokens were cache hits (4,249,752 of 7,226,459), which kept the held-out run at $1.1178.
+- `seed=42` did not make it deterministic: 0.9627 all-runs agreement, the lowest of the three LLMs.
+
+### Caveats
+- Against Claude, both the model and the prompt differ (v3 against v2). v3 was selected on Gemini's own iteration run, which favours Gemini.
+- Fireworks-served results; quantization and kernels may differ from self-hosted weights. The recorded served model is the requested ID, not a weights version.
+- DeepSeek carries the CUAD contamination caveat (docs/plan.md Limitations).
+- The shift macro-F1 claim over the baseline is marginal (adjusted lower bound +0.0046).
+
+### Resume-worthy
+- Evaluated an open-weights LLM (DeepSeek V4.1 Flash on Fireworks) under a pre-registered, frozen protocol with a judged smoke gate: statistically indistinguishable from Claude Sonnet 5 on held-out contracts at about a ninth of Claude's held-out cost, and below Gemini on in-distribution test.

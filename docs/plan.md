@@ -39,17 +39,25 @@ Numbering follows the user's prompts (BUILD_LOG uses the same numbers).
 6. **Additional models.**
    - 6a (complete): a fine-tuned transformer (PyTorch, Hugging Face). Three encoders (legal-BERT, BERT, DeBERTa-v3) trained locally on MPS with one fixed recipe. legal-BERT was selected on validation by the pre-registered rule and evaluated once on test and shift. Truncation at 512 tokens is counted per split (4 test and 3 shift segments). Results in `docs/results.md` and BUILD_LOG Step 6a; it is below the baseline on test and cannot be distinguished from it on shift.
    - 6c (complete): a tuned legal-BERT successor, post-hoc (designed after 6a's validation, diagnostic and test results). A 2x2 grid (loss weighting x learning rate) over a 5-epoch schedule with a checkpoint per epoch gave 20 validation candidates; `w-lr2e-5/epoch-4` was selected by the baseline's macro-AP rule and evaluated once on test and shift. It is higher than the baseline on three of four co-primary measures, cannot be distinguished from Claude, and is below Gemini on test (family of 12, with a 24-comparison sensitivity check for the second test look). It does not replace the 6a result. Results in `docs/results.md` and BUILD_LOG Step 6c.
-   - 6b (next): an open model served on Fireworks, prompted with the frozen LLM protocol (same instructions, examples, sparse scoring, batch size 10, Rule B). The exact model ID and prompt version are pre-registered before any call.
+   - 6b (complete): DeepSeek V4.1 Flash served on Fireworks (`accounts/fireworks/models/deepseek-v4p1-flash`), prompted with Gemini's frozen v3 protocol (same instructions and retrieved examples, sparse scoring, batch size 10, Rule B) with no iteration of its own. The smoke gate passed on its first judged invocation, so the GLM fallback was not used. One held-out run: higher than the baseline on all four co-primary measures, cannot be distinguished from Claude, below Gemini on test (family of 12). Results in `docs/results.md` and BUILD_LOG Step 6b.
    - Both use the shared prediction format; dependencies are added to `pyproject.toml` and the lock file is regenerated.
-7. **Service.** FastAPI, accepting text or PDF.
+7. **Service, designed for human review.** FastAPI, accepting text or PDF.
+   - The output is a review aid, not a decision: highlighted clauses with their confidence, so a lawyer checks every flag. No model's F1 supports unreviewed use.
+   - A high-recall operating point (thresholds tuned on validation only) as an option, since a missed clause costs a reviewer more than a false flag.
+   - Run-to-run variation (Step 3 and 6b repeat checks) and the label-free drift statistics (Step 5) are surfaced, not hidden.
    - PDF path: extract the text layer first, fall back to OCR, run `segment_text()`, then classify.
    - CUAD ships each contract as both PDF and gold text, so text-extraction and OCR quality can be measured against the gold text and reported as its own source of degradation.
 8. **Deployment.** Docker image, deployed to GKE and Vercel from the same code.
    - All config comes from environment variables: API keys, model artifact location, enabled models, rate limits.
    - Constraint to verify when we get there: Vercel's Python functions have bundle size limits, so the PyTorch transformer may be GKE-only while Vercel serves the baseline and API-backed models. Record the outcome in BUILD_LOG.
+9. **Fresh test set (non-CUAD).** Contracts from outside the CUAD release, labeled with the Step 1 label schema, as a new held-out set.
+   - It removes the contamination caveat for Claude, Gemini and DeepSeek, and gives every frozen model a first look at unseen contracts.
+   - Its size, sourcing, labeling protocol and pre-registered comparisons are fixed before any model sees it.
+10. **Ensemble.** For example the tuned legal-BERT (6c) with Gemini or DeepSeek, designed on validation only.
+   - Evaluated only on Step 9's set. The CUAD test set has already been seen by every component, so it cannot judge a combination chosen after those results.
 
 ## Limitations
-- **Possible training-data contamination (LLMs).** CUAD and its labels have been public since 2021, so Claude and Gemini may have seen them in training. Their scores may therefore be optimistic relative to unseen contracts. The shift set does not avoid this: Franchise and Transportation contracts are part of the same public release. This caveat goes next to every LLM score in the results.
+- **Possible training-data contamination (LLMs).** CUAD and its labels have been public since 2021, so Claude, Gemini and DeepSeek (Step 6b) may have seen them in training. Their scores may therefore be optimistic relative to unseen contracts. The shift set does not avoid this: Franchise and Transportation contracts are part of the same public release. This caveat goes next to every LLM score in the results.
 - **No sampling control on current LLMs.** Claude Sonnet 5 rejects temperature; Gemini 3 guidance is to keep the default temperature of 1.0. Run-to-run variation is measured by the Step 3 repeat check and reported, not assumed away.
 
 ## Pre-registered evaluation rules (fixed 2026-09-23, before any model output existed)

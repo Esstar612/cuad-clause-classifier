@@ -12,7 +12,8 @@ All figures come from pasted script output. Each table cites the command and out
   - Gemini: `gemini-3.8-flash`, prompt v3 (hash 8ec29d0ea6ca, retrieved training examples), 10 segments per call, `seed=42`, Rule B thresholds (hash 9cf165579892).
   - Transformer (Step 6a): `nlpaueb/legal-bert-base-uncased` fine-tuned on train, version `legal-bert|82466a1eefd8`, selected on validation from three encoders by a pre-registered rule, Rule B thresholds.
   - Transformer-tuned (Step 6c, post-hoc): the same encoder with a positive-weighted loss, selected on validation from 20 checkpoints of a pre-registered 2x2 grid, version `w-lr2e-5/epoch-4|d51fe0f8601b`, Rule B thresholds. Designed after 6a's test result, so the transformer approach has two test looks.
-- The LLMs return sparse scores: every label at confidence 0.1 or above, unlisted labels scored 0 (Rule D). All three models use Rule B thresholds tuned on validation.
+  - Fireworks DeepSeek (Step 6b): `accounts/fireworks/models/deepseek-v4p1-flash` on Fireworks serverless, Gemini's frozen prompt v3 (hash 8ec29d0ea6ca), 10 segments per call, `seed=42`, `reasoning_effort` "none", Rule B thresholds (hash 01261b8608c6).
+- The LLMs return sparse scores: every label at confidence 0.1 or above, unlisted labels scored 0 (Rule D). Every model uses Rule B thresholds tuned on validation.
 
 ## Label lists under the pre-registered rules
 Source: `python -m src.splits | tee data/processed/splits_report.txt` (post-fix split, 2026-09-23). The counts are contracts with at least one span of the label.
@@ -550,6 +551,112 @@ Source: `python -m src.evaluate compare transformer-tuned transformer` (`data/pr
 ### Latency and cost
 Local MPS on an Apple M4 Pro, cost 0. Validation: batch 4.072 ms per segment; single segment median 8.52 ms, p95 16.41 ms (200 segments). Held-out batch runs: 3.324 ms per segment on test, 3.643 on shift. Truncated at 512 tokens: 4 test and 3 shift segments.
 
+## Open model on Fireworks (Step 6b)
+Pre-registered 2026-09-29 before any Fireworks call (BUILD_LOG Step 6b, commit a799527). The prices were amended to the model page before any call (f0d385c); nothing else changed. Question: can an open-weights model, served by Fireworks under the frozen LLM protocol with no prompt iteration of its own, match Claude and Gemini? Every other model's results were known when the design was fixed; no DeepSeek output was.
+
+Design:
+- Model: DeepSeek V4.1 Flash, `accounts/fireworks/models/deepseek-v4p1-flash`, Fireworks serverless Standard tier ($0.22 input, $0.007 cached input, $0.66 output per 1M tokens).
+- Protocol: Gemini's frozen v3 (hash 8ec29d0ea6ca: the v2 instructions plus retrieved train examples), 10 segments per call, sparse scores at 0.1 or above, Rule B thresholds on full validation. No iteration and no other version. `seed` 42, `reasoning_effort` "none", `max_tokens` 8000.
+- A smoke gate (`iterate --limit 3`, judged on its first invocation only) had to pass before any full run, with GLM 5.3 Flash as a one-time fallback. It passed, so the fallback was not used.
+
+### Smoke gate
+Source: `python -m src.llm.run iterate --model fireworks-deepseek --prompt v3 --batch-size 10 --limit 3` and `smoke-check` (`data/processed/llm_smoke_fireworks-deepseek.txt`, `data/processed/llm_smoke_check_fireworks-deepseek.txt`, `models/fireworks-deepseek/smoke_v3.json`).
+- PASS on the first judged invocation, with no setup reruns: 3 of 3 records, 0 parse failures, 0 retries, 0 reasoning tokens, maximum output 56 tokens, maximum latency 2,131 ms, $0.00178 per call.
+- All 30 smoke segments were predicted empty. None of them has a gold label (macro-F1 and AP undefined), and Gemini's cached v3 responses for the same three windows are also empty.
+
+### Iteration and validation (descriptive)
+Sources: `python -m src.llm.run iterate` (23 iteration contracts, 3,354 segments), `val`, `thresholds` and `repeat` (`data/processed/llm_{iterate_fireworks-deepseek_v3,val_fireworks-deepseek,thresholds_fireworks-deepseek,repeat_fireworks-deepseek}.txt`); frozen at `models/fireworks-deepseek/prompt.json`. Claude and Gemini figures from BUILD_LOG 3af and 3ag. Validation includes the iteration contracts, and Rule B is tuned on it, so these are optimistic.
+
+| Measure | DeepSeek v3 | Gemini v3 | Claude v2 |
+|---|---|---|---|
+| Iteration contracts, threshold 0.5: micro-F1 / macro-F1 | 0.626 / 0.6042 | 0.6444 / 0.6118 | 0.6086 / 0.5841 |
+| Full validation, threshold 0.5: micro-F1 / macro-F1 | 0.6444 / 0.6038 | 0.6746 / 0.6455 | 0.6286 / 0.5989 |
+| Full validation, macro-AP (sparse lower bound) | 0.5791 | 0.6017 | 0.5764 |
+| Full validation, Rule B: micro-F1 / macro-F1 | 0.677 / 0.6455 | 0.7117 / 0.6795 | 0.6825 / 0.6322 |
+| Pooled Rule B threshold | 0.61 | 0.91 | 0.61 |
+| Repeat check, all-runs exact agreement | 0.9627 | 1.0 | 0.9763 |
+
+- Validation health: 1 of 1,212 calls below the floor (share 0.0008), 0 parse failures, 0 retries. No redo.
+- Per-class thresholds run from 0.2 to 0.81.
+- Repeat check (30 windows, 295 segments, 3 runs): pairwise agreement 0.9729, 0.9729 and 0.9797; none-versus-some flip rate 0.0169 to 0.0271. `seed=42` did not make DeepSeek deterministic on Fireworks.
+
+### Test and shift, six models
+Single held-out run, 2026-09-29. Source: `python -m src.llm.run heldout --model fireworks-deepseek` (`data/processed/llm_heldout_fireworks-deepseek.txt`) and `python -m src.evaluate model fireworks-deepseek` (`data/processed/eval_fireworks-deepseek.txt`, `data/eval/fireworks-deepseek.json`). Version `accounts/fireworks/models/deepseek-v4p1-flash|prompt v3 8ec29d0ea6ca|thresholds 01261b8608c6`. Held-out health: 3 of 985 test calls below the floor (0.0030), 0 of 470 shift calls, 0 parse failures. No redo. Point [95% CI], 2000 contract-level resamples.
+
+> Contamination caveat: CUAD has been public since 2021, so Claude, Gemini and DeepSeek may have seen these contracts and labels in training, and their scores may be optimistic relative to unseen contracts. The shift set is part of the same release (docs/plan.md, Limitations).
+
+| Scope | Metric | baseline | claude | gemini | transformer | transformer-tuned | fireworks-deepseek |
+|---|---|---|---|---|---|---|---|
+| test \| Rule A | macro-F1 | 0.6311 [0.6043, 0.6532] | 0.6754 [0.6476, 0.7019] | 0.7237 [0.6997, 0.7455] | 0.5408 [0.5180, 0.5591] | 0.6695 [0.6422, 0.6924] | 0.6828 [0.6570, 0.7076] |
+| test \| Rule A | micro-F1 | 0.6659 [0.6434, 0.6907] | 0.7156 [0.6920, 0.7404] | 0.7506 [0.7273, 0.7757] | 0.5756 [0.5550, 0.5977] | 0.6886 [0.6650, 0.7131] | 0.7136 [0.6904, 0.7398] |
+| test \| all | macro-F1 | 0.5486 [0.5217, 0.5743] | 0.6440 [0.6080, 0.6746] | 0.6804 [0.6470, 0.7056] | 0.4512 [0.4298, 0.4693] | 0.6125 [0.5862, 0.6376] | 0.6655 [0.6351, 0.6918] |
+| test \| all | micro-F1 | 0.6543 [0.6303, 0.6792] | 0.7060 [0.6837, 0.7306] | 0.7412 [0.7181, 0.7667] | 0.5405 [0.5203, 0.5613] | 0.6742 [0.6522, 0.6974] | 0.7087 [0.6857, 0.7345] |
+| shift \| Rule C | macro-F1 | 0.4740 [0.4186, 0.5332] | 0.5246 [0.4749, 0.5853] | 0.5753 [0.5349, 0.6278] | 0.4487 [0.4052, 0.5019] | 0.5449 [0.5013, 0.5913] | 0.5552 [0.4984, 0.6199] |
+| shift \| Rule C | micro-F1 | 0.5027 [0.4472, 0.5631] | 0.5688 [0.5254, 0.6224] | 0.5843 [0.5453, 0.6364] | 0.4867 [0.4467, 0.5300] | 0.5763 [0.5329, 0.6181] | 0.5842 [0.5284, 0.6440] |
+| test \| all | none FP rate | 0.0255 [0.0218, 0.0296] | 0.0304 [0.0261, 0.0352] | 0.0315 [0.0260, 0.0380] | 0.0216 [0.0174, 0.0266] | 0.0264 [0.0215, 0.0324] | 0.0370 [0.0320, 0.0430] |
+| shift \| all | none FP rate | 0.0340 [0.0256, 0.0415] | 0.0521 [0.0392, 0.0649] | 0.0497 [0.0379, 0.0613] | 0.0383 [0.0294, 0.0469] | 0.0342 [0.0259, 0.0418] | 0.0489 [0.0398, 0.0568] |
+
+DeepSeek test minus shift, Rule C labels (independent bootstraps): macro-F1 +0.1571 [+0.0888, +0.2183], micro-F1 +0.1543 [+0.0903, +0.2153]. Gemini's macro-F1 drop was +0.1580.
+
+Per-label (descriptive; `data/processed/results_tables.md`):
+- Test, highest of the six on Anti-Assignment (0.8927, against 0.8098 to 0.8513), License Grant (0.8356) and No-Solicit Of Employees (0.9375).
+- Test, weakest on Volume Restriction (0.2703), Competitive Restriction Exception (0.3750) and Post-Termination Services (0.3944).
+- Shift, highest of the six on Renewal Term (0.6275) and Audit Rights (0.7368); Volume Restriction 0.0556 and Minimum Commitment 0.2222.
+
+### Model comparisons (paired, family 6b)
+Pre-registered with the 6b design: DeepSeek minus baseline, minus Claude and minus Gemini; test Rule A and shift Rule C; micro- and macro-F1 co-primary; a family of 12 at 99.583%, 10,000 paired resamples. No sensitivity check: this is the model's first and only test look. Commands: `python -m src.evaluate compare fireworks-deepseek <other>` (`data/processed/eval_compare_fireworks-deepseek_{baseline,claude,gemini}.txt`, `data/eval/compare_fireworks-deepseek_vs_*.json`). The ten earlier compare files regenerated byte-identically (`git diff --exit-code` printed "earlier compare files unchanged").
+
+| Pair | Scope and metric | Difference | 95% CI | Adjusted CI | Claim |
+|---|---|---|---|---|---|
+| fireworks-deepseek minus baseline | test \| Rule A \| macro_f1 | +0.0518 | [+0.0248, +0.0814] | [+0.0106, +0.0953] | A higher |
+| fireworks-deepseek minus baseline | test \| Rule A \| micro_f1 | +0.0477 | [+0.0256, +0.0699] | [+0.0143, +0.0790] | A higher |
+| fireworks-deepseek minus baseline | shift \| Rule C \| macro_f1 | +0.0812 | [+0.0296, +0.1361] | [+0.0046, +0.1634] | A higher |
+| fireworks-deepseek minus baseline | shift \| Rule C \| micro_f1 | +0.0815 | [+0.0362, +0.1285] | [+0.0152, +0.1497] | A higher |
+| fireworks-deepseek minus claude | test \| Rule A \| macro_f1 | +0.0075 | [-0.0145, +0.0295] | [-0.0238, +0.0411] | none |
+| fireworks-deepseek minus claude | test \| Rule A \| micro_f1 | -0.0019 | [-0.0185, +0.0151] | [-0.0263, +0.0234] | none |
+| fireworks-deepseek minus claude | shift \| Rule C \| macro_f1 | +0.0306 | [-0.0089, +0.0664] | [-0.0275, +0.0812] | none |
+| fireworks-deepseek minus claude | shift \| Rule C \| micro_f1 | +0.0154 | [-0.0212, +0.0478] | [-0.0404, +0.0614] | none |
+| fireworks-deepseek minus gemini | test \| Rule A \| macro_f1 | -0.0408 | [-0.0607, -0.0202] | [-0.0698, -0.0107] | B higher |
+| fireworks-deepseek minus gemini | test \| Rule A \| micro_f1 | -0.0370 | [-0.0522, -0.0213] | [-0.0593, -0.0140] | B higher |
+| fireworks-deepseek minus gemini | shift \| Rule C \| macro_f1 | -0.0202 | [-0.0511, +0.0082] | [-0.0652, +0.0226] | none |
+| fireworks-deepseek minus gemini | shift \| Rule C \| micro_f1 | -0.0001 | [-0.0345, +0.0314] | [-0.0497, +0.0450] | none |
+
+Reading:
+- 6 of 12 claims. DeepSeek is higher than the baseline on both metrics, on test and on shift. The shift macro-F1 claim is marginal: its adjusted lower bound is +0.0046.
+- DeepSeek and Claude cannot be distinguished on either metric in either scope.
+- Gemini is higher on both metrics on test. On shift the two cannot be distinguished.
+- Secondary, no claim: DeepSeek's none FP rate is higher than every other model's on test (for example +0.0066 [+0.0023, +0.0113] against Claude, +0.0115 [+0.0066, +0.0167] against the baseline).
+
+### DeepSeek minus transformer-tuned (6c), secondary, no claims
+Source: `python -m src.evaluate compare fireworks-deepseek transformer-tuned` (`data/processed/eval_compare_fireworks-deepseek_transformer-tuned.txt`). 10,000 paired resamples, 95% intervals.
+
+| Scope and metric | Difference | 95% CI |
+|---|---|---|
+| test \| Rule A \| macro_f1 | +0.0133 | [-0.0099, +0.0370] |
+| test \| Rule A \| micro_f1 | +0.0250 | [+0.0031, +0.0463] |
+| shift \| Rule C \| macro_f1 | +0.0103 | [-0.0371, +0.0571] |
+| shift \| Rule C \| micro_f1 | +0.0079 | [-0.0326, +0.0509] |
+| test \| all \| none_fp_rate | +0.0105 | [+0.0070, +0.0144] |
+| shift \| all \| none_fp_rate | +0.0146 | [+0.0072, +0.0218] |
+
+### What 6b can and cannot say
+- It shows that an open-weights model, under a protocol it did not shape and with no reasoning, beats the baseline in both scopes, cannot be distinguished from Claude, and is below Gemini on test, at about a quarter of Gemini's held-out cost ($1.1178 against $4.5250 for test and shift).
+- Against Claude, both the model and the prompt differ (v3 against v2). v3 was selected on Gemini's own iteration run, which favours Gemini.
+- These are Fireworks-served results. Quantization and kernels may differ from self-hosted weights, so "a firm could self-host it" is a direction, not a measurement. The recorded served model is the requested ID, not a weights version.
+- DeepSeek carries the same contamination caveat as Claude and Gemini.
+- Run-to-run variation (0.9627 all-runs agreement) is the largest of the three LLMs.
+
+### Latency and cost
+Latency is per call of 10 segments; cost at the model page prices.
+
+| Split | Calls | Cost | Cost per 1,000 segments | Latency median | Latency p95 |
+|---|---|---|---|---|---|
+| test | 985 | $0.7452 | $0.0795 | 1,524 ms | 3,560 ms |
+| shift | 470 | $0.3726 | $0.0813 | 1,885 ms | 4,193 ms |
+
+- Cached input: 4,249,752 of 7,226,459 prompt tokens on test, 2,058,750 of 3,551,328 on shift. Reasoning tokens: 0.
+- All of 6b, from the smoke to the held-out run, cost about $2.10 (ledger $53.71 before the smoke; $54.69 before the held-out run, which added $1.1178).
+
 ## Drift monitoring (Step 5)
 Question: would a monitor with no labels notice the contract-type shift that costs every model 0.16 to 0.19 F1? Rules pre-registered in BUILD_LOG Step 5 before any drift statistic was computed; thresholds frozen from validation (`python -m src.drift calibrate | tee data/processed/drift_calibrate.txt`, `models/drift/reference.json`, freeze_id 5f2143f3067c) and committed before one evaluation run (`python -m src.drift evaluate | tee data/processed/drift_evaluate.txt`, `data/eval/drift.json`). Tables: `python -m src.report`.
 
@@ -657,26 +764,27 @@ Spearman rank correlation between each statistic and each model's batch micro-F1
 - Establishing detection power with intervals needs more shifted contracts than this dataset holds for any one type; with 13 to 15, the contract-level uncertainty dominates.
 
 ## Calibration across models, test
-Every (segment, label) pair is one prediction; 10 equal-width bins. Each cell: pairs, mean predicted vs observed positive rate. Source: `python -m src.report | tee data/processed/results_tables.md`, generated from `data/eval/{baseline,claude,gemini,transformer,transformer-tuned}.json` (`python -m src.evaluate model <name>`).
+Every (segment, label) pair is one prediction; 10 equal-width bins. Each cell: pairs, mean predicted vs observed positive rate. Source: `python -m src.report | tee data/processed/results_tables.md`, generated from `data/eval/{baseline,claude,gemini,transformer,transformer-tuned,fireworks-deepseek}.json` (`python -m src.evaluate model <name>`).
 
 > Contamination caveat: CUAD has been public since 2021, so Claude and Gemini may have seen these contracts and labels in training, and their scores may be optimistic relative to unseen contracts. The shift set is part of the same release (docs/plan.md, Limitations).
 
-| Bin | baseline | claude | gemini | transformer | transformer-tuned |
-|---|---|---|---|---|---|
-| [0.0, 0.1) | 306,899: 0.0010 vs 0.0014 | 306,360: 0.0000 vs 0.0011 | 307,333: 0.0000 vs 0.0010 | 306,996: 0.0036 vs 0.0017 | 302,955: 0.0046 vs 0.0008 |
-| [0.1, 0.2) | 590: 0.1393 vs 0.1288 | 268: 0.1267 vs 0.0112 | 23: 0.1422 vs 0.0000 | 1,004: 0.1416 vs 0.1444 | 2,695: 0.1376 vs 0.0156 |
-| [0.2, 0.3) | 251: 0.2474 vs 0.2191 | 486: 0.2000 vs 0.0329 | 102: 0.2255 vs 0.0784 | 427: 0.2437 vs 0.2740 | 819: 0.2434 vs 0.0366 |
-| [0.3, 0.4) | 197: 0.3482 vs 0.2538 | 548: 0.3001 vs 0.1606 | 130: 0.3342 vs 0.1308 | 179: 0.3474 vs 0.4804 | 478: 0.3455 vs 0.0753 |
-| [0.4, 0.5) | 125: 0.4498 vs 0.2880 | 236: 0.4000 vs 0.2119 | 153: 0.4111 vs 0.2222 | 173: 0.4459 vs 0.5491 | 338: 0.4461 vs 0.1065 |
-| [0.5, 0.6) | 123: 0.5539 vs 0.3577 | 307: 0.5000 vs 0.3648 | 68: 0.5154 vs 0.3088 | 118: 0.5533 vs 0.7458 | 254: 0.5440 vs 0.1457 |
-| [0.6, 0.7) | 102: 0.6496 vs 0.4118 | 306: 0.6000 vs 0.5229 | 64: 0.6266 vs 0.2031 | 118: 0.6476 vs 0.7373 | 219: 0.6499 vs 0.1324 |
-| [0.7, 0.8) | 119: 0.7494 vs 0.5882 | 187: 0.7029 vs 0.6310 | 157: 0.7385 vs 0.3248 | 205: 0.7566 vs 0.8683 | 232: 0.7514 vs 0.2241 |
-| [0.8, 0.9) | 127: 0.8533 vs 0.5512 | 365: 0.8314 vs 0.8137 | 401: 0.8365 vs 0.4713 | 254: 0.8395 vs 0.9803 | 349: 0.8539 vs 0.4040 |
-| [0.9, 1.0] | 941: 0.9753 vs 0.7439 | 411: 0.9139 vs 0.9513 | 1,043: 0.9523 vs 0.8917 | 0: none | 1,135: 0.9622 vs 0.8132 |
-| Share of pairs in [0.0, 0.1) | 99.17% | 98.99% | 99.31% | 99.20% | 97.89% |
-| Pooled ECE, point [95% CI] | 0.0015 [0.0009, 0.0025] | 0.0021 [0.0018, 0.0024] | 0.0022 [0.0019, 0.0025] | 0.0024 [0.0022, 0.0027] | 0.0083 [0.0075, 0.0094] |
+| Bin | baseline | claude | gemini | transformer | transformer-tuned | fireworks-deepseek |
+|---|---|---|---|---|---|---|
+| [0.0, 0.1) | 306,899: 0.0010 vs 0.0014 | 306,360: 0.0000 vs 0.0011 | 307,333: 0.0000 vs 0.0010 | 306,996: 0.0036 vs 0.0017 | 302,955: 0.0046 vs 0.0008 | 307,069: 0.0000 vs 0.0011 |
+| [0.1, 0.2) | 590: 0.1393 vs 0.1288 | 268: 0.1267 vs 0.0112 | 23: 0.1422 vs 0.0000 | 1,004: 0.1416 vs 0.1444 | 2,695: 0.1376 vs 0.0156 | 169: 0.1342 vs 0.0533 |
+| [0.2, 0.3) | 251: 0.2474 vs 0.2191 | 486: 0.2000 vs 0.0329 | 102: 0.2255 vs 0.0784 | 427: 0.2437 vs 0.2740 | 819: 0.2434 vs 0.0366 | 158: 0.2063 vs 0.0633 |
+| [0.3, 0.4) | 197: 0.3482 vs 0.2538 | 548: 0.3001 vs 0.1606 | 130: 0.3342 vs 0.1308 | 179: 0.3474 vs 0.4804 | 478: 0.3455 vs 0.0753 | 292: 0.3041 vs 0.1541 |
+| [0.4, 0.5) | 125: 0.4498 vs 0.2880 | 236: 0.4000 vs 0.2119 | 153: 0.4111 vs 0.2222 | 173: 0.4459 vs 0.5491 | 338: 0.4461 vs 0.1065 | 176: 0.4014 vs 0.1989 |
+| [0.5, 0.6) | 123: 0.5539 vs 0.3577 | 307: 0.5000 vs 0.3648 | 68: 0.5154 vs 0.3088 | 118: 0.5533 vs 0.7458 | 254: 0.5440 vs 0.1457 | 207: 0.5068 vs 0.2947 |
+| [0.6, 0.7) | 102: 0.6496 vs 0.4118 | 306: 0.6000 vs 0.5229 | 64: 0.6266 vs 0.2031 | 118: 0.6476 vs 0.7373 | 219: 0.6499 vs 0.1324 | 271: 0.6013 vs 0.4908 |
+| [0.7, 0.8) | 119: 0.7494 vs 0.5882 | 187: 0.7029 vs 0.6310 | 157: 0.7385 vs 0.3248 | 205: 0.7566 vs 0.8683 | 232: 0.7514 vs 0.2241 | 209: 0.7132 vs 0.6268 |
+| [0.8, 0.9) | 127: 0.8533 vs 0.5512 | 365: 0.8314 vs 0.8137 | 401: 0.8365 vs 0.4713 | 254: 0.8395 vs 0.9803 | 349: 0.8539 vs 0.4040 | 332: 0.8341 vs 0.7651 |
+| [0.9, 1.0] | 941: 0.9753 vs 0.7439 | 411: 0.9139 vs 0.9513 | 1,043: 0.9523 vs 0.8917 | 0: none | 1,135: 0.9622 vs 0.8132 | 591: 0.9256 vs 0.9137 |
+| Share of pairs in [0.0, 0.1) | 99.17% | 98.99% | 99.31% | 99.20% | 97.89% | 99.22% |
+| Pooled ECE, point [95% CI] | 0.0015 [0.0009, 0.0025] | 0.0021 [0.0018, 0.0024] | 0.0022 [0.0019, 0.0025] | 0.0024 [0.0022, 0.0027] | 0.0083 [0.0075, 0.0094] | 0.0019 [0.0016, 0.0021] |
 
 - Pooled ECE is near zero for every model because 98.99% to 99.31% of pairs fall in the lowest bin; the bins above 0.1 carry the calibration evidence.
+- DeepSeek is overconfident from 0.1 to 0.8, for example 0.5068 against 0.2947 in [0.5, 0.6) (207 pairs), and close at the top: 0.8341 against 0.7651 in [0.8, 0.9) and 0.9256 against 0.9137 in [0.9, 1.0] (591 pairs). Pooled ECE 0.0019 [0.0016, 0.0021].
 - The transformer is underconfident in every bin from 0.2 to 0.9, for example 0.8395 against 0.9803 in [0.8, 0.9) (254 pairs), and never scores 0.9 or above. This fits the suppressed positive scores in the Step 6a diagnostic.
 - Transformer-tuned is overconfident in every bin from 0.1 up: 0.8539 against 0.4040 in [0.8, 0.9) (349 pairs), 0.9622 against 0.8132 in [0.9, 1.0] (1,135 pairs). Its pooled ECE, 0.0083 [0.0075, 0.0094], is the highest of the five, and fewer of its pairs sit in the lowest bin (97.89%). This is the expected effect of the positive weight, which raises positive scores. Rule B thresholds absorb it for F1, but its scores should not be read as probabilities.
 - Gemini is overconfident from 0.6 to 0.9: mean predicted 0.7385 against observed 0.3248 in [0.7, 0.8), and 0.8365 against 0.4713 in [0.8, 0.9) (401 pairs). Its Rule B thresholds, above 0.5 for 19 of 28 labels (BUILD_LOG 3ag), are consistent with this.
@@ -685,7 +793,7 @@ Every (segment, label) pair is one prediction; 10 equal-width bins. Each cell: p
 - LLM confidences are stated by the model, not estimated probabilities; the reliability table measures how well those statements track outcomes on this test set.
 
 ## LLM runs: cost, latency and repeatability
-Sources: `python -m src.llm.run heldout --model <name>` (`data/processed/llm_heldout_{claude,gemini}.txt`), `python -m src.llm.run repeat --model <name>` (`data/processed/llm_repeat_{claude,gemini}.txt`). Latency is per call of 10 segments.
+Sources: `python -m src.llm.run heldout --model <name>` (`data/processed/llm_heldout_{claude,gemini,fireworks-deepseek}.txt`), `python -m src.llm.run repeat --model <name>` (`data/processed/llm_repeat_{claude,gemini,fireworks-deepseek}.txt`). Latency is per call of 10 segments.
 
 | Model | Split | Calls | Cost | Cost per 1,000 segments | Latency median | Latency p95 |
 |---|---|---|---|---|---|---|
@@ -693,10 +801,13 @@ Sources: `python -m src.llm.run heldout --model <name>` (`data/processed/llm_hel
 | Claude | shift | 470 | $3.2500 | $0.7090 | 2,171 ms | 3,860 ms |
 | Gemini | test | 985 | $3.0320 | $0.3233 | 1,242 ms | 1,844 ms |
 | Gemini | shift | 470 | $1.4930 | $0.3257 | 1,394 ms | 3,429 ms |
+| DeepSeek (6b) | test | 985 | $0.7452 | $0.0795 | 1,524 ms | 3,560 ms |
+| DeepSeek (6b) | shift | 470 | $0.3726 | $0.0813 | 1,885 ms | 4,193 ms |
 
 - The baseline runs locally; its cost is 0.
 - Total API spend for Step 3, including prompt iteration, validation and the repeat check: about $53.70 of the $150 cap.
-- Repeat check (first 30 iteration windows, 295 validation segments; three runs; Rule B thresholds): Claude's exact label-set agreement across all three runs was 0.9763, with a none-versus-some flip rate of 0.0136 to 0.0169 between pairs of runs (Claude takes no temperature or seed). Gemini's three runs, with `seed=42`, were identical (agreement 1.0); this is measured on 30 windows and is not a guarantee of determinism.
+- Step 6b (DeepSeek on Fireworks, from the smoke to the held-out run): about $2.10, for a ledger total of about $55.81.
+- Repeat check (first 30 iteration windows, 295 validation segments; three runs; Rule B thresholds): Claude's exact label-set agreement across all three runs was 0.9763, with a none-versus-some flip rate of 0.0136 to 0.0169 between pairs of runs (Claude takes no temperature or seed). Gemini's three runs, with `seed=42`, were identical (agreement 1.0); this is measured on 30 windows and is not a guarantee of determinism. DeepSeek, with `seed=42` on Fireworks, agreed on 0.9627 of segments across all three runs, with a flip rate of 0.0169 to 0.0271.
 
 ## Confidence intervals
 - Method: 2000 contract-level bootstrap resamples, stratified by contract type, percentile 95% intervals, seed 42.
