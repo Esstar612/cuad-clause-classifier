@@ -1,0 +1,1 @@
+Froze fireworks-deepseek: prompt v3, batch size 10, hash 8ec29d0ea6ca -> /Users/owner/Dropbox/My Resume/Code/CCC/models/fireworks-deepseek/prompt.json
