@@ -18,6 +18,7 @@ Contract clause classifier on the CUAD dataset (commercial contracts labeled by 
 
 ### Execution
 - Never run tests, training, or evaluation scripts. Give the exact command; the user runs it and pastes the output back.
+- Code review loop: after placing code, run `scripts/review.sh` yourself (it only reads). Verify each finding against the code, apply the confirmed ones and the simplifications, and re-run. Stop after 3 rounds, or sooner once a round has no meaningful findings; go past 3 only when a round still finds real bugs. Report each round's findings, what was applied, and what was rejected with the reason.
 
 ### Honesty in numbers
 - Never invent numbers. Every figure in any doc must come from output the user pasted.

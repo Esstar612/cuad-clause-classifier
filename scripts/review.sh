@@ -4,7 +4,7 @@
 set -euo pipefail
 
 # Pinned to a non-Claude model so code review adds a perspective the Claude builder and plan reviewer lack.
-REVIEW_MODEL="gpt-5.6-sol-high"
+REVIEW_MODEL="${REVIEW_MODEL:-gpt-5.6-sol-high}"
 cd "$(git rev-parse --show-toplevel)"
 base="${1:-HEAD}"
 [ $# -gt 0 ] && shift
