@@ -1,0 +1,124 @@
+High-recall target 0.9 per label on validation (11656 segments); pooled labels (5): ['Joint Ip Ownership', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Third Party Beneficiary']. Tuned and reported on validation only, so optimistic.
+
+=== baseline (9692b04f03fb) ===
+  balanced (Rule B)  micro_f1 0.6307  macro_f1 0.5670  none_fp_rate 0.0300  micro_precision 0.6667  micro_recall 0.5985
+  high recall        micro_f1 0.2872  macro_f1 0.3348  none_fp_rate 0.2777  micro_precision 0.1734  micro_recall 0.8344
+  thresholds lowered from Rule B: 32 of 33 labels
+  labels below 0.9 validation recall (22): ['Change Of Control', 'Competitive Restriction Exception', 'Covenant Not To Sue', 'Exclusivity', 'Ip Ownership Assignment', 'Irrevocable Or Perpetual License', 'Joint Ip Ownership', 'License Grant', 'Liquidated Damages', 'Minimum Commitment', 'Most Favored Nation', 'No-Solicit Of Customers', 'No-Solicit Of Employees', 'Non-Compete', 'Non-Disparagement', 'Non-Transferable License', 'Post-Termination Services', 'Revenue/Profit Sharing', 'Rofr/Rofo/Rofn', 'Termination For Convenience', 'Third Party Beneficiary', 'Volume Restriction']
+  per-label achieved validation recall at the high-recall point:
+    Affiliate License                    threshold 0.01 (Rule B 0.46)  recall 0.9048
+    Anti-Assignment                      threshold 0.02 (Rule B 0.79)  recall 0.9048
+    Audit Rights                         threshold 0.10 (Rule B 0.42)  recall 0.9024
+    Cap On Liability                     threshold 0.04 (Rule B 0.42)  recall 0.9016
+    Change Of Control                    threshold 0.01 (Rule B 0.33)  recall 0.7857
+    Competitive Restriction Exception    threshold 0.01 (Rule B 0.04)  recall 0.4324
+    Covenant Not To Sue                  threshold 0.01 (Rule B 0.18)  recall 0.7419
+    Exclusivity                          threshold 0.01 (Rule B 0.34)  recall 0.7386
+    Expiration Date                      threshold 0.05 (Rule B 0.74)  recall 0.9043
+    Governing Law                        threshold 0.78 (Rule B 0.78)  recall 0.9778
+    Insurance                            threshold 0.06 (Rule B 0.45)  recall 0.9000
+    Ip Ownership Assignment              threshold 0.01 (Rule B 0.77)  recall 0.8889
+    Irrevocable Or Perpetual License     threshold 0.01 (Rule B 0.37)  recall 0.8800
+    Joint Ip Ownership                   threshold 0.01 (Rule B 0.42)  recall 0.8667
+    License Grant                        threshold 0.01 (Rule B 0.71)  recall 0.8701
+    Liquidated Damages                   threshold 0.01 (Rule B 0.11)  recall 0.5484
+    Minimum Commitment                   threshold 0.01 (Rule B 0.94)  recall 0.7846
+    Most Favored Nation                  threshold 0.01 (Rule B 0.42)  recall 0.6000
+    No-Solicit Of Customers              threshold 0.01 (Rule B 0.42)  recall 0.0000
+    No-Solicit Of Employees              threshold 0.01 (Rule B 0.09)  recall 0.8824
+    Non-Compete                          threshold 0.01 (Rule B 0.28)  recall 0.7879
+    Non-Disparagement                    threshold 0.01 (Rule B 0.42)  recall 0.6667
+    Non-Transferable License             threshold 0.01 (Rule B 0.81)  recall 0.7353
+    Notice Period To Terminate Renewal   threshold 0.25 (Rule B 0.67)  recall 0.9091
+    Post-Termination Services            threshold 0.01 (Rule B 0.18)  recall 0.6709
+    Renewal Term                         threshold 0.06 (Rule B 0.62)  recall 0.9118
+    Revenue/Profit Sharing               threshold 0.01 (Rule B 0.31)  recall 0.8395
+    Rofr/Rofo/Rofn                       threshold 0.01 (Rule B 0.36)  recall 0.8286
+    Termination For Convenience          threshold 0.01 (Rule B 0.27)  recall 0.8704
+    Third Party Beneficiary              threshold 0.01 (Rule B 0.42)  recall 0.6250
+    Uncapped Liability                   threshold 0.10 (Rule B 0.72)  recall 0.9231
+    Volume Restriction                   threshold 0.01 (Rule B 0.54)  recall 0.6471
+    Warranty Duration                    threshold 0.01 (Rule B 0.52)  recall 0.9286
+  wrote /Users/owner/Dropbox/My Resume/Code/CCC/models/service/baseline_thresholds_high_recall.json
+
+=== transformer-tuned (w-lr2e-5/epoch-4|d51fe0f8601b) ===
+  balanced (Rule B)  micro_f1 0.6763  macro_f1 0.6269  none_fp_rate 0.0264  micro_precision 0.6883  micro_recall 0.6647
+  high recall        micro_f1 0.0863  macro_f1 0.2320  none_fp_rate 0.1443  micro_precision 0.0454  micro_recall 0.8762
+  thresholds lowered from Rule B: 32 of 33 labels
+  labels below 0.9 validation recall (17): ['Affiliate License', 'Cap On Liability', 'Change Of Control', 'Competitive Restriction Exception', 'Exclusivity', 'Ip Ownership Assignment', 'License Grant', 'Liquidated Damages', 'Minimum Commitment', 'Most Favored Nation', 'Non-Disparagement', 'Post-Termination Services', 'Revenue/Profit Sharing', 'Rofr/Rofo/Rofn', 'Termination For Convenience', 'Third Party Beneficiary', 'Volume Restriction']
+  per-label achieved validation recall at the high-recall point:
+    Affiliate License                    threshold 0.01 (Rule B 0.76)  recall 0.8810
+    Anti-Assignment                      threshold 0.11 (Rule B 0.91)  recall 0.9048
+    Audit Rights                         threshold 0.01 (Rule B 0.96)  recall 0.9146
+    Cap On Liability                     threshold 0.01 (Rule B 0.75)  recall 0.8770
+    Change Of Control                    threshold 0.01 (Rule B 0.88)  recall 0.8810
+    Competitive Restriction Exception    threshold 0.01 (Rule B 0.28)  recall 0.5946
+    Covenant Not To Sue                  threshold 0.01 (Rule B 0.58)  recall 0.9032
+    Exclusivity                          threshold 0.01 (Rule B 0.71)  recall 0.8182
+    Expiration Date                      threshold 0.07 (Rule B 0.92)  recall 0.9043
+    Governing Law                        threshold 0.96 (Rule B 0.96)  recall 0.9778
+    Insurance                            threshold 0.87 (Rule B 0.94)  recall 0.9000
+    Ip Ownership Assignment              threshold 0.01 (Rule B 0.88)  recall 0.8889
+    Irrevocable Or Perpetual License     threshold 0.47 (Rule B 0.75)  recall 0.9000
+    Joint Ip Ownership                   threshold 0.01 (Rule B 0.72)  recall 1.0000
+    License Grant                        threshold 0.01 (Rule B 0.83)  recall 0.8983
+    Liquidated Damages                   threshold 0.01 (Rule B 0.30)  recall 0.8065
+    Minimum Commitment                   threshold 0.01 (Rule B 0.90)  recall 0.8154
+    Most Favored Nation                  threshold 0.01 (Rule B 0.72)  recall 0.6000
+    No-Solicit Of Customers              threshold 0.01 (Rule B 0.72)  recall 1.0000
+    No-Solicit Of Employees              threshold 0.34 (Rule B 0.70)  recall 0.9412
+    Non-Compete                          threshold 0.21 (Rule B 0.84)  recall 0.9091
+    Non-Disparagement                    threshold 0.01 (Rule B 0.72)  recall 0.7778
+    Non-Transferable License             threshold 0.03 (Rule B 0.81)  recall 0.9118
+    Notice Period To Terminate Renewal   threshold 0.18 (Rule B 0.93)  recall 0.9091
+    Post-Termination Services            threshold 0.01 (Rule B 0.70)  recall 0.7975
+    Renewal Term                         threshold 0.53 (Rule B 0.91)  recall 0.9118
+    Revenue/Profit Sharing               threshold 0.01 (Rule B 0.56)  recall 0.8642
+    Rofr/Rofo/Rofn                       threshold 0.01 (Rule B 0.66)  recall 0.8857
+    Termination For Convenience          threshold 0.01 (Rule B 0.82)  recall 0.8333
+    Third Party Beneficiary              threshold 0.01 (Rule B 0.72)  recall 0.6250
+    Uncapped Liability                   threshold 0.77 (Rule B 0.88)  recall 0.9231
+    Volume Restriction                   threshold 0.01 (Rule B 0.75)  recall 0.7059
+    Warranty Duration                    threshold 0.13 (Rule B 0.69)  recall 0.9286
+  wrote /Users/owner/Dropbox/My Resume/Code/CCC/models/service/transformer-tuned_thresholds_high_recall.json
+
+=== fireworks-deepseek (accounts/fireworks/models/deepseek-v4p1-flash|prompt v3 8ec29d0ea6ca|thresholds 01261b8608c6) ===
+  balanced (Rule B)  micro_f1 0.6770  macro_f1 0.6455  none_fp_rate 0.0398  micro_precision 0.6806  micro_recall 0.6734
+  high recall        micro_f1 0.5771  macro_f1 0.5632  none_fp_rate 0.0923  micro_precision 0.4724  micro_recall 0.7414
+  thresholds lowered from Rule B: 29 of 33 labels
+  labels below 0.9 validation recall (26): ['Affiliate License', 'Anti-Assignment', 'Cap On Liability', 'Change Of Control', 'Competitive Restriction Exception', 'Covenant Not To Sue', 'Exclusivity', 'Expiration Date', 'Ip Ownership Assignment', 'Irrevocable Or Perpetual License', 'Joint Ip Ownership', 'License Grant', 'Liquidated Damages', 'Minimum Commitment', 'No-Solicit Of Customers', 'Non-Compete', 'Non-Disparagement', 'Non-Transferable License', 'Post-Termination Services', 'Revenue/Profit Sharing', 'Rofr/Rofo/Rofn', 'Termination For Convenience', 'Third Party Beneficiary', 'Uncapped Liability', 'Volume Restriction', 'Warranty Duration']
+  per-label achieved validation recall at the high-recall point:
+    Affiliate License                    threshold 0.01 (Rule B 0.20)  recall 0.6190
+    Anti-Assignment                      threshold 0.01 (Rule B 0.61)  recall 0.8667
+    Audit Rights                         threshold 0.30 (Rule B 0.61)  recall 0.9146
+    Cap On Liability                     threshold 0.01 (Rule B 0.40)  recall 0.7705
+    Change Of Control                    threshold 0.01 (Rule B 0.61)  recall 0.6667
+    Competitive Restriction Exception    threshold 0.01 (Rule B 0.35)  recall 0.3784
+    Covenant Not To Sue                  threshold 0.01 (Rule B 0.40)  recall 0.6129
+    Exclusivity                          threshold 0.01 (Rule B 0.50)  recall 0.5455
+    Expiration Date                      threshold 0.01 (Rule B 0.20)  recall 0.8298
+    Governing Law                        threshold 0.81 (Rule B 0.81)  recall 0.9667
+    Insurance                            threshold 0.50 (Rule B 0.50)  recall 0.9286
+    Ip Ownership Assignment              threshold 0.01 (Rule B 0.71)  recall 0.8148
+    Irrevocable Or Perpetual License     threshold 0.01 (Rule B 0.30)  recall 0.6600
+    Joint Ip Ownership                   threshold 0.01 (Rule B 0.61)  recall 0.8000
+    License Grant                        threshold 0.01 (Rule B 0.50)  recall 0.7797
+    Liquidated Damages                   threshold 0.01 (Rule B 0.50)  recall 0.8065
+    Minimum Commitment                   threshold 0.01 (Rule B 0.50)  recall 0.6615
+    Most Favored Nation                  threshold 0.01 (Rule B 0.61)  recall 1.0000
+    No-Solicit Of Customers              threshold 0.01 (Rule B 0.61)  recall 0.5000
+    No-Solicit Of Employees              threshold 0.35 (Rule B 0.35)  recall 1.0000
+    Non-Compete                          threshold 0.01 (Rule B 0.40)  recall 0.8788
+    Non-Disparagement                    threshold 0.01 (Rule B 0.61)  recall 0.5556
+    Non-Transferable License             threshold 0.01 (Rule B 0.51)  recall 0.6618
+    Notice Period To Terminate Renewal   threshold 0.60 (Rule B 0.61)  recall 0.9091
+    Post-Termination Services            threshold 0.01 (Rule B 0.66)  recall 0.4937
+    Renewal Term                         threshold 0.51 (Rule B 0.51)  recall 0.9118
+    Revenue/Profit Sharing               threshold 0.01 (Rule B 0.51)  recall 0.7778
+    Rofr/Rofo/Rofn                       threshold 0.01 (Rule B 0.20)  recall 0.5143
+    Termination For Convenience          threshold 0.01 (Rule B 0.40)  recall 0.7407
+    Third Party Beneficiary              threshold 0.01 (Rule B 0.61)  recall 0.7500
+    Uncapped Liability                   threshold 0.01 (Rule B 0.50)  recall 0.6923
+    Volume Restriction                   threshold 0.01 (Rule B 0.30)  recall 0.2353
+    Warranty Duration                    threshold 0.01 (Rule B 0.30)  recall 0.6786
+  wrote /Users/owner/Dropbox/My Resume/Code/CCC/models/service/fireworks-deepseek_thresholds_high_recall.json

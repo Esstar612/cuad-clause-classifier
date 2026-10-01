@@ -1,0 +1,2 @@
+Validation contracts: 97; OOV rate min 0.0008, 25% 0.0114, median 0.0285, 75% 0.0439, 95% 0.0729, max 0.1416
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/models/service/reference.json
