@@ -2960,3 +2960,39 @@ Nothing new in `src/` after the price amendment (f0d385c). `docs/results.md` gai
 
 ### Resume-worthy
 - Evaluated an open-weights LLM (DeepSeek V4.1 Flash on Fireworks) under a pre-registered, frozen protocol with a judged smoke gate: statistically indistinguishable from Claude Sonnet 5 on held-out contracts at about a ninth of Claude's held-out cost, and below Gemini on in-distribution test.
+
+## 2026-09-29: Step 7, review service pre-registered and code placed (before any new number exists)
+
+### What we built
+- `src/infer.py`: inference on new text for the served models. Each model loads through its frozen artifacts and refuses a changed one: the baseline via `load_frozen_pipeline` and `model_version`; the tuned legal-BERT via `selected.json`, `model_version` and `check_recipe`; DeepSeek via `load_frozen` and the same `_version_tag` string its validation predictions carry. A model that fails to load is left out with the reason. Records follow the shared prediction format plus `scored`.
+- DeepSeek in the service: cache namespace `service`, its own ledger `data/llm_cache/service_ledger.jsonl`, a per-request worst-case cap, and errors for a budget stop (402) and for every call failing (502). A failed call or parse failure marks segments "not classified" instead of empty.
+- `src/pdf_text.py`: pypdf text layer, Tesseract OCR (via pypdfium2 rendering) for pages without one, a warning when Tesseract is missing, `PdfError` for unreadable files.
+- `src/high_recall.py`, `src/service_reference.py`, `src/extraction_eval.py`: the measurements below.
+- `service/app.py`: FastAPI with `/health`, `/models`, `/classify`, `/classify/pdf`, and a review page that highlights flagged segments with label and confidence, marks unscored ones, and shows fixed notices (every flag needs a lawyer's check; unflagged text is not cleared; DeepSeek sends text to Fireworks).
+- `src/config.py`: Step 7 settings; `SERVICE_MODELS`, `SERVICE_LLM_CAP_USD`, `SERVICE_REQUEST_CAP_USD` and `SERVICE_MAX_UPLOAD_MB` are read from the environment. `pyproject.toml`: pypdf, pypdfium2, pytesseract, pillow, python-multipart.
+- Tests: `tests/test_{high_recall,infer,pdf_text,extraction_eval,service}.py`, offline with stub models.
+- Plan reviews: `docs/reviews/2026-09-29-7-r1.md` and `-r2.md`.
+
+### Decisions made
+Fixed before any Step 7 number is computed. No model is retrained, no prompt or frozen artifact changes, and no test or shift data is read.
+- **Models served:** the baseline and the tuned legal-BERT (local, no cost), and DeepSeek on Fireworks (optional API model).
+  - Alternatives considered: all six models; local models only.
+  - Why rejected: Claude and Gemini add cost and code without a use the three do not cover, and 6a is weaker than 6c; local-only drops the strongest model served.
+- **High-recall operating point (validation only):**
+  - Per label: the lower of the Rule B threshold and the highest Rule B grid threshold (0.01 to 0.99) with validation recall at least 0.90. If no grid threshold reaches 0.90, that second value is the lowest grid value. A label with no validation positives keeps Rule B. Labels with fewer than 10 validation contracts share one grid threshold found on their pooled decisions, each then capped by its own Rule B threshold.
+  - Inputs are the existing validation predictions; the command refuses a file whose model version, label order, segment set or labels differ from the served model and current data.
+  - Reported per model and operating point on validation: micro- and macro-F1, micro precision and recall, none FP rate, per-label achieved recall and the labels below 0.90. Descriptive and optimistic (tuned on the same set); no claims.
+  - Alternatives considered: the highest threshold reaching 0.90 even above Rule B; one pre-registered test look.
+  - Why rejected: the first can flag less than balanced for labels where Rule B already exceeds 0.90 recall; the second is another look at a test set every model has already seen. Step 9's fresh set is the clean check.
+- **Extraction quality (97 validation contracts):**
+  - PDFs matched to titles by exact `title_key`, then a unique prefix, as in Step 1a; the command refuses unless all 97 match.
+  - Gold text: the CUAD JSON context. Gold contract labels: kept labels with a positive span in `spans.parquet`.
+  - Both texts are scored the same way: `segment_text` on the whole text, fresh predictions from the baseline and the tuned legal-BERT at Rule B thresholds, contract label set = union over segments.
+  - Metrics: pooled word-multiset precision and recall of the PDF text against gold (lowercased, whitespace-split); contract-level micro-F1 of label sets against gold for each text and model, and gold minus PDF. 95% intervals from 2,000 paired contract resamples (stream `extraction`). Descriptive, no claims. DeepSeek excluded (cost).
+  - OCR: forced on 10 contracts sampled with the config seed (stream `extraction_ocr`), with no page limit; per-contract values only. The CUAD PDFs are digitally generated, so this is likely optimistic against real scans.
+  - The command refuses to run without Tesseract.
+- **Service spend:** a separate ledger capped at the lower of $5 and $150 minus the research ledger total, fixed at app start; one uvicorn worker, so one ledger per process. A request is refused before any call if its worst-case cost, one attempt per call, exceeds $0.50 (about 65 windows, about 650 segments) or what is left of the service budget. A call whose reply does not parse is retried once, so one request can cost up to about $1.00; the service cap still holds.
+  - Alternatives considered: a separate $5 cap alone.
+  - Why rejected: total project spend could then pass the $150 cap.
+- **Per-document input check:** the document's out-of-vocabulary rate (drift's definition) as a percentile of the 97 validation contracts' rates. Descriptive only: the calibrated Step 5 monitor works on batches of 5 contracts.
+- **Step 8 note:** DeepSeek serving needs `segments.parquet` (gitignored) for retrieval, and the local models need their gitignored weights.

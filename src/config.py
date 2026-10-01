@@ -1,5 +1,6 @@
 """Single source of truth for the random seed and project paths."""
 
+import os
 from pathlib import Path
 
 # Every source of randomness (splits, sampling, bootstrap, model training) uses this.
@@ -161,3 +162,28 @@ TUNED_EPOCHS = 5
 TUNED_RUNS = {"u-lr2e-5": {"pos_weight": False, "lr": 2e-5}, "u-lr5e-5": {"pos_weight": False, "lr": 5e-5},
               "w-lr2e-5": {"pos_weight": True, "lr": 2e-5}, "w-lr5e-5": {"pos_weight": True, "lr": 5e-5}}
 TUNED_SELECTION_TIE = 0.005
+
+# Review service (Step 7). High-recall thresholds and extraction checks are validation-only.
+HIGH_RECALL_TARGET = 0.90            # per-label validation recall; never above the Rule B threshold
+PDF_MIN_PAGE_CHARS = 20              # a page with less extracted text goes to OCR
+PDF_OCR_DPI = 300
+PDF_MAX_OCR_PAGES = 50               # per request; the extraction measurement runs without a limit
+EXTRACTION_OCR_SAMPLE = 10           # validation contracts OCR'd in full for the extraction measurement
+SERVICE_DIR = MODELS_DIR / "service"
+SERVICE_LEDGER = LLM_CACHE_DIR / "service_ledger.jsonl"   # separate from the research ledger
+
+
+def service_settings(env=os.environ) -> dict:
+    """Deployment settings (Step 8 sets them through the environment)."""
+    models = env.get("SERVICE_MODELS", "baseline,transformer-tuned,fireworks-deepseek")
+    return {"models": tuple(m.strip() for m in models.split(",") if m.strip()),
+            "llm_cap_usd": float(env.get("SERVICE_LLM_CAP_USD", "5")),
+            "request_cap_usd": float(env.get("SERVICE_REQUEST_CAP_USD", "0.5")),
+            "max_upload_mb": float(env.get("SERVICE_MAX_UPLOAD_MB", "20"))}
+
+
+_SERVICE = service_settings()
+SERVICE_MODELS = _SERVICE["models"]
+SERVICE_LLM_CAP_USD = _SERVICE["llm_cap_usd"]
+SERVICE_REQUEST_CAP_USD = _SERVICE["request_cap_usd"]
+SERVICE_MAX_UPLOAD_MB = _SERVICE["max_upload_mb"]

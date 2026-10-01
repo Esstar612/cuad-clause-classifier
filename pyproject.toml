@@ -25,6 +25,11 @@ dependencies = [
     "httpx",
     "sentencepiece",
     "protobuf",
+    "pypdf",
+    "pypdfium2",
+    "pytesseract",
+    "pillow",
+    "python-multipart",
 ]
 
 [project.optional-dependencies]
