@@ -657,6 +657,56 @@ Latency is per call of 10 segments; cost at the model page prices.
 - Cached input: 4,249,752 of 7,226,459 prompt tokens on test, 2,058,750 of 3,551,328 on shift. Reasoning tokens: 0.
 - All of 6b, from the smoke to the held-out run, cost about $2.10 (ledger $53.71 before the smoke; $54.69 before the held-out run, which added $1.1178).
 
+## Service (Step 7)
+A FastAPI review service (`service/app.py`) serving the baseline, the tuned legal-BERT (6c) and DeepSeek (6b), for text or PDF. It is a review aid: every flag is for a lawyer to check, and unflagged text is not cleared. Rules pre-registered in BUILD_LOG Step 7. Every number below is on validation contracts; no test or shift data was read, and no model, prompt or threshold file from earlier steps changed (`git diff --exit-code data/eval data/predictions` was clean after the service run).
+
+### High-recall operating point (validation only, optimistic, no claims)
+Per label: the lower of the Rule B threshold and the highest grid threshold with validation recall at least 0.90; 5 labels with fewer than 10 validation contracts are pooled. Source: `python -m src.high_recall | tee data/processed/high_recall.txt`, files in `models/service/`. 11,656 validation segments.
+
+| Model | Point | micro-F1 | macro-F1 | micro precision | micro recall | none FP rate |
+|---|---|---|---|---|---|---|
+| baseline | balanced (Rule B) | 0.6307 | 0.5670 | 0.6667 | 0.5985 | 0.0300 |
+| baseline | high recall | 0.2872 | 0.3348 | 0.1734 | 0.8344 | 0.2777 |
+| transformer-tuned | balanced (Rule B) | 0.6763 | 0.6269 | 0.6883 | 0.6647 | 0.0264 |
+| transformer-tuned | high recall | 0.0863 | 0.2320 | 0.0454 | 0.8762 | 0.1443 |
+| fireworks-deepseek | balanced (Rule B) | 0.6770 | 0.6455 | 0.6806 | 0.6734 | 0.0398 |
+| fireworks-deepseek | high recall | 0.5771 | 0.5632 | 0.4724 | 0.7414 | 0.0923 |
+
+- Labels below 0.90 validation recall at the high-recall point: 22 of 33 (baseline), 17 (tuned legal-BERT), 26 (DeepSeek). Most of them sit at the lowest grid value, 0.01: some true clauses get almost no probability, so no threshold catches them. The service names these labels with every high-recall result.
+- The tuned legal-BERT gains the most recall but at 0.01 flags many labels per segment, so about 1 flag in 22 is correct. Its misses are confident, which matches the overconfidence seen in 6c.
+- DeepSeek gains the least recall (0.6734 to 0.7414): a label the model never names scores 0, and no threshold recovers it. It keeps the best precision.
+- Pooling can hide a label: for the baseline, the pooled threshold reached the target on the 5 pooled labels together, while No-Solicit Of Customers alone has 0.0000 validation recall at 0.01.
+- For a reviewer, high recall is a "show me more" mode with a large reading cost, not a guarantee of 90% recall.
+
+### Text from PDFs (97 validation contracts, descriptive, no claims)
+Source: `python -m src.extraction_eval | tee data/processed/extraction_eval.txt`, `data/eval/extraction.json`. Intervals: 95%, 2,000 paired contract resamples.
+
+- Text layer against CUAD's gold text (lowercased word multisets): precision 0.9788 [0.9757, 0.9817], recall 0.9819 [0.9797, 0.9839]. 1,759 pages; 15 pages in 7 contracts had no text layer and went to OCR.
+- Contract-level label sets, micro-F1 against the gold contract labels, Rule B thresholds:
+
+| Model | Gold text | PDF text | Gold minus PDF | Contracts whose label set changed |
+|---|---|---|---|---|
+| baseline | 0.8245 [0.8078, 0.8409] | 0.8122 [0.7945, 0.8292] | +0.0123 [+0.0037, +0.0209] | 47 |
+| transformer-tuned | 0.8354 [0.8168, 0.8534] | 0.8377 [0.8204, 0.8539] | -0.0023 [-0.0123, +0.0079] | 51 |
+
+- Reading the PDF costs the baseline about one point of contract-level micro-F1, and the tuned legal-BERT no measurable amount. Label sets change for about half the contracts, but the gains and losses mostly cancel.
+- Forced OCR on 10 contracts sampled with the config seed (per contract, no intervals): word precision 0.9702 to 0.9918 and recall 0.9619 to 0.9878, against 0.9643 to 0.9919 recall for the same contracts' text layers. The CUAD PDFs are digitally generated, so this is likely optimistic against real scans. Per-contract F1 is in `data/processed/extraction_eval.txt`; contract 407 has none of the kept labels, so its F1 is undefined and printed as 0.
+
+### Service check (one validation contract)
+Source: `python -m scripts.service_check --deepseek | tee data/processed/service_check.txt` against `uvicorn service.app:app --workers 1` (`data/processed/service_run.txt`: 12 requests, all HTTP 200). Contract 143, a 7-page marketing agreement (44 segments from the gold text, 43 from the PDF, no OCR), with 4 gold labels: Anti-Assignment, Expiration Date, Governing Law, License Grant.
+
+| Model | Point | Labels found (gold) | Extra labels | Cost |
+|---|---|---|---|---|
+| baseline | balanced | 3 of 4 | 1 (Post-Termination Services) | $0 |
+| baseline | high recall | 4 of 4 | 9 | $0 |
+| transformer-tuned | balanced | 3 of 4 | 0 | $0 |
+| transformer-tuned | high recall | 4 of 4 | 23 (27 labels on 10 segments) | $0 |
+| fireworks-deepseek | balanced | 3 of 4 | 1 (Third Party Beneficiary) | $0.0079 |
+
+- Text and PDF input gave the same labels for every local model and operating point. Every model missed License Grant at the balanced point.
+- The document's OOV rate was 0.0408, the 72nd percentile of the validation contracts (reference: min 0.0008, median 0.0285, max 0.1416; `data/processed/service_reference.txt`).
+- Spend: the research ledger stayed at $55.8089; the service ledger holds the one DeepSeek request, $0.0079.
+
 ## Drift monitoring (Step 5)
 Question: would a monitor with no labels notice the contract-type shift that costs every model 0.16 to 0.19 F1? Rules pre-registered in BUILD_LOG Step 5 before any drift statistic was computed; thresholds frozen from validation (`python -m src.drift calibrate | tee data/processed/drift_calibrate.txt`, `models/drift/reference.json`, freeze_id 5f2143f3067c) and committed before one evaluation run (`python -m src.drift evaluate | tee data/processed/drift_evaluate.txt`, `data/eval/drift.json`). Tables: `python -m src.report`.
 

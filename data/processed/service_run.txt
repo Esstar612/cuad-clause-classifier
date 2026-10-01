@@ -1,0 +1,19 @@
+INFO:     Started server process [4052]
+INFO:     Waiting for application startup.
+Loading weights:   0%|          | 0/201 [00:00<?, ?it/s]Loading weights: 100%|██████████| 201/201 [00:00<00:00, 17193.63it/s]
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:64132 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64132 - "GET /models HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64132 - "POST /classify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64132 - "POST /classify/pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64132 - "POST /classify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64132 - "POST /classify/pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64132 - "POST /classify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64132 - "POST /classify/pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64132 - "POST /classify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64132 - "POST /classify/pdf HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64132 - "POST /classify HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64132 - "POST /review HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65326 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:65326 - "GET /favicon.ico HTTP/1.1" 404 Not Found

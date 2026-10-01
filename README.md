@@ -40,7 +40,8 @@ Test (Rule A labels) and shift (Rule C labels), point [95% contract-bootstrap CI
 | 6a | Fine-tuned transformer: three encoders, one fixed recipe, selection on validation | BUILD_LOG Step 6a |
 | 6c | Tuned legal-BERT successor, post-hoc: loss-weighting and learning-rate grid, 20 checkpoints, selection on validation | BUILD_LOG Step 6c |
 | 6b | Open model on Fireworks: DeepSeek V4.1 Flash under the frozen LLM protocol, judged smoke gate, no prompt iteration | BUILD_LOG Step 6b |
-| 7, 8 | Service designed for human review (text or PDF) and deployment (planned) | `docs/plan.md` |
+| 7 | Review service: text or PDF, high-recall option, spend-capped LLM, extraction quality measured | BUILD_LOG Step 7, `docs/results.md` |
+| 8 | Deployment (planned) | `docs/plan.md` |
 | 9, 10 | Fresh non-CUAD test set, then an ensemble evaluated only on it (planned) | `docs/plan.md` |
 
 ## Layout
@@ -49,7 +50,8 @@ Test (Rule A labels) and shift (Rule C labels), point [95% contract-bootstrap CI
 src/            library code; src/config.py holds the seed, paths and every setting
   llm/          LLM classifiers, prompts, cache, budget
 tests/          pytest suite (CPU only, no downloads, no API calls)
-scripts/        review script, train-fit diagnostic
+service/        FastAPI review service
+scripts/        review script, train-fit diagnostic, service check
 docs/           plan, results, labeling schema, saved plan reviews
 data/           processed outputs, predictions, evaluation JSON (raw data is not committed)
 models/         frozen model metadata and thresholds (weights are not committed)
@@ -76,6 +78,18 @@ python -m src.build_segments
 ```
 
 Each later step's commands, in order, are in `BUILD_LOG.md`. LLM steps need `ANTHROPIC_API_KEY`, `GEMINI_API_KEY` and `FIREWORKS_API_KEY` in `.env` (see `.env.example`) and cost money; their responses are cached locally.
+
+## Running the review service
+
+The service is a review aid: every flag is for a lawyer to check, and unflagged text is not cleared. It needs the trained artifacts from the earlier steps (model weights are not committed), and Tesseract for scanned pages (`brew install tesseract`).
+
+```
+uvicorn service.app:app --port 8000 --workers 1
+```
+
+Open http://localhost:8000 to paste text or upload a PDF, or use the JSON API: `GET /models`, `POST /classify` (`text`, `model`, `operating_point`), `POST /classify/pdf` (multipart). Models: `baseline`, `transformer-tuned` and `fireworks-deepseek` (needs `FIREWORKS_API_KEY`; sends the text to Fireworks). Operating points: `balanced` (Rule B) and `high_recall`, tuned on validation, where it raises recall at a large precision cost (`docs/results.md`, Service).
+
+DeepSeek spend has its own ledger, capped at `SERVICE_LLM_CAP_USD` ($5 by default) and at the project's $150 total. A request is refused before any call if its worst case exceeds `SERVICE_REQUEST_CAP_USD` ($0.50 by default, about 65 windows of 10 segments); a retry after an unparsable reply can take one request to about twice that. Other settings: `SERVICE_MODELS`, `SERVICE_MAX_UPLOAD_MB`.
 
 ## Data and license
 

@@ -1,0 +1,37 @@
+contract 143 (EmmisCommunicationsCorp_20191125_8-K_EX-10.6_11906433_EX-10.6_Marketing Agreement.pdf); gold labels (4): ['Anti-Assignment', 'Expiration Date', 'Governing Law', 'License Grant']
+health: {'status': 'ok', 'models': ['baseline', 'fireworks-deepseek', 'transformer-tuned']}
+model baseline: 9692b04f03fb, points ['balanced', 'high_recall'], notes {'high_recall': 'Below the target on validation: Change Of Control, Competitive Restriction Exception, Covenant Not To Sue, Exclusivity, Ip Ownership Assignment, Irrevocable Or Perpetual License, Joint Ip Ownership, License Grant, Liquidated Damages, Minimum Commitment, Most Favored Nation, No-Solicit Of Customers, No-Solicit Of Employees, Non-Compete, Non-Disparagement, Non-Transferable License, Post-Termination Services, Revenue/Profit Sharing, Rofr/Rofo/Rofn, Termination For Convenience, Third Party Beneficiary, Volume Restriction.'}
+model transformer-tuned: w-lr2e-5/epoch-4|d51fe0f8601b, points ['balanced', 'high_recall'], notes {'high_recall': 'Below the target on validation: Affiliate License, Cap On Liability, Change Of Control, Competitive Restriction Exception, Exclusivity, Ip Ownership Assignment, License Grant, Liquidated Damages, Minimum Commitment, Most Favored Nation, Non-Disparagement, Post-Termination Services, Revenue/Profit Sharing, Rofr/Rofo/Rofn, Termination For Convenience, Third Party Beneficiary, Volume Restriction.'}
+model fireworks-deepseek: accounts/fireworks/models/deepseek-v4p1-flash|prompt v3 8ec29d0ea6ca|thresholds 01261b8608c6, points ['balanced', 'high_recall'], notes {'high_recall': 'Below the target on validation: Affiliate License, Anti-Assignment, Cap On Liability, Change Of Control, Competitive Restriction Exception, Covenant Not To Sue, Exclusivity, Expiration Date, Ip Ownership Assignment, Irrevocable Or Perpetual License, Joint Ip Ownership, License Grant, Liquidated Damages, Minimum Commitment, No-Solicit Of Customers, Non-Compete, Non-Disparagement, Non-Transferable License, Post-Termination Services, Revenue/Profit Sharing, Rofr/Rofo/Rofn, Termination For Convenience, Third Party Beneficiary, Uncapped Liability, Volume Restriction, Warranty Duration.', 'data': 'document text is sent to Fireworks'}
+baseline | balanced | text: segments 44, flagged 4, not classified 0, cost $0.0000
+  labels (4): ['Anti-Assignment', 'Expiration Date', 'Governing Law', 'Post-Termination Services']
+  OOV rate 0.0408, validation percentile 72.2
+baseline | balanced | pdf: segments 43, flagged 4, not classified 0, cost $0.0000
+  labels (4): ['Anti-Assignment', 'Expiration Date', 'Governing Law', 'Post-Termination Services']
+  extraction: {'pages': 7, 'ocr_pages': [], 'warnings': []}
+  OOV rate 0.0408, validation percentile 72.2
+baseline | high_recall | text: segments 44, flagged 14, not classified 0, cost $0.0000
+  labels (13): ['Anti-Assignment', 'Exclusivity', 'Expiration Date', 'Governing Law', 'Ip Ownership Assignment', 'License Grant', 'Minimum Commitment', 'Non-Compete', 'Non-Transferable License', 'Post-Termination Services', 'Revenue/Profit Sharing', 'Third Party Beneficiary', 'Volume Restriction']
+  OOV rate 0.0408, validation percentile 72.2
+baseline | high_recall | pdf: segments 43, flagged 13, not classified 0, cost $0.0000
+  labels (13): ['Anti-Assignment', 'Exclusivity', 'Expiration Date', 'Governing Law', 'Ip Ownership Assignment', 'License Grant', 'Minimum Commitment', 'Non-Compete', 'Non-Transferable License', 'Post-Termination Services', 'Revenue/Profit Sharing', 'Third Party Beneficiary', 'Volume Restriction']
+  extraction: {'pages': 7, 'ocr_pages': [], 'warnings': []}
+  OOV rate 0.0408, validation percentile 72.2
+transformer-tuned | balanced | text: segments 44, flagged 3, not classified 0, cost $0.0000
+  labels (3): ['Anti-Assignment', 'Expiration Date', 'Governing Law']
+  OOV rate 0.0408, validation percentile 72.2
+transformer-tuned | balanced | pdf: segments 43, flagged 3, not classified 0, cost $0.0000
+  labels (3): ['Anti-Assignment', 'Expiration Date', 'Governing Law']
+  extraction: {'pages': 7, 'ocr_pages': [], 'warnings': []}
+  OOV rate 0.0408, validation percentile 72.2
+transformer-tuned | high_recall | text: segments 44, flagged 10, not classified 0, cost $0.0000
+  labels (27): ['Affiliate License', 'Anti-Assignment', 'Audit Rights', 'Cap On Liability', 'Change Of Control', 'Competitive Restriction Exception', 'Covenant Not To Sue', 'Exclusivity', 'Expiration Date', 'Governing Law', 'Ip Ownership Assignment', 'Joint Ip Ownership', 'License Grant', 'Liquidated Damages', 'Minimum Commitment', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Non-Transferable License', 'Notice Period To Terminate Renewal', 'Post-Termination Services', 'Renewal Term', 'Revenue/Profit Sharing', 'Rofr/Rofo/Rofn', 'Termination For Convenience', 'Third Party Beneficiary', 'Volume Restriction']
+  OOV rate 0.0408, validation percentile 72.2
+transformer-tuned | high_recall | pdf: segments 43, flagged 10, not classified 0, cost $0.0000
+  labels (27): ['Affiliate License', 'Anti-Assignment', 'Audit Rights', 'Cap On Liability', 'Change Of Control', 'Competitive Restriction Exception', 'Covenant Not To Sue', 'Exclusivity', 'Expiration Date', 'Governing Law', 'Ip Ownership Assignment', 'Joint Ip Ownership', 'License Grant', 'Liquidated Damages', 'Minimum Commitment', 'Most Favored Nation', 'No-Solicit Of Customers', 'Non-Disparagement', 'Non-Transferable License', 'Notice Period To Terminate Renewal', 'Post-Termination Services', 'Renewal Term', 'Revenue/Profit Sharing', 'Rofr/Rofo/Rofn', 'Termination For Convenience', 'Third Party Beneficiary', 'Volume Restriction']
+  extraction: {'pages': 7, 'ocr_pages': [], 'warnings': []}
+  OOV rate 0.0408, validation percentile 72.2
+fireworks-deepseek | balanced | text: segments 44, flagged 3, not classified 0, cost $0.0079
+  labels (4): ['Anti-Assignment', 'Expiration Date', 'Governing Law', 'Third Party Beneficiary']
+  OOV rate 0.0408, validation percentile 72.2
+review page: HTTP 200, 19733 characters

@@ -2996,3 +2996,66 @@ Fixed before any Step 7 number is computed. No model is retrained, no prompt or 
   - Why rejected: total project spend could then pass the $150 cap.
 - **Per-document input check:** the document's out-of-vocabulary rate (drift's definition) as a percentile of the 97 validation contracts' rates. Descriptive only: the calibrated Step 5 monitor works on batches of 5 contracts.
 - **Step 8 note:** DeepSeek serving needs `segments.parquet` (gitignored) for retrieval, and the local models need their gitignored weights.
+
+## 2026-09-30: Step 7, review service: high-recall thresholds, extraction quality, service check
+
+### What we built
+- Code review before the code commit (`scripts/review.sh`, four rounds; GPT-5.6 Sol was over its usage limit, so the reviewer was Cursor's Grok 4.5, overridable now via `REVIEW_MODEL`). Applied:
+  - the high-recall note no longer says the target was reached; labels below target on validation are named in every high-recall response;
+  - the extraction command refuses unless every validation contract matches its own PDF;
+  - an OCR failure is a per-page warning, not a server error;
+  - a short text layer is kept when OCR cannot run, except under forced OCR;
+  - a request is refused before any call if its worst case exceeds what is left of the service budget;
+  - the reported cost is the ledger spend of the request, so cache hits cost nothing;
+  - tests for PDF matching, the OOV rate and percentile, the reference version guard and the below-target notes;
+  - simplifications: segment index map, candidate directory read once, a shared predictor helper, one import hoisted.
+- Rejected with reasons:
+  - empty-password encrypted PDFs reaching OCR undecrypted: PDFium tries an empty password itself, and an OCR failure is now a warning;
+  - the budget check refusing a fully cached repeat near the cap: rare, and it refuses rather than overspends;
+  - `/models` on a malformed eval file: only the evaluate command writes those files;
+  - reusing the baseline vectorizer for the OOV check: `Predictor` does not expose the pipeline, and it saves one load at startup;
+  - reusing (system, user) inside `run_calls`: it changes `src/llm/run.py`, which the frozen research runs and cache keys depend on;
+  - deriving micro precision and recall from the per-label table: `_report` already does.
+- `scripts/service_check.py`: one validation contract (143) through the running service, as text and as PDF, both operating points for the local models, and one DeepSeek request. Two review rounds: the validation-only guard passed for a missing contract id (fixed); the second round had no findings.
+- Commits: 11b2c75 (review loop rule), 74b8a70 (Step 7 pre-registration and code).
+
+### Decisions made
+- The pre-registered per-request cap counts one attempt per call; a retry after an unparsable reply can take one request to about $1.00. Kept, and recorded in the pre-registration before any service number existed.
+  - Alternatives considered: counting two attempts per call.
+  - Why rejected: it halves the document size the service accepts (about 32 windows) for a case the $5 service cap already bounds.
+- The high-recall rule is kept as pre-registered despite its precision cost, which is reported below.
+
+### Numbers measured
+- High-recall operating point, validation (11,656 segments; pooled labels: Joint Ip Ownership, Most Favored Nation, No-Solicit Of Customers, Non-Disparagement, Third Party Beneficiary). Balanced, then high recall:
+  - Baseline (9692b04f03fb): micro-F1 0.6307 to 0.2872, macro-F1 0.5670 to 0.3348, micro precision 0.6667 to 0.1734, micro recall 0.5985 to 0.8344, none FP rate 0.0300 to 0.2777. Thresholds lowered for 32 of 33 labels; 22 labels below 0.90 recall.
+  - Tuned legal-BERT (w-lr2e-5/epoch-4|d51fe0f8601b): micro-F1 0.6763 to 0.0863, macro-F1 0.6269 to 0.2320, micro precision 0.6883 to 0.0454, micro recall 0.6647 to 0.8762, none FP rate 0.0264 to 0.1443. 32 of 33 lowered; 17 below 0.90.
+  - DeepSeek: micro-F1 0.6770 to 0.5771, macro-F1 0.6455 to 0.5632, micro precision 0.6806 to 0.4724, micro recall 0.6734 to 0.7414, none FP rate 0.0398 to 0.0923. 29 of 33 lowered; 26 below 0.90.
+  - Command: `python -m src.high_recall | tee data/processed/high_recall.txt`
+  - File: `models/service/{baseline,transformer-tuned,fireworks-deepseek}_thresholds_high_recall.json`
+- OOV reference, 97 validation contracts: min 0.0008, 25% 0.0114, median 0.0285, 75% 0.0439, 95% 0.0729, max 0.1416.
+  - Command: `python -m src.service_reference | tee data/processed/service_reference.txt`
+  - File: `models/service/reference.json`
+- Extraction, 97 validation contracts (95%, 2,000 paired contract resamples):
+  - Text layer against gold text: word precision 0.9788 [0.9757, 0.9817], recall 0.9819 [0.9797, 0.9839]; 1,759 pages, 15 pages in 7 contracts sent to OCR.
+  - Contract-level micro-F1, gold text then PDF text, gold minus PDF: baseline 0.8245 [0.8078, 0.8409], 0.8122 [0.7945, 0.8292], +0.0123 [+0.0037, +0.0209], label set changed for 47 contracts; tuned legal-BERT 0.8354 [0.8168, 0.8534], 0.8377 [0.8204, 0.8539], -0.0023 [-0.0123, +0.0079], 51 contracts.
+  - Forced OCR on 10 seeded contracts (20, 53, 140, 143, 151, 287, 291, 335, 399, 407; 1 to 53 pages): word precision 0.9702 to 0.9918, recall 0.9619 to 0.9878.
+  - Command: `python -m src.extraction_eval | tee data/processed/extraction_eval.txt`
+  - File: `data/eval/extraction.json`
+- Service check, contract 143 (4 gold labels): every model found 3 of 4 at the balanced point (extras: baseline 1, tuned legal-BERT 0, DeepSeek 1); at high recall the baseline found 4 of 4 with 9 extras and the tuned legal-BERT 4 of 4 with 23 extras. Text and PDF gave the same labels. OOV rate 0.0408, validation percentile 72.2. 12 requests, all HTTP 200.
+  - Command: `python -m scripts.service_check --deepseek | tee data/processed/service_check.txt`, server log `data/processed/service_run.txt`
+- Spend: research ledger $55.8089 before and after; service ledger $0.0079 (one DeepSeek request, 5 windows). `git diff --exit-code data/eval data/predictions` clean.
+
+### Problems hit and how we solved them
+- Run together with the other setup commands, `brew install tesseract` stopped at its confirmation prompt without installing; it was rerun on its own.
+- The Cursor usage limit for GPT and other third-party models was reached; the review model became an environment override, and Cursor's own Grok model was used.
+- Contract 407 has none of the 33 kept labels, so its per-contract F1 is undefined; the formula prints 0. Pooled figures are unaffected.
+- The tokenizer warning "547 > 512" comes from the token-count call, which does not truncate; model inputs are truncated at 512 as in Step 6.
+
+### Surprises in the data or results
+- Most labels never reach 0.90 validation recall at any threshold. Their thresholds fall to 0.01, and for the tuned legal-BERT that drops precision to 0.0454.
+- DeepSeek gains little recall from lower thresholds, because a label the model does not name has a score of 0.
+- A pooled threshold can meet the target on the pool while one pooled label has 0.0000 recall (baseline, No-Solicit Of Customers).
+- Reading PDFs costs the tuned legal-BERT nothing measurable, even though about half the contracts' label sets change.
+
+### Resume-worthy
+- Built a FastAPI contract-review service (text or PDF with OCR fallback) around frozen models, with a separately capped LLM spend ledger, and measured on validation what PDF extraction and a high-recall mode cost before exposing them.
