@@ -118,7 +118,8 @@ def create_app(loader=load_predictors, models=None) -> FastAPI:
                                           "batches of 5 contracts, not single documents"}
         if extraction is not None:
             out["extraction"] = {"pages": extraction.pages, "ocr_pages": extraction.ocr_pages,
-                                 "warnings": extraction.warnings, "text": extraction.text}
+                                 "warnings": extraction.warnings, "text": extraction.text,
+                                 "page_starts": extraction.page_starts}
         return out
 
     async def read_pdf(file: UploadFile):
@@ -137,7 +138,8 @@ def create_app(loader=load_predictors, models=None) -> FastAPI:
     @app.get("/models")
     def models_info():
         return {"served": {n: _model_info(n, p) for n, p in state["predictors"].items()},
-                "unavailable": state["failed"], "operating_points": POINTS, "notices": list(NOTICES)}
+                "unavailable": state["failed"], "operating_points": POINTS, "notices": list(NOTICES),
+                "limits": {"max_upload_mb": config.SERVICE_MAX_UPLOAD_MB, "max_text_chars": config.SERVICE_MAX_TEXT_CHARS}}
 
     @app.post("/classify")
     def classify_text(req: ClassifyRequest):

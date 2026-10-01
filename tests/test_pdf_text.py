@@ -98,3 +98,10 @@ def test_short_text_layer_is_kept_when_ocr_is_unavailable(monkeypatch):
     monkeypatch.setattr(pdf_text, "ocr_available", lambda: False)
     ex = extract(_pdf(["Governing Law."]))
     assert ex.text == "Governing Law." and "kept 14 characters" in ex.warnings[0]
+
+
+def test_page_starts_point_at_each_page_in_the_joined_text(fake_ocr):
+    ex = extract(_pdf([TEXT, None, TEXT]))
+    assert ex.page_starts[0] == 0 and len(ex.page_starts) == 3
+    assert ex.text[ex.page_starts[1]:].startswith("OCR text of page 2")
+    assert ex.text[ex.page_starts[2]:].startswith(TEXT[:30])

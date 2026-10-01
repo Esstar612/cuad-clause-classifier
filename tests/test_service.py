@@ -91,7 +91,7 @@ def test_pdf_upload_malformed_and_oversized(client, monkeypatch):
     ok = client.post("/classify/pdf", files={"file": ("c.pdf", _pdf([TEXT[:90]]), "application/pdf")},
                      data={"model": "stub"})
     assert ok.status_code == 200 and ok.json()["extraction"]["pages"] == 1
-    assert ok.json()["extraction"]["text"].startswith(TEXT[:40])
+    assert ok.json()["extraction"]["text"].startswith(TEXT[:40]) and ok.json()["extraction"]["page_starts"] == [0]
     bad = client.post("/classify/pdf", files={"file": ("c.pdf", b"not a pdf", "application/pdf")},
                       data={"model": "stub"})
     assert bad.status_code == 400
@@ -178,4 +178,5 @@ def test_models_and_page_show_only_served_models(monkeypatch, tmp_path):
         info = c.get("/models").json()
         page = c.get("/").text
     assert list(info["served"]) == ["stub"] and any("not cleared" in n for n in info["notices"])
+    assert info["limits"] == {"max_upload_mb": config.SERVICE_MAX_UPLOAD_MB, "max_text_chars": config.SERVICE_MAX_TEXT_CHARS}
     assert "fireworks-deepseek" not in page and "Fireworks" not in page

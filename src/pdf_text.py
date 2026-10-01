@@ -11,6 +11,9 @@ import pypdf
 from src import config
 
 
+PAGE_SEP = "\n\n"
+
+
 class PdfError(ValueError):
     """The file cannot be read as a PDF."""
 
@@ -21,6 +24,7 @@ class Extraction:
     pages: int
     ocr_pages: list[int] = field(default_factory=list)   # 1-based
     warnings: list[str] = field(default_factory=list)
+    page_starts: list[int] = field(default_factory=list)  # offset of each page in text
 
 
 def _page_text(page) -> str:
@@ -77,4 +81,8 @@ def extract(pdf_bytes: bytes, force_ocr: bool = False,
     finally:
         if doc is not None:
             doc.close()
-    return Extraction("\n\n".join(pages), len(pages), ocr_pages, warnings)
+    starts, offset = [], 0
+    for page in pages:
+        starts.append(offset)
+        offset += len(page) + len(PAGE_SEP)
+    return Extraction(PAGE_SEP.join(pages), len(pages), ocr_pages, warnings, starts)
