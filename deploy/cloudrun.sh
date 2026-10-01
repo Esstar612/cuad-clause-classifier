@@ -12,7 +12,7 @@ echo "image ${image%%:*}@${digest}"
 
 gcloud run deploy clause-review-api --project "$PROJECT" --region "$REGION" \
   --image "${image%%:*}@${digest}" \
-  --cpu 2 --memory 8Gi --max-instances 1 --min-instances 0 --concurrency 4 --timeout 900 --cpu-boost \
+  --cpu 2 --memory 8Gi --max-instances 3 --min-instances 0 --concurrency 4 --timeout 900 --cpu-boost \
   --allow-unauthenticated \
   --set-env-vars "^|^SERVICE_CORS_ORIGINS=${SERVICE_CORS_ORIGINS:-}"
 gcloud run services describe clause-review-api --project "$PROJECT" --region "$REGION" --format='value(status.url)'

@@ -2,6 +2,11 @@
 // only ever reaches the page through text nodes; innerHTML is used for the constant icons below.
 const API = (window.API_URL || "").replace(/\/$/, "");
 const REPO = "https://github.com/Esstar612/cuad-clause-classifier";
+const WAKE_LIMIT_MS = 150000;   // keep retrying /models this long while the server starts
+const WAKE_TRY_MS = 30000;      // one attempt
+const WAKE_PAUSE_MS = 5000;     // between attempts
+const WAKE_NOTICE_MS = 3000;    // show the waking message after this long
+const WAKE_TEXT = "The server starts on demand, so the first review after a quiet spell can take up to a minute.";
 const DEFAULT_LIMITS = { max_upload_mb: 20, max_text_chars: 1000000 };  // until /models reports the service's
 const MODELS = {
   "transformer-tuned": { name: "Tuned legal-BERT", desc: "Fine-tuned transformer. The stronger local model." },
@@ -45,7 +50,7 @@ const S = {
   info: null, clauses: { label_order: [], definitions: {} }, loadError: null,
   mode: "pdf", file: null, text: "", model: null, point: "balanced",
   view: "start", error: null, results: {}, docText: "", docName: "", extraction: null,
-  active: 0, showAll: false, expanded: new Set(), nfOpen: false, menuOpen: false,
+  waking: false, active: 0, showAll: false, expanded: new Set(), nfOpen: false, menuOpen: false,
   cmpPick: null, abort: null, started: 0, timer: null, loadingFor: null,
 };
 
@@ -446,7 +451,10 @@ function renderStart() {
                              [h("button", { class: "btn", type: "button", onclick: () => init() }, "Try again")]) : null),
     h("aside", { class: "side" },
       h("section", { style: "display:flex;flex-direction:column;gap:10px" }, h("p", { class: "label" }, "Model"),
-        models.length ? modelCards : h("p", { class: "faint" }, S.loadError ? "Models unavailable." : "Loading models...")),
+        models.length ? modelCards : S.waking
+          ? h("div", { class: "card", style: "flex-direction:row;gap:12px;align-items:center" }, h("div", { class: "spinner", "aria-hidden": "true", style: "width:24px;height:24px;flex:none" }),
+              h("p", { class: "muted", style: "font-size:13px;line-height:1.45" }, `Starting the model server. ${WAKE_TEXT}`))
+          : h("p", { class: "faint" }, S.loadError ? "Models unavailable." : "Loading models...")),
       h("section", { style: "display:flex;flex-direction:column;gap:10px" }, h("p", { class: "label" }, "Sensitivity"), pointCards),
       h("button", { class: "btn btn-p lg", type: "button", id: "review", disabled: !isReady, onclick: startReview },
         isReady ? "Review contract" : S.info && !S.model ? "No model available" : "Add a contract to start"),
@@ -471,7 +479,7 @@ function renderLoading() {
     h("div", { style: "display:flex;gap:16px;align-items:center" }, h("div", { class: "spinner", "aria-hidden": "true" }),
       h("div", null, h("h2", { style: "font-size:20px;letter-spacing:-.01em" }, first ? "Reviewing your contract" : `Running ${modelName(model)}`),
         h("p", { class: "muted", style: "margin-top:4px;line-height:1.5" },
-          "The server starts on demand, so the first review after a quiet spell can take up to a minute. After that, reviews take seconds."))),
+          `${WAKE_TEXT} After that, reviews take seconds.`))),
     h("ol", { class: "steps" },
       h("li", null, h("span", { class: "dot done" }, icon("check")),
         h("div", null, h("div", null, S.mode === "pdf" && !S.extraction ? "PDF sent" : "Text sent"), h("div", { class: "faint" }, S.docName))),
@@ -857,14 +865,32 @@ async function init() {
   const clauses = fetch("clauses.json").then((r) => (r.ok ? r.json() : null)).then((c) => {
     if (c && Array.isArray(c.label_order) && c.definitions && typeof c.definitions === "object") S.clauses = c;
   }).catch(() => {});
-  try {
-    const resp = await fetch(`${API}/models`);
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    S.info = await resp.json();
+  // The server scales to zero when idle; its first start takes about a minute, and requests
+  // that arrive meanwhile can fail, so keep trying for a while before giving up.
+  const started = Date.now();
+  let lastErr = null;
+  while (!S.info && Date.now() - started < WAKE_LIMIT_MS) {
+    try {
+      const resp = await fetch(`${API}/models`, { signal: AbortSignal.timeout(WAKE_TRY_MS) });
+      if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+      const body = await resp.json();
+      if (!body || !body.served || typeof body.served !== "object" || !Object.keys(body.served).length) {
+        throw new Error("no models served yet");
+      }
+      S.info = body;
+    } catch (err) {
+      lastErr = err;
+      const waking = Date.now() - started > WAKE_NOTICE_MS;
+      if (waking !== S.waking) { S.waking = waking; render(); }
+      if (Date.now() - started < WAKE_LIMIT_MS) await new Promise((r) => setTimeout(r, WAKE_PAUSE_MS));
+    }
+  }
+  S.waking = false;
+  if (S.info) {
     const models = servedModels();
     if (!models.includes(S.model)) S.model = models[0] || null;
-  } catch (err) {
-    S.loadError = `Your contract is still here. Try again in a moment. (${err.message || err})`;
+  } else {
+    S.loadError = `The model server did not respond. Your contract is still here; try again in a moment. (${lastErr && (lastErr.message || lastErr)})`;
   }
   await clauses;
   render();

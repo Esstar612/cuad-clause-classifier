@@ -1,0 +1,90 @@
+{
+  "target": "cloudrun",
+  "url": "https://clause-review-api-128190849177.us-central1.run.app",
+  "contracts": [
+    5,
+    17,
+    35,
+    51,
+    53,
+    56,
+    98,
+    99,
+    131,
+    201,
+    209,
+    296,
+    299,
+    318,
+    329,
+    368,
+    407,
+    438,
+    486,
+    508
+  ],
+  "models": {
+    "baseline": {
+      "local_version": "9692b04f03fb",
+      "served_versions": [
+        "9692b04f03fb"
+      ],
+      "version_ok": true,
+      "points": {
+        "balanced": {
+          "segments": 3023,
+          "excluded": 0,
+          "pairs": 99759,
+          "disagree": 0,
+          "flagged_either": 420,
+          "max_conf_diff": 8.881784197001252e-16,
+          "failed": 0,
+          "failed_contracts": [],
+          "passes": true
+        },
+        "high_recall": {
+          "segments": 3023,
+          "excluded": 0,
+          "pairs": 99759,
+          "disagree": 0,
+          "flagged_either": 2401,
+          "max_conf_diff": 8.881784197001252e-16,
+          "failed": 0,
+          "failed_contracts": [],
+          "passes": true
+        }
+      }
+    },
+    "transformer-tuned": {
+      "local_version": "w-lr2e-5/epoch-4|d51fe0f8601b",
+      "served_versions": [
+        "w-lr2e-5/epoch-4|d51fe0f8601b"
+      ],
+      "version_ok": true,
+      "points": {
+        "balanced": {
+          "segments": 3023,
+          "excluded": 0,
+          "pairs": 99759,
+          "disagree": 0,
+          "flagged_either": 432,
+          "max_conf_diff": 2.86102294921875e-06,
+          "failed": 0,
+          "failed_contracts": [],
+          "passes": true
+        },
+        "high_recall": {
+          "segments": 3023,
+          "excluded": 0,
+          "pairs": 99759,
+          "disagree": 0,
+          "flagged_either": 9216,
+          "max_conf_diff": 4.172325134277344e-06,
+          "failed": 0,
+          "failed_contracts": [],
+          "passes": true
+        }
+      }
+    }
+  }
+}
