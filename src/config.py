@@ -179,7 +179,10 @@ def service_settings(env=os.environ) -> dict:
     return {"models": tuple(m.strip() for m in models.split(",") if m.strip()),
             "llm_cap_usd": float(env.get("SERVICE_LLM_CAP_USD", "5")),
             "request_cap_usd": float(env.get("SERVICE_REQUEST_CAP_USD", "0.5")),
-            "max_upload_mb": float(env.get("SERVICE_MAX_UPLOAD_MB", "20"))}
+            "max_upload_mb": float(env.get("SERVICE_MAX_UPLOAD_MB", "20")),
+            "max_text_chars": int(env.get("SERVICE_MAX_TEXT_CHARS", "1000000")),
+            "cors_origins": tuple(o.strip() for o in env.get("SERVICE_CORS_ORIGINS", "").split(",") if o.strip()),
+            "require_all_models": env.get("SERVICE_REQUIRE_ALL_MODELS", "0") == "1"}
 
 
 _SERVICE = service_settings()
@@ -187,3 +190,9 @@ SERVICE_MODELS = _SERVICE["models"]
 SERVICE_LLM_CAP_USD = _SERVICE["llm_cap_usd"]
 SERVICE_REQUEST_CAP_USD = _SERVICE["request_cap_usd"]
 SERVICE_MAX_UPLOAD_MB = _SERVICE["max_upload_mb"]
+SERVICE_MAX_TEXT_CHARS = _SERVICE["max_text_chars"]
+SERVICE_CORS_ORIGINS = _SERVICE["cors_origins"]
+SERVICE_REQUIRE_ALL_MODELS = _SERVICE["require_all_models"]   # on in the deployed image: a failed model fails startup
+
+# Deployment (Step 8)
+DEPLOY_PARITY_CONTRACTS = 20         # validation contracts sent to the deployed service

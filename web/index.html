@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Contract clause review</title>
+  <style>
+    body { font-family: system-ui, sans-serif; max-width: 60rem; margin: 1rem auto; padding: 0 1rem; }
+    .notice { background: #fff4d6; padding: .5rem 1rem; border-left: 4px solid #c90; }
+    .error { background: #fde2e2; padding: .5rem 1rem; border-left: 4px solid #c00; }
+    .seg { white-space: pre-wrap; margin: .4rem 0; padding: .3rem; }
+    .flag { background: #dff0ff; border-left: 4px solid #06c; }
+    .unscored { background: #fde2e2; border-left: 4px solid #c00; }
+    .labels { font-size: .85rem; font-weight: 600; color: #034; }
+    textarea { width: 100%; }
+  </style>
+</head>
+<body>
+  <h1>Contract clause review</h1>
+  <div id="notices" class="notice"></div>
+  <p>Clause classifiers trained and evaluated on CUAD. A review aid: every flag needs a lawyer's check.
+     <a href="https://github.com/Esstar612/cuad-clause-classifier">Code and evaluation</a></p>
+  <form id="form">
+    <p><textarea id="text" rows="8" placeholder="Paste contract text"></textarea></p>
+    <p>or PDF: <input type="file" id="file" accept="application/pdf"></p>
+    <p>Model <select id="model"></select>
+       Operating point <select id="point"></select>
+       <button type="submit" id="submit">Review</button></p>
+  </form>
+  <div id="error" class="error" hidden></div>
+  <div id="result"></div>
+  <script src="config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

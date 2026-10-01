@@ -1,0 +1,26 @@
+# Cloud Build upload for the Step 8 image. Everything is excluded, then only what serving needs is
+# re-included (parent directories first). Without this file gcloud applies .gitignore, which drops the weights.
+*
+!Dockerfile
+!requirements.txt
+!src/
+!src/**
+!service/
+!service/**
+!models/
+!models/baseline/
+!models/baseline/model.joblib
+!models/baseline/labels.json
+!models/baseline/thresholds.json
+!models/transformer_tuned/
+!models/transformer_tuned/selected.json
+!models/transformer_tuned/w-lr2e-5/
+!models/transformer_tuned/w-lr2e-5/epoch-4/
+!models/transformer_tuned/w-lr2e-5/epoch-4/**
+!models/service/
+!models/service/**
+!data/
+!data/eval/
+!data/eval/baseline.json
+!data/eval/transformer-tuned.json
+**/__pycache__/

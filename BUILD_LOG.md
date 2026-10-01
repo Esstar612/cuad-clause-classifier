@@ -3059,3 +3059,35 @@ Fixed before any Step 7 number is computed. No model is retrained, no prompt or 
 
 ### Resume-worthy
 - Built a FastAPI contract-review service (text or PDF with OCR fallback) around frozen models, with a separately capped LLM spend ledger, and measured on validation what PDF extraction and a high-recall mode cost before exposing them.
+
+## 2026-09-30: Step 8, deployment pre-registered and code placed (before any deployed number exists)
+
+### What we built
+- `Dockerfile`: `python:3.14-slim` with Tesseract; the CPU torch wheel at the lock's version, then the lock with `--only-binary=:all:`; code runs from `/app` with `PYTHONPATH=/app` (no `pip install .`, since `config.ROOT_DIR` comes from `__file__`); non-root user; `SERVICE_MODELS=baseline,transformer-tuned`, `SERVICE_REQUIRE_ALL_MODELS=1`, Hugging Face offline. The frozen baseline, the selected tuned legal-BERT candidate directory, `models/service/` and the two `data/eval` files read by `/models` are baked in; `.gcloudignore` lists them, since without it Cloud Build applies `.gitignore` and drops the weights.
+- `deploy/cloudrun.sh` (Cloud Build, Artifact Registry, Cloud Run by digest), `deploy/gke.sh` with `deploy/k8s/` (temporary Autopilot cluster from the same digest; `down` deletes it).
+- `web/`: a static Vercel front end that lists only the models `/models` serves and renders response text through `textContent` only. `/classify/pdf` now also returns the extracted text so the page can show it.
+- `service/app.py` and `src/config.py`: strict startup (`SERVICE_REQUIRE_ALL_MODELS`: a model that fails to load fails the container, since `load_predictors` otherwise leaves it out and the service still reports healthy); `SERVICE_MAX_TEXT_CHARS` (default 1,000,000; longest CUAD contract 338,211 characters) returning 413 for pasted and PDF text; CORS only for `SERVICE_CORS_ORIGINS`, GET and POST, `Content-Type`, no credentials.
+- `scripts/deploy_parity.py` (below); `scripts/service_check.py --url`.
+- Tests: `tests/test_deploy_parity.py`, additions to `tests/test_service.py`.
+- Plan reviews: `docs/reviews/2026-09-30-8-r1.md` and `-r2.md`.
+
+### Decisions made
+- **Where it runs:** Cloud Run is the live deployment; the same image is deployed once to GKE Autopilot, checked, and the cluster deleted. Vercel serves a static front end that calls Cloud Run.
+  - Alternatives considered: GKE as the live deployment; a Vercel Python function.
+  - Why rejected: an idle GKE cluster costs money while Cloud Run scales to zero; PyTorch and the tuned legal-BERT exceed Vercel's function size limit.
+  - Amends `docs/plan.md` Step 8 ("GKE and Vercel"). Its env-configured "model artifact location" and "rate limits" become: artifacts at the `src/config.py` paths inside the image, versioned by the image digest; rate limit `--max-instances 1 --concurrency 4` plus the text and upload caps.
+- **Access:** public, DeepSeek off. No API key in the cloud and no API spend.
+  - Possible later change, not built: a key-protected DeepSeek option (Fireworks key in Secret Manager, a demo access-key header, a cloud-side spend cap), only if a specific interview needs it.
+- **Artifacts baked into the image**, built by Cloud Build from the local folder.
+  - Alternatives considered: weights in a Cloud Storage bucket downloaded at startup.
+  - Why rejected: one more moving part and slower cold starts; the image digest already pins code and models together.
+- **Cost guard:** Cloud Run `--max-instances 1`, `--min-instances 0`, `--timeout 900`, 2 vCPU, 8 GiB. A billing budget alert notifies but does not stop spend; the hard bound is one instance.
+- **Parity check (pre-registered):** does the deployed service reproduce the evaluated validation predictions?
+  - Sample: 20 validation contracts with the config seed (stream `deploy_parity`); the command refuses a contract whose segments are not all validation. No test or shift text is sent.
+  - For each contract, model (baseline, tuned legal-BERT) and operating point (balanced, high recall), the CUAD gold text goes to `/classify`. Served segments must equal the contract's `segments.parquet` rows by `(start, end)`, excluded rows included; excluded segments (never predicted) are skipped and counted.
+  - Expected flags: `data/predictions/{baseline,transformer-tuned}_val.parquet` with the local threshold files, built through `infer.artifacts` and `infer._thresholds`. Rule B files are covered by the version hashes; the high-recall files are not, so a divergent one in the image shows as disagreements. The stored label order must equal the local `labels.json`.
+  - The version the service reports must equal the local version (`baseline.model_version()`, `selected.json`).
+  - Measured per model and point over the 20 contracts: (segment, label) pairs, flag disagreements, pairs flagged by either side, excluded segments (sums); max absolute confidence difference over pairs flagged on both sides (max); failed requests, timeouts included, with contract ids.
+  - Pass rule: baseline, 0 disagreements at both points; a nonzero count is investigated, not excused (arm64 and x86_64 arithmetic can differ in the last bits). Tuned legal-BERT, at each point, disagreements at most 0.1% of all pairs and at most 1% of the pairs flagged by either side (stored predictions came from MPS float32, the container runs CPU float32). Any failed request or version mismatch fails. A failed check is reported, and the deployment is not linked from the README until the cause is found.
+  - Run on Cloud Run and on GKE before teardown, same image digest.
+  - Descriptive, no rule: cold start time, per-segment latency on the parity requests, image size.

@@ -12,6 +12,7 @@ import json
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
 from pydantic import BaseModel
 from scipy.stats import percentileofscore
@@ -72,10 +73,15 @@ def create_app(loader=load_predictors, models=None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app):
         state["predictors"], state["failed"] = loader(models or config.SERVICE_MODELS)
+        if config.SERVICE_REQUIRE_ALL_MODELS and state["failed"]:
+            raise RuntimeError(f"models failed to load: {state['failed']}")
         state["oov"] = _oov(state)
         yield
 
     app = FastAPI(title="CUAD clause review", lifespan=lifespan)
+    if config.SERVICE_CORS_ORIGINS:
+        app.add_middleware(CORSMiddleware, allow_origins=list(config.SERVICE_CORS_ORIGINS),
+                           allow_methods=["GET", "POST"], allow_headers=["Content-Type"], allow_credentials=False)
 
     def classify(text: str, model: str, point: str, extraction=None) -> dict:
         predictor = state["predictors"].get(model)
@@ -86,6 +92,8 @@ def create_app(loader=load_predictors, models=None) -> FastAPI:
             raise HTTPException(400, f"unknown operating point {point!r}")
         if point not in predictor.thresholds:
             raise HTTPException(400, f"{point} unavailable for {model}: {predictor.notes.get(point, '')}")
+        if len(text) > config.SERVICE_MAX_TEXT_CHARS:
+            raise HTTPException(413, f"text over {config.SERVICE_MAX_TEXT_CHARS:,} characters")
         segs = segment_text(text)
         if not segs:
             raise HTTPException(422, "no text to classify")
@@ -96,8 +104,9 @@ def create_app(loader=load_predictors, models=None) -> FastAPI:
         except ServiceUpstream as e:
             raise HTTPException(502, f"every model call failed: {e}") from e
         recs = records(segs, scored, predictor, point)
+        note = " ".join(filter(None, (POINTS[point], predictor.notes.get(point))))
         out = {"model": model, "model_version": predictor.version, "operating_point": point,
-               "operating_point_note": " ".join(filter(None, (POINTS[point], predictor.notes.get(point)))), "notices": list(NOTICES),
+               "operating_point_note": note, "notices": list(NOTICES),
                "segments_total": len(recs), "segments_flagged": sum(bool(r["labels"]) for r in recs),
                "segments_not_classified": sum(not r["scored"] for r in recs), "cost_usd": scored.cost_usd,
                "segments": recs}
@@ -109,7 +118,7 @@ def create_app(loader=load_predictors, models=None) -> FastAPI:
                                           "batches of 5 contracts, not single documents"}
         if extraction is not None:
             out["extraction"] = {"pages": extraction.pages, "ocr_pages": extraction.ocr_pages,
-                                 "warnings": extraction.warnings}
+                                 "warnings": extraction.warnings, "text": extraction.text}
         return out
 
     async def read_pdf(file: UploadFile):
