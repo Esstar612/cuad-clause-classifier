@@ -11,12 +11,12 @@ RUN pip install --no-cache-dir --only-binary=:all: "$(grep '^torch==' requiremen
         --index-url https://download.pytorch.org/whl/cpu \
     && pip install --no-cache-dir --only-binary=:all: -r requirements.txt
 
+RUN useradd --create-home --uid 10001 app
 COPY src/ src/
 COPY service/ service/
-COPY models/ models/
+# Owned by the service user: safetensors writes weights as owner-only (0600), which root ownership would make unreadable.
+COPY --chown=app:app models/ models/
 COPY data/eval/ data/eval/
-
-RUN useradd --create-home --uid 10001 app
 USER app
 ENV HOME=/home/app \
     PYTHONPATH=/app \

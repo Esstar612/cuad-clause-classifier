@@ -1,16 +1,16 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: cuad-review
+  name: clause-review-api
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: cuad-review
+      app: clause-review-api
   template:
     metadata:
       labels:
-        app: cuad-review
+        app: clause-review-api
     spec:
       containers:
         - name: service

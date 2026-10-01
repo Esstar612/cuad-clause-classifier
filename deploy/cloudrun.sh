@@ -10,9 +10,9 @@ gcloud builds submit --project "$PROJECT" --region "$REGION" --tag "$image" .
 digest="$(gcloud artifacts docker images describe "$image" --project "$PROJECT" --format='value(image_summary.digest)')"
 echo "image ${image%%:*}@${digest}"
 
-gcloud run deploy cuad-review --project "$PROJECT" --region "$REGION" \
+gcloud run deploy clause-review-api --project "$PROJECT" --region "$REGION" \
   --image "${image%%:*}@${digest}" \
   --cpu 2 --memory 8Gi --max-instances 1 --min-instances 0 --concurrency 4 --timeout 900 --cpu-boost \
   --allow-unauthenticated \
   --set-env-vars "^|^SERVICE_CORS_ORIGINS=${SERVICE_CORS_ORIGINS:-}"
-gcloud run services describe cuad-review --project "$PROJECT" --region "$REGION" --format='value(status.url)'
+gcloud run services describe clause-review-api --project "$PROJECT" --region "$REGION" --format='value(status.url)'

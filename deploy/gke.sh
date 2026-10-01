@@ -8,15 +8,15 @@ cluster=cuad-check
 
 case "${1:-}" in
   up)
-    image="$(gcloud run services describe cuad-review --project "$PROJECT" --region "$REGION" \
+    image="$(gcloud run services describe clause-review-api --project "$PROJECT" --region "$REGION" \
       --format='value(spec.template.spec.containers[0].image)')"
     echo "image $image"
     gcloud container clusters create-auto "$cluster" --project "$PROJECT" --region "$REGION"
     gcloud container clusters get-credentials "$cluster" --project "$PROJECT" --region "$REGION"
     sed "s|IMAGE|${image}|" deploy/k8s/deployment.yaml | kubectl apply -f -
     kubectl apply -f deploy/k8s/service.yaml
-    kubectl rollout status deployment/cuad-review --timeout=20m
-    until ip="$(kubectl get service cuad-review -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" && [ -n "$ip" ]; do
+    kubectl rollout status deployment/clause-review-api --timeout=20m
+    until ip="$(kubectl get service clause-review-api -o jsonpath='{.status.loadBalancer.ingress[0].ip}')" && [ -n "$ip" ]; do
       sleep 10
     done
     echo "url http://${ip}"

@@ -1,11 +1,11 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: cuad-review
+  name: clause-review-api
 spec:
   type: LoadBalancer
   selector:
-    app: cuad-review
+    app: clause-review-api
   ports:
     - port: 80
       targetPort: 8080
