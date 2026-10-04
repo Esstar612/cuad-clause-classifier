@@ -707,6 +707,42 @@ Source: `python -m scripts.service_check --deepseek | tee data/processed/service
 - The document's OOV rate was 0.0408, the 72nd percentile of the validation contracts (reference: min 0.0008, median 0.0285, max 0.1416; `data/processed/service_reference.txt`).
 - Spend: the research ledger stayed at $55.8089; the service ledger holds the one DeepSeek request, $0.0079.
 
+## Deployment (Step 8)
+The Step 7 service runs as one Docker image (`Dockerfile`, built by Cloud Build, digest `sha256:fd7e1f4c4abc10a42dae0f49588fb3648eb6a56e6943ea6d0e7665c30ee0ce54`, 1,020,632,779 bytes) with the frozen baseline and tuned legal-BERT baked in; DeepSeek is off in the public deployment. Live: Cloud Run API `clause-review-api` (us-central1, 2 vCPU, 8 GiB, 0 to 3 instances) behind the static front end https://clause-review-alpha.vercel.app. The same image was deployed once to a GKE Autopilot cluster for the parity check, then the cluster was deleted. Rules pre-registered in BUILD_LOG Step 8 before any deployed number existed.
+
+### Parity: does the deployed service reproduce the evaluated predictions?
+20 validation contracts drawn with the config seed (stream `deploy_parity`); for each model and operating point the CUAD gold text went to `/classify` and the served flags were compared with the stored validation predictions under the local threshold files. Pass rule: baseline 0 disagreements; tuned legal-BERT at most 0.1% of (segment, label) pairs and at most 1% of pairs flagged by either side; any failed request fails. Source: `python -m scripts.deploy_parity --target {cloudrun,gke}`, `data/eval/deploy_parity_{cloudrun,gke,gke_run1}.json`.
+
+| Target | Model | Point | Segments | Pairs | Disagreements | Flagged by either side | Max confidence difference | Failed requests | Result |
+|---|---|---|---|---|---|---|---|---|---|
+| Cloud Run | baseline | balanced | 3,023 | 99,759 | 0 | 420 | 8.88e-16 | 0 | PASS |
+| Cloud Run | baseline | high recall | 3,023 | 99,759 | 0 | 2,401 | 8.88e-16 | 0 | PASS |
+| Cloud Run | tuned legal-BERT | balanced | 3,023 | 99,759 | 0 | 432 | 2.86e-06 | 0 | PASS |
+| Cloud Run | tuned legal-BERT | high recall | 3,023 | 99,759 | 0 | 9,216 | 4.17e-06 | 0 | PASS |
+| GKE, run 1 | baseline | balanced | 3,023 | 99,759 | 0 | 420 | 8.88e-16 | 0 | PASS |
+| GKE, run 1 | baseline | high recall | 3,023 | 99,759 | 0 | 2,401 | 8.88e-16 | 0 | PASS |
+| GKE, run 1 | tuned legal-BERT | balanced | 2,970 | 98,010 | 0 | 415 | 2.44e-06 | 1 | **FAIL** |
+| GKE, run 1 | tuned legal-BERT | high recall | 3,023 | 99,759 | 0 | 9,216 | 6.32e-06 | 0 | PASS |
+| GKE, run 2 | baseline | balanced | 3,023 | 99,759 | 0 | 420 | 8.88e-16 | 0 | PASS |
+| GKE, run 2 | baseline | high recall | 3,023 | 99,759 | 0 | 2,401 | 8.88e-16 | 0 | PASS |
+| GKE, run 2 | tuned legal-BERT | balanced | 3,023 | 99,759 | 0 | 432 | 2.44e-06 | 0 | PASS |
+| GKE, run 2 | tuned legal-BERT | high recall | 3,023 | 99,759 | 0 | 9,216 | 6.32e-06 | 0 | PASS |
+
+- No flag differs anywhere between the evaluated models (run on a Mac, the tuned legal-BERT on MPS) and the deployed ones (CPU, linux/amd64): 0 disagreements in every row with a response. The baseline matches to the last float digit; the tuned legal-BERT's confidences move by at most 6.32e-06, never across a threshold. The served versions equal the frozen ones (`9692b04f03fb`, `w-lr2e-5/epoch-4|d51fe0f8601b`) on both targets.
+- GKE run 1 fails by the pre-registered rule: one request (contract 508, tuned legal-BERT, balanced) got no response within the 1,000 s timeout. The same contract at high recall a few minutes later answered normally, and in run 2 it took 25 s. The client reused one keep-alive connection, which the GKE load balancer path dropped silently. Run 2 opens a fresh connection per request, with no retries, so a failed request still fails; it passes with 0 failed requests. Both runs are kept.
+- No validation segment in the sample is excluded.
+
+### Operation (descriptive)
+- Cold start on Cloud Run (instance started to "Application startup complete" in the service logs): about 72 s, most of it importing PyTorch and loading both models. Idle instances scale to zero, so the first request after a quiet spell waits for this; the front end shows a "starting the model server" message and retries for up to 150 s.
+- Per-request time on GKE run 2 (whole contract, both points): baseline under 1 s; tuned legal-BERT 1 s to 121 s (`data/processed/deploy_parity_gke.txt`).
+- Builds: 5 min 26 s for the first image, 2 min 27 s for the rebuild with cached layers.
+- Cost, project `cuad-clause-classifier`, 1 to 4 October 2026, after free-tier credits: US$11.69 (Kubernetes Engine $8.25, Cloud Monitoring $1.84, Networking $1.55, Cloud Storage $0.03, Cloud Run $0.00, Compute Engine $0.00). Nearly all of it is the GKE cluster, which stayed up for about two and a half days after the check; Cloud Run's usage was within the free tier. Billing data can still change for the last hours.
+
+### What the deployment shows and does not show
+- It shows that the frozen models give the evaluated answers when served from the image, on two different platforms, on validation contracts.
+- It is not a new accuracy measurement: no test or shift text was sent, and the scores reported for the models remain the Step 4 to 6 held-out ones.
+- The public deployment serves the two local models only. DeepSeek stays off (no API key in the cloud); a key-protected option is logged in `docs/plan.md` as a possible later change.
+
 ## Drift monitoring (Step 5)
 Question: would a monitor with no labels notice the contract-type shift that costs every model 0.16 to 0.19 F1? Rules pre-registered in BUILD_LOG Step 5 before any drift statistic was computed; thresholds frozen from validation (`python -m src.drift calibrate | tee data/processed/drift_calibrate.txt`, `models/drift/reference.json`, freeze_id 5f2143f3067c) and committed before one evaluation run (`python -m src.drift evaluate | tee data/processed/drift_evaluate.txt`, `data/eval/drift.json`). Tables: `python -m src.report`.
 

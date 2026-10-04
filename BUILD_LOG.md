@@ -3091,3 +3091,45 @@ Fixed before any Step 7 number is computed. No model is retrained, no prompt or 
   - Pass rule: baseline, 0 disagreements at both points; a nonzero count is investigated, not excused (arm64 and x86_64 arithmetic can differ in the last bits). Tuned legal-BERT, at each point, disagreements at most 0.1% of all pairs and at most 1% of the pairs flagged by either side (stored predictions came from MPS float32, the container runs CPU float32). Any failed request or version mismatch fails. A failed check is reported, and the deployment is not linked from the README until the cause is found.
   - Run on Cloud Run and on GKE before teardown, same image digest.
   - Descriptive, no rule: cold start time, per-segment latency on the parity requests, image size.
+
+## 2026-10-04: Step 8, deployment: Cloud Run live, GKE parity check, Vercel front end
+
+### What we built
+- Live deployment: Cloud Run service `clause-review-api` (us-central1) from image `us-central1-docker.pkg.dev/cuad-clause-classifier/cuad/service@sha256:fd7e1f4c4abc10a42dae0f49588fb3648eb6a56e6943ea6d0e7665c30ee0ce54` (commit 2a46a39); static front end on Vercel, https://clause-review-alpha.vercel.app, deployed from the GitHub repository (`web/`). GCP project `cuad-clause-classifier` with a $10 monthly budget alert.
+- Front end rebuilt from a Claude Design mockup (commit 9709fc5): start screen, loading state, results with a flag sidebar, collapsible unflagged text, confidence badges and keyboard navigation, high-recall warning, model comparison, export, phone layout. Clause definitions are CUAD's own category descriptions (`scripts/build_clause_definitions.py`, `web/clauses.json`). The API now also returns PDF page offsets and its size limits, and `/classify/pdf` returns the extracted text.
+- `deploy/gke.sh check`: creates the cluster, runs the parity check and always deletes the cluster, with the delete retried.
+- `scripts/deploy_parity.py`: a fresh connection per request (no keep-alive), still no retries; progress line per request.
+- Commits: 13c59ce (pre-registration and code), 9709fc5 (front end), 9ef106d, 2a46a39, 63e25b9, 1c4a3d6 (Cloud Run parity), a2b87a8 (GKE parity).
+
+### Decisions made
+- Maximum Cloud Run instances raised from the pre-registered 1 to 3, after the Cloud Run parity check.
+  - Alternatives considered: keep 1; 5.
+  - Why rejected: with 1 instance a second visitor gets "Rate exceeded" while a long review runs, which the deployment hit during the parity check; one ledger per process only mattered for DeepSeek, which is off. 5 raises the worst-case spend for little gain. Idle cost stays zero (minimum 0).
+- GKE parity rerun after run 1 failed, with one change to the client (a fresh connection per request). Run 1 is kept and reported as a failure; no retry was added, so the pass rule is unchanged.
+- Service named `clause-review-api` (the name visitors see is the front end's); the Vercel domain is `clause-review-alpha` because `clause-review` was taken.
+- Cloud Run service created in the Console with the settings `deploy/cloudrun.sh` uses (2 vCPU, 8 GiB, concurrency 4, timeout 900 s, startup CPU boost, request-based billing); `SERVICE_CORS_ORIGINS` set to the Vercel origin.
+
+### Numbers measured
+- Parity, Cloud Run (20 validation contracts, 3,023 segments, 99,759 (segment, label) pairs per model and point): 0 disagreements at every model and point; flagged by either side 420 and 2,401 (baseline, balanced and high recall), 432 and 9,216 (tuned legal-BERT); max confidence difference 8.88e-16 (baseline), 2.86e-06 and 4.17e-06 (tuned); 0 failed requests; all PASS. Served versions match the frozen ones. The run spanned two revisions of the same image (the second added the CORS variable).
+  - Command: `python -m scripts.deploy_parity --url https://clause-review-api-128190849177.us-central1.run.app --target cloudrun`
+  - File: `data/eval/deploy_parity_cloudrun.json`, `data/processed/deploy_parity_cloudrun.txt`
+- Parity, GKE run 1: one ReadTimeout (contract 508, tuned legal-BERT, balanced), so that row covers 2,970 segments and 98,010 pairs, 0 disagreements, and fails; the other three rows pass with 0 disagreements. Run 2: all four rows PASS, 0 disagreements, 0 failed requests; max confidence difference 2.44e-06 and 6.32e-06 (tuned); slowest request 121 s.
+  - Command: `python -m scripts.deploy_parity --url http://104.154.49.196 --target gke`
+  - File: `data/eval/deploy_parity_gke_run1.json`, `data/eval/deploy_parity_gke.json`, and the matching `data/processed/` text files
+- Cold start on Cloud Run: about 72 s from instance start to application startup complete (service logs). Image 1,020,632,779 bytes; first build 5 min 26 s, rebuild 2 min 27 s.
+- Cost, 1 to 4 October 2026, after credits: US$11.69 (Kubernetes Engine $8.25, Cloud Monitoring $1.84, Networking $1.55, Cloud Storage $0.03, Cloud Run $0.00, Compute Engine $0.00), from Billing reports; the budget alert reached 100%.
+
+### Problems hit and how we solved them
+- The first Cloud Build upload was 10.1 GiB in 14,898 files: `.gcloudignore`'s "ignore everything, re-include" patterns let whole re-included folders through (LLM caches, raw data, all checkpoints). Stopped before any object was stored; rewritten as an exclusion list (86 files, 462.6 MiB), checked with `gcloud meta list-files-for-upload`.
+- The first revision failed to start: the strict startup check refused because `model.safetensors` is written owner-only (0600) and the non-root service user could not read it. Fixed by copying `models/` owned by that user.
+- The front end hung on "Loading models…": the CORS origin had a trailing slash, and the first request after idle met a 72 s cold start (one `/models` call failed with "no available instance"). Fixed the origin; the page now retries for up to 150 s with a visible message.
+- `kubectl` was installed into the gcloud SDK's own directory, not on PATH; `gke.sh` now adds it.
+- GKE run 1 lost one request to a silently dropped keep-alive connection (above).
+- The GKE cluster stayed up for about two and a half days after run 2, and accounts for nearly all of the $11.69. `gke.sh check` now deletes it automatically.
+
+### Surprises in the data or results
+- CPU inference reproduces the MPS-evaluated tuned legal-BERT exactly at the flag level: no flip among 99,759 pairs, even at high recall with 9,216 flagged pairs.
+- The cost of the project's cloud work came from the verification cluster idling, not from the live service.
+
+### Resume-worthy
+- Deployed frozen contract-review models as one container to Cloud Run and GKE behind a static front end, and verified with a pre-registered parity check that the deployed service reproduces the evaluated validation predictions exactly (0 flag disagreements in about 400,000 label decisions).

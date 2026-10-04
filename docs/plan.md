@@ -47,9 +47,11 @@ Numbering follows the user's prompts (BUILD_LOG uses the same numbers).
    - Run-to-run variation (Step 3 and 6b repeat checks) and the label-free drift statistics (Step 5) are surfaced, not hidden.
    - PDF path: extract the text layer first, fall back to OCR, run `segment_text()`, then classify.
    - CUAD ships each contract as both PDF and gold text, so text-extraction and OCR quality can be measured against the gold text and reported as its own source of degradation.
-8. **Deployment.** Docker image, deployed to GKE and Vercel from the same code.
-   - All config comes from environment variables: API keys, model artifact location, enabled models, rate limits.
-   - Constraint to verify when we get there: Vercel's Python functions have bundle size limits, so the PyTorch transformer may be GKE-only while Vercel serves the baseline and API-backed models. Record the outcome in BUILD_LOG.
+8. **Deployment (complete).** One Docker image with the frozen baseline and tuned legal-BERT, built by Cloud Build. Results in `docs/results.md` (Deployment) and BUILD_LOG Step 8.
+   - Amended 2026-09-30 from "GKE and Vercel": Cloud Run is the live deployment (it scales to zero, so an idle demo costs nothing); the same image was deployed once to GKE Autopilot for the parity check and the cluster deleted; Vercel serves the static front end (`web/`), since PyTorch exceeds its function size limit.
+   - Configuration from environment variables: `SERVICE_MODELS`, `SERVICE_CORS_ORIGINS`, size caps, strict startup. Artifacts stay at the `src/config.py` paths inside the image, versioned by the image digest. Rate limiting: at most 3 instances (raised from 1 after the parity check), 4 concurrent requests each, plus the text and upload caps.
+   - A pre-registered parity check found 0 flag disagreements between the deployed and the evaluated models on 20 validation contracts, on Cloud Run and on GKE (after one GKE run lost a request to a dropped connection).
+   - Possible later change, not built: a key-protected DeepSeek option (Fireworks key in Secret Manager, a demo access-key header, a cloud-side spend cap), enabled only if a specific interview needs it.
 9. **Fresh test set (non-CUAD).** Contracts from outside the CUAD release, labeled with the Step 1 label schema, as a new held-out set.
    - It removes the contamination caveat for Claude, Gemini and DeepSeek, and gives every frozen model a first look at unseen contracts.
    - Its size, sourcing, labeling protocol and pre-registered comparisons are fixed before any model sees it.

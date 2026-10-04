@@ -1,5 +1,7 @@
 # CUAD contract clause classifier
 
+**Live demo: https://clause-review-alpha.vercel.app** (a review aid; the first visit after a quiet spell takes about a minute while the server starts).
+
 Classifies segments of commercial contracts into 33 clause types (Anti-Assignment, Change Of Control, Governing Law, and so on) using CUAD, a dataset of 510 contracts labeled by lawyers. Six models are compared under one evaluation protocol: a TF-IDF baseline, two prompted proprietary LLMs (Claude and Gemini), an open-weights LLM served on Fireworks (DeepSeek V4.1 Flash), a fine-tuned legal-BERT, and a tuned legal-BERT successor.
 
 The emphasis is on honest evaluation rather than a headline number:
@@ -7,6 +9,7 @@ The emphasis is on honest evaluation rather than a headline number:
 - **One look at test.** Every choice (hyperparameters, prompts, thresholds, model selection) is made on validation. Each model is run once on test.
 - **Contract-level splits and a shift set.** Splits are by contract, stratified by contract type. Franchise and Transportation contracts (28) are held out entirely as a distribution-shift set.
 - **Paired, contract-level bootstrap.** Model differences use 10,000 paired resamples of whole contracts, with Bonferroni-adjusted intervals across a pre-registered family of 12 comparisons. A difference is claimed only when the adjusted interval excludes zero.
+- **The deployment is checked against the evaluation.** A pre-registered parity check sends 20 validation contracts to the deployed service and compares every flag with the evaluated predictions: 0 disagreements on Cloud Run and on GKE. A GKE run that lost one request to a dropped connection is kept as a failure, next to the passing rerun.
 - **Failures are kept.** The fine-tuned transformer (6a) came last on test. That result stays in the record as it is. A tuned successor (6c) was pre-registered afterwards as a separate, post-hoc model, with a stricter interval for the second look at test.
 
 ## Results so far
@@ -41,7 +44,7 @@ Test (Rule A labels) and shift (Rule C labels), point [95% contract-bootstrap CI
 | 6c | Tuned legal-BERT successor, post-hoc: loss-weighting and learning-rate grid, 20 checkpoints, selection on validation | BUILD_LOG Step 6c |
 | 6b | Open model on Fireworks: DeepSeek V4.1 Flash under the frozen LLM protocol, judged smoke gate, no prompt iteration | BUILD_LOG Step 6b |
 | 7 | Review service: text or PDF, high-recall option, spend-capped LLM, extraction quality measured | BUILD_LOG Step 7, `docs/results.md` |
-| 8 | Deployment (planned) | `docs/plan.md` |
+| 8 | Deployment: one Docker image on Cloud Run (live) and GKE (verified, torn down), Vercel front end, parity check | BUILD_LOG Step 8, `docs/results.md` |
 | 9, 10 | Fresh non-CUAD test set, then an ensemble evaluated only on it (planned) | `docs/plan.md` |
 
 ## Layout
@@ -90,6 +93,18 @@ uvicorn service.app:app --port 8000 --workers 1
 Open http://localhost:8000 to paste text or upload a PDF, or use the JSON API: `GET /models`, `POST /classify` (`text`, `model`, `operating_point`), `POST /classify/pdf` (multipart). Models: `baseline`, `transformer-tuned` and `fireworks-deepseek` (needs `FIREWORKS_API_KEY`; sends the text to Fireworks). Operating points: `balanced` (Rule B) and `high_recall`, tuned on validation, where it raises recall at a large precision cost (`docs/results.md`, Service).
 
 DeepSeek spend has its own ledger, capped at `SERVICE_LLM_CAP_USD` ($5 by default) and at the project's $150 total. A request is refused before any call if its worst case exceeds `SERVICE_REQUEST_CAP_USD` ($0.50 by default, about 65 windows of 10 segments); a retry after an unparsable reply can take one request to about twice that. Other settings: `SERVICE_MODELS`, `SERVICE_MAX_UPLOAD_MB`.
+
+## Deploying
+
+The image bakes in the frozen baseline and the selected tuned legal-BERT checkpoint (`.gcloudignore` lists what is uploaded; check it with `gcloud meta list-files-for-upload .`). With a GCP project, the Cloud Run, Artifact Registry, Cloud Build and Kubernetes Engine APIs enabled, and an Artifact Registry repository `cuad`:
+
+```
+PROJECT=<project> REGION=us-central1 deploy/cloudrun.sh                     # build and deploy to Cloud Run
+python -m scripts.deploy_parity --url <service url> --target cloudrun      # parity against the evaluated predictions
+PROJECT=<project> REGION=us-central1 deploy/gke.sh check                    # temporary GKE cluster: deploy, parity, delete
+```
+
+The front end in `web/` is static: point `web/config.js` at the service URL, deploy the folder (for example to Vercel with `web` as the root directory), and set `SERVICE_CORS_ORIGINS` on the service to the front end's origin. The deployment serves the baseline and the tuned legal-BERT (`SERVICE_MODELS`); a model whose frozen artifacts fail their check stops the container from starting (`SERVICE_REQUIRE_ALL_MODELS=1`).
 
 ## Data and license
 

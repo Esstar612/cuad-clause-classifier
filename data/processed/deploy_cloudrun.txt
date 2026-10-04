@@ -1,0 +1,2 @@
+Creating temporary archive of 14898 file(s) totalling 10.1 GiB before compression.
+Uploading tarball of [.] to [gs://cuad-clause-classifier_cloudbuild/source/1790878502.428804-830b96a836a6491491ec3c33720a15b8.tgz]
