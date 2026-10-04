@@ -4,6 +4,8 @@
 set -euo pipefail
 : "${PROJECT:?set PROJECT}" "${REGION:?set REGION}"
 cd "$(git rev-parse --show-toplevel)"
+# gcloud installs kubectl and the GKE auth plugin into its own bin directory.
+PATH="$(dirname "$(readlink -f "$(command -v gcloud)")"):$PATH"
 cluster=cuad-check
 
 case "${1:-}" in

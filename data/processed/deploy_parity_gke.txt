@@ -1,0 +1,90 @@
+Parity against http://104.154.49.196 (gke); validation contracts: [5, 17, 35, 51, 53, 56, 98, 99, 131, 201, 209, 296, 299, 318, 329, 368, 407, 438, 486, 508]
+  baseline | balanced | contract 5: 0s
+  baseline | balanced | contract 17: 0s
+  baseline | balanced | contract 35: 0s
+  baseline | balanced | contract 51: 0s
+  baseline | balanced | contract 53: 0s
+  baseline | balanced | contract 56: 0s
+  baseline | balanced | contract 98: 0s
+  baseline | balanced | contract 99: 0s
+  baseline | balanced | contract 131: 0s
+  baseline | balanced | contract 201: 0s
+  baseline | balanced | contract 209: 0s
+  baseline | balanced | contract 296: 0s
+  baseline | balanced | contract 299: 0s
+  baseline | balanced | contract 318: 0s
+  baseline | balanced | contract 329: 0s
+  baseline | balanced | contract 368: 0s
+  baseline | balanced | contract 407: 0s
+  baseline | balanced | contract 438: 0s
+  baseline | balanced | contract 486: 0s
+  baseline | balanced | contract 508: 0s
+  baseline | high_recall | contract 5: 0s
+  baseline | high_recall | contract 17: 0s
+  baseline | high_recall | contract 35: 0s
+  baseline | high_recall | contract 51: 0s
+  baseline | high_recall | contract 53: 0s
+  baseline | high_recall | contract 56: 0s
+  baseline | high_recall | contract 98: 0s
+  baseline | high_recall | contract 99: 0s
+  baseline | high_recall | contract 131: 0s
+  baseline | high_recall | contract 201: 0s
+  baseline | high_recall | contract 209: 0s
+  baseline | high_recall | contract 296: 0s
+  baseline | high_recall | contract 299: 0s
+  baseline | high_recall | contract 318: 0s
+  baseline | high_recall | contract 329: 0s
+  baseline | high_recall | contract 368: 0s
+  baseline | high_recall | contract 407: 0s
+  baseline | high_recall | contract 438: 0s
+  baseline | high_recall | contract 486: 0s
+  baseline | high_recall | contract 508: 0s
+  transformer-tuned | balanced | contract 5: 63s
+  transformer-tuned | balanced | contract 17: 29s
+  transformer-tuned | balanced | contract 35: 38s
+  transformer-tuned | balanced | contract 51: 121s
+  transformer-tuned | balanced | contract 53: 36s
+  transformer-tuned | balanced | contract 56: 38s
+  transformer-tuned | balanced | contract 98: 2s
+  transformer-tuned | balanced | contract 99: 9s
+  transformer-tuned | balanced | contract 131: 36s
+  transformer-tuned | balanced | contract 201: 103s
+  transformer-tuned | balanced | contract 209: 34s
+  transformer-tuned | balanced | contract 296: 18s
+  transformer-tuned | balanced | contract 299: 22s
+  transformer-tuned | balanced | contract 318: 60s
+  transformer-tuned | balanced | contract 329: 4s
+  transformer-tuned | balanced | contract 368: 13s
+  transformer-tuned | balanced | contract 407: 1s
+  transformer-tuned | balanced | contract 438: 19s
+  transformer-tuned | balanced | contract 486: 18s
+  transformer-tuned | balanced | contract 508: 25s
+  transformer-tuned | high_recall | contract 5: 52s
+  transformer-tuned | high_recall | contract 17: 23s
+  transformer-tuned | high_recall | contract 35: 28s
+  transformer-tuned | high_recall | contract 51: 102s
+  transformer-tuned | high_recall | contract 53: 34s
+  transformer-tuned | high_recall | contract 56: 36s
+  transformer-tuned | high_recall | contract 98: 2s
+  transformer-tuned | high_recall | contract 99: 9s
+  transformer-tuned | high_recall | contract 131: 33s
+  transformer-tuned | high_recall | contract 201: 101s
+  transformer-tuned | high_recall | contract 209: 35s
+  transformer-tuned | high_recall | contract 296: 17s
+  transformer-tuned | high_recall | contract 299: 22s
+  transformer-tuned | high_recall | contract 318: 60s
+  transformer-tuned | high_recall | contract 329: 4s
+  transformer-tuned | high_recall | contract 368: 13s
+  transformer-tuned | high_recall | contract 407: 1s
+  transformer-tuned | high_recall | contract 438: 20s
+  transformer-tuned | high_recall | contract 486: 19s
+  transformer-tuned | high_recall | contract 508: 25s
+
+model              point        segments excluded    pairs disagree  flagged max_conf_diff failed  result
+baseline           balanced         3023        0    99759        0      420      8.88e-16      0  PASS
+baseline           high_recall      3023        0    99759        0     2401      8.88e-16      0  PASS
+  baseline: served version ['9692b04f03fb'], local 9692b04f03fb, match
+transformer-tuned  balanced         3023        0    99759        0      432      2.44e-06      0  PASS
+transformer-tuned  high_recall      3023        0    99759        0     9216      6.32e-06      0  PASS
+  transformer-tuned: served version ['w-lr2e-5/epoch-4|d51fe0f8601b'], local w-lr2e-5/epoch-4|d51fe0f8601b, match
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/data/eval/deploy_parity_gke.json

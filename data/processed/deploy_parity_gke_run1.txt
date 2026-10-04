@@ -1,0 +1,11 @@
+Parity against http://104.154.49.196 (gke); validation contracts: [5, 17, 35, 51, 53, 56, 98, 99, 131, 201, 209, 296, 299, 318, 329, 368, 407, 438, 486, 508]
+  transformer-tuned | balanced | contract 508: request failed (ReadTimeout: timed out)
+
+model              point        segments excluded    pairs disagree  flagged max_conf_diff failed  result
+baseline           balanced         3023        0    99759        0      420      8.88e-16      0  PASS
+baseline           high_recall      3023        0    99759        0     2401      8.88e-16      0  PASS
+  baseline: served version ['9692b04f03fb'], local 9692b04f03fb, match
+transformer-tuned  balanced         2970        0    98010        0      415      2.44e-06      1  FAIL
+transformer-tuned  high_recall      3023        0    99759        0     9216      6.32e-06      0  PASS
+  transformer-tuned: served version ['w-lr2e-5/epoch-4|d51fe0f8601b'], local w-lr2e-5/epoch-4|d51fe0f8601b, match
+Wrote /Users/owner/Dropbox/My Resume/Code/CCC/data/eval/deploy_parity_gke.json

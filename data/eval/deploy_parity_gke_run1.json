@@ -1,0 +1,92 @@
+{
+  "target": "gke",
+  "url": "http://104.154.49.196",
+  "contracts": [
+    5,
+    17,
+    35,
+    51,
+    53,
+    56,
+    98,
+    99,
+    131,
+    201,
+    209,
+    296,
+    299,
+    318,
+    329,
+    368,
+    407,
+    438,
+    486,
+    508
+  ],
+  "models": {
+    "baseline": {
+      "local_version": "9692b04f03fb",
+      "served_versions": [
+        "9692b04f03fb"
+      ],
+      "version_ok": true,
+      "points": {
+        "balanced": {
+          "segments": 3023,
+          "excluded": 0,
+          "pairs": 99759,
+          "disagree": 0,
+          "flagged_either": 420,
+          "max_conf_diff": 8.881784197001252e-16,
+          "failed": 0,
+          "failed_contracts": [],
+          "passes": true
+        },
+        "high_recall": {
+          "segments": 3023,
+          "excluded": 0,
+          "pairs": 99759,
+          "disagree": 0,
+          "flagged_either": 2401,
+          "max_conf_diff": 8.881784197001252e-16,
+          "failed": 0,
+          "failed_contracts": [],
+          "passes": true
+        }
+      }
+    },
+    "transformer-tuned": {
+      "local_version": "w-lr2e-5/epoch-4|d51fe0f8601b",
+      "served_versions": [
+        "w-lr2e-5/epoch-4|d51fe0f8601b"
+      ],
+      "version_ok": true,
+      "points": {
+        "balanced": {
+          "segments": 2970,
+          "excluded": 0,
+          "pairs": 98010,
+          "disagree": 0,
+          "flagged_either": 415,
+          "max_conf_diff": 2.4437904357910156e-06,
+          "failed": 1,
+          "failed_contracts": [
+            508
+          ],
+          "passes": false
+        },
+        "high_recall": {
+          "segments": 3023,
+          "excluded": 0,
+          "pairs": 99759,
+          "disagree": 0,
+          "flagged_either": 9216,
+          "max_conf_diff": 6.318092346191406e-06,
+          "failed": 0,
+          "failed_contracts": [],
+          "passes": true
+        }
+      }
+    }
+  }
+}

@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import time
 import zlib
 
 import httpx
@@ -90,6 +91,12 @@ def passes(model: str, t: dict) -> bool:
             and t["disagree"] <= 0.01 * max(t["flagged_either"], 1))
 
 
+def make_client(url: str) -> httpx.Client:
+    """A fresh connection per request: on GKE a reused keep-alive connection was dropped silently and one
+    request waited out the full timeout (BUILD_LOG Step 8). No retries: a failed request still fails."""
+    return httpx.Client(base_url=url, timeout=TIMEOUT_S, limits=httpx.Limits(max_keepalive_connections=0))
+
+
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("--url", required=True)
@@ -100,8 +107,8 @@ def main() -> None:
     contracts = sample_contracts(segments)
     texts = load_contexts(load_raw_json())
     report = {"target": args.target, "url": args.url, "contracts": contracts, "models": {}}
-    print(f"Parity against {args.url} ({args.target}); validation contracts: {contracts}")
-    with httpx.Client(base_url=args.url, timeout=TIMEOUT_S) as client:
+    print(f"Parity against {args.url} ({args.target}); validation contracts: {contracts}", flush=True)
+    with make_client(args.url) as client:
         for name in MODELS:
             art = artifacts(name)
             thresholds, _ = _thresholds(name, art)
@@ -115,13 +122,16 @@ def main() -> None:
                     raise SystemExit(f"{name}: no local {point} thresholds")
                 parts, failed = [], []
                 for cid in contracts:
+                    t0 = time.perf_counter()
                     try:
                         r = client.post("/classify", json={"text": texts[cid], "model": name, "operating_point": point})
                         r.raise_for_status()
                     except httpx.HTTPError as e:
-                        print(f"  {name} | {point} | contract {cid}: request failed ({type(e).__name__}: {e})")
+                        print(f"  {name} | {point} | contract {cid}: request failed after {time.perf_counter() - t0:.0f}s "
+                              f"({type(e).__name__}: {e})", flush=True)
                         failed.append(cid)
                         continue
+                    print(f"  {name} | {point} | contract {cid}: {time.perf_counter() - t0:.0f}s", flush=True)
                     body = r.json()
                     versions.add(body["model_version"])
                     parts.append(compare(body["segments"], stored_rows(segments, pred, cid), art.label_order,

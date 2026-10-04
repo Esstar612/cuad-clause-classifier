@@ -78,3 +78,9 @@ def test_sample_is_seeded_and_validation_only():
     mixed.loc[mixed["contract_id"] == first[0], "split"] = ["val", "test"]
     with pytest.raises(SystemExit, match="not a validation contract"):
         D.sample_contracts(mixed)
+
+
+def test_client_opens_a_fresh_connection_per_request():
+    with D.make_client("http://example.test") as client:
+        assert client._transport._pool._max_keepalive_connections == 0
+        assert client.timeout.read == D.TIMEOUT_S
