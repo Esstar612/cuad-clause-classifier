@@ -1,0 +1,957 @@
+{
+  "frame_start": "2026-04-01",
+  "frame_end": "2026-10-04",
+  "listed_utc": "2026-10-05T01:15:20+00:00",
+  "unique_documents": 59982,
+  "ex10_documents": 3835,
+  "ex10_by_status": {
+    "one": 393,
+    "none": 3442,
+    "ambiguous": 0
+  },
+  "ex10_share_by_status": {
+    "one": 0.10247718383311603,
+    "none": 0.897522816166884,
+    "ambiguous": 0.0
+  },
+  "in_frame_by_type": {
+    "Agency": 58,
+    "Collaboration/Cooperation": 4,
+    "Consulting": 54,
+    "Development": 26,
+    "Distributor": 11,
+    "Joint Venture": 1,
+    "License": 58,
+    "Manufacturing": 2,
+    "Marketing": 4,
+    "Service": 164,
+    "Supply": 11
+  },
+  "truncated_queries": [],
+  "queries": {
+    "Affiliate | 2026-04-01": {
+      "phrase": "affiliate agreement",
+      "hits": 53,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Affiliate | 2026-05-01": {
+      "phrase": "affiliate agreement",
+      "hits": 35,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Affiliate | 2026-06-01": {
+      "phrase": "affiliate agreement",
+      "hits": 35,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Affiliate | 2026-07-01": {
+      "phrase": "affiliate agreement",
+      "hits": 31,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Affiliate | 2026-08-01": {
+      "phrase": "affiliate agreement",
+      "hits": 31,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Affiliate | 2026-09-01": {
+      "phrase": "affiliate agreement",
+      "hits": 22,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Affiliate | 2026-10-01": {
+      "phrase": "affiliate agreement",
+      "hits": 3,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Agency | 2026-04-01": {
+      "phrase": "agency agreement",
+      "hits": 1281,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Agency | 2026-05-01": {
+      "phrase": "agency agreement",
+      "hits": 1092,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Agency | 2026-06-01": {
+      "phrase": "agency agreement",
+      "hits": 940,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Agency | 2026-07-01": {
+      "phrase": "agency agreement",
+      "hits": 881,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Agency | 2026-08-01": {
+      "phrase": "agency agreement",
+      "hits": 1003,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Agency | 2026-09-01": {
+      "phrase": "agency agreement",
+      "hits": 833,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Agency | 2026-10-01": {
+      "phrase": "agency agreement",
+      "hits": 74,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Co-Branding | 2026-04-01": {
+      "phrase": "co-branding agreement",
+      "hits": 2,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Co-Branding | 2026-05-01": {
+      "phrase": "co-branding agreement",
+      "hits": 1,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Co-Branding | 2026-06-01": {
+      "phrase": "co-branding agreement",
+      "hits": 2,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Co-Branding | 2026-07-01": {
+      "phrase": "co-branding agreement",
+      "hits": 0,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Co-Branding | 2026-08-01": {
+      "phrase": "co-branding agreement",
+      "hits": 0,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Co-Branding | 2026-09-01": {
+      "phrase": "co-branding agreement",
+      "hits": 2,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Co-Branding | 2026-10-01": {
+      "phrase": "co-branding agreement",
+      "hits": 0,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Collaboration/Cooperation | 2026-04-01": {
+      "phrase": "collaboration agreement",
+      "hits": 487,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Collaboration/Cooperation | 2026-05-01": {
+      "phrase": "collaboration agreement",
+      "hits": 440,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Collaboration/Cooperation | 2026-06-01": {
+      "phrase": "collaboration agreement",
+      "hits": 153,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Collaboration/Cooperation | 2026-07-01": {
+      "phrase": "collaboration agreement",
+      "hits": 193,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Collaboration/Cooperation | 2026-08-01": {
+      "phrase": "collaboration agreement",
+      "hits": 527,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Collaboration/Cooperation | 2026-09-01": {
+      "phrase": "collaboration agreement",
+      "hits": 165,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Collaboration/Cooperation | 2026-10-01": {
+      "phrase": "collaboration agreement",
+      "hits": 11,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Consulting | 2026-04-01": {
+      "phrase": "consulting agreement",
+      "hits": 1441,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Consulting | 2026-05-01": {
+      "phrase": "consulting agreement",
+      "hits": 1084,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Consulting | 2026-06-01": {
+      "phrase": "consulting agreement",
+      "hits": 709,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Consulting | 2026-07-01": {
+      "phrase": "consulting agreement",
+      "hits": 696,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Consulting | 2026-08-01": {
+      "phrase": "consulting agreement",
+      "hits": 1069,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Consulting | 2026-09-01": {
+      "phrase": "consulting agreement",
+      "hits": 635,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Consulting | 2026-10-01": {
+      "phrase": "consulting agreement",
+      "hits": 65,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Development | 2026-04-01": {
+      "phrase": "development agreement",
+      "hits": 384,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Development | 2026-05-01": {
+      "phrase": "development agreement",
+      "hits": 316,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Development | 2026-06-01": {
+      "phrase": "development agreement",
+      "hits": 163,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Development | 2026-07-01": {
+      "phrase": "development agreement",
+      "hits": 168,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Development | 2026-08-01": {
+      "phrase": "development agreement",
+      "hits": 363,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Development | 2026-09-01": {
+      "phrase": "development agreement",
+      "hits": 163,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Development | 2026-10-01": {
+      "phrase": "development agreement",
+      "hits": 12,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Distributor | 2026-04-01": {
+      "phrase": "distribution agreement",
+      "hits": 5072,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Distributor | 2026-05-01": {
+      "phrase": "distribution agreement",
+      "hits": 3879,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Distributor | 2026-06-01": {
+      "phrase": "distribution agreement",
+      "hits": 3927,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Distributor | 2026-07-01": {
+      "phrase": "distribution agreement",
+      "hits": 3922,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Distributor | 2026-08-01": {
+      "phrase": "distribution agreement",
+      "hits": 4125,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Distributor | 2026-09-01": {
+      "phrase": "distribution agreement",
+      "hits": 3985,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Distributor | 2026-10-01": {
+      "phrase": "distribution agreement",
+      "hits": 512,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Endorsement | 2026-04-01": {
+      "phrase": "endorsement agreement",
+      "hits": 2,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Endorsement | 2026-05-01": {
+      "phrase": "endorsement agreement",
+      "hits": 1,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Endorsement | 2026-06-01": {
+      "phrase": "endorsement agreement",
+      "hits": 0,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Endorsement | 2026-07-01": {
+      "phrase": "endorsement agreement",
+      "hits": 4,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Endorsement | 2026-08-01": {
+      "phrase": "endorsement agreement",
+      "hits": 6,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Endorsement | 2026-09-01": {
+      "phrase": "endorsement agreement",
+      "hits": 1,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Endorsement | 2026-10-01": {
+      "phrase": "endorsement agreement",
+      "hits": 0,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Hosting | 2026-04-01": {
+      "phrase": "hosting agreement",
+      "hits": 30,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Hosting | 2026-05-01": {
+      "phrase": "hosting agreement",
+      "hits": 35,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Hosting | 2026-06-01": {
+      "phrase": "hosting agreement",
+      "hits": 21,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Hosting | 2026-07-01": {
+      "phrase": "hosting agreement",
+      "hits": 15,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Hosting | 2026-08-01": {
+      "phrase": "hosting agreement",
+      "hits": 19,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Hosting | 2026-09-01": {
+      "phrase": "hosting agreement",
+      "hits": 15,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Hosting | 2026-10-01": {
+      "phrase": "hosting agreement",
+      "hits": 0,
+      "relation": "eq",
+      "truncated": false
+    },
+    "IP | 2026-04-01": {
+      "phrase": "intellectual property agreement",
+      "hits": 42,
+      "relation": "eq",
+      "truncated": false
+    },
+    "IP | 2026-05-01": {
+      "phrase": "intellectual property agreement",
+      "hits": 44,
+      "relation": "eq",
+      "truncated": false
+    },
+    "IP | 2026-06-01": {
+      "phrase": "intellectual property agreement",
+      "hits": 26,
+      "relation": "eq",
+      "truncated": false
+    },
+    "IP | 2026-07-01": {
+      "phrase": "intellectual property agreement",
+      "hits": 25,
+      "relation": "eq",
+      "truncated": false
+    },
+    "IP | 2026-08-01": {
+      "phrase": "intellectual property agreement",
+      "hits": 29,
+      "relation": "eq",
+      "truncated": false
+    },
+    "IP | 2026-09-01": {
+      "phrase": "intellectual property agreement",
+      "hits": 12,
+      "relation": "eq",
+      "truncated": false
+    },
+    "IP | 2026-10-01": {
+      "phrase": "intellectual property agreement",
+      "hits": 1,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Joint Venture | 2026-04-01": {
+      "phrase": "joint venture agreement",
+      "hits": 466,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Joint Venture | 2026-05-01": {
+      "phrase": "joint venture agreement",
+      "hits": 346,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Joint Venture | 2026-06-01": {
+      "phrase": "joint venture agreement",
+      "hits": 247,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Joint Venture | 2026-07-01": {
+      "phrase": "joint venture agreement",
+      "hits": 293,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Joint Venture | 2026-08-01": {
+      "phrase": "joint venture agreement",
+      "hits": 477,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Joint Venture | 2026-09-01": {
+      "phrase": "joint venture agreement",
+      "hits": 244,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Joint Venture | 2026-10-01": {
+      "phrase": "joint venture agreement",
+      "hits": 32,
+      "relation": "eq",
+      "truncated": false
+    },
+    "License | 2026-04-01": {
+      "phrase": "license agreement",
+      "hits": 4396,
+      "relation": "eq",
+      "truncated": false
+    },
+    "License | 2026-05-01": {
+      "phrase": "license agreement",
+      "hits": 4147,
+      "relation": "eq",
+      "truncated": false
+    },
+    "License | 2026-06-01": {
+      "phrase": "license agreement",
+      "hits": 3384,
+      "relation": "eq",
+      "truncated": false
+    },
+    "License | 2026-07-01": {
+      "phrase": "license agreement",
+      "hits": 3263,
+      "relation": "eq",
+      "truncated": false
+    },
+    "License | 2026-08-01": {
+      "phrase": "license agreement",
+      "hits": 3822,
+      "relation": "eq",
+      "truncated": false
+    },
+    "License | 2026-09-01": {
+      "phrase": "license agreement",
+      "hits": 3056,
+      "relation": "eq",
+      "truncated": false
+    },
+    "License | 2026-10-01": {
+      "phrase": "license agreement",
+      "hits": 503,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Maintenance | 2026-04-01": {
+      "phrase": "maintenance agreement",
+      "hits": 124,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Maintenance | 2026-05-01": {
+      "phrase": "maintenance agreement",
+      "hits": 53,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Maintenance | 2026-06-01": {
+      "phrase": "maintenance agreement",
+      "hits": 23,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Maintenance | 2026-07-01": {
+      "phrase": "maintenance agreement",
+      "hits": 58,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Maintenance | 2026-08-01": {
+      "phrase": "maintenance agreement",
+      "hits": 57,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Maintenance | 2026-09-01": {
+      "phrase": "maintenance agreement",
+      "hits": 37,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Maintenance | 2026-10-01": {
+      "phrase": "maintenance agreement",
+      "hits": 4,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Manufacturing | 2026-04-01": {
+      "phrase": "manufacturing agreement",
+      "hits": 231,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Manufacturing | 2026-05-01": {
+      "phrase": "manufacturing agreement",
+      "hits": 141,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Manufacturing | 2026-06-01": {
+      "phrase": "manufacturing agreement",
+      "hits": 46,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Manufacturing | 2026-07-01": {
+      "phrase": "manufacturing agreement",
+      "hits": 71,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Manufacturing | 2026-08-01": {
+      "phrase": "manufacturing agreement",
+      "hits": 146,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Manufacturing | 2026-09-01": {
+      "phrase": "manufacturing agreement",
+      "hits": 54,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Manufacturing | 2026-10-01": {
+      "phrase": "manufacturing agreement",
+      "hits": 5,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Marketing | 2026-04-01": {
+      "phrase": "marketing agreement",
+      "hits": 177,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Marketing | 2026-05-01": {
+      "phrase": "marketing agreement",
+      "hits": 143,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Marketing | 2026-06-01": {
+      "phrase": "marketing agreement",
+      "hits": 83,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Marketing | 2026-07-01": {
+      "phrase": "marketing agreement",
+      "hits": 86,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Marketing | 2026-08-01": {
+      "phrase": "marketing agreement",
+      "hits": 208,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Marketing | 2026-09-01": {
+      "phrase": "marketing agreement",
+      "hits": 87,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Marketing | 2026-10-01": {
+      "phrase": "marketing agreement",
+      "hits": 8,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Outsourcing | 2026-04-01": {
+      "phrase": "outsourcing agreement",
+      "hits": 15,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Outsourcing | 2026-05-01": {
+      "phrase": "outsourcing agreement",
+      "hits": 8,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Outsourcing | 2026-06-01": {
+      "phrase": "outsourcing agreement",
+      "hits": 7,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Outsourcing | 2026-07-01": {
+      "phrase": "outsourcing agreement",
+      "hits": 6,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Outsourcing | 2026-08-01": {
+      "phrase": "outsourcing agreement",
+      "hits": 9,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Outsourcing | 2026-09-01": {
+      "phrase": "outsourcing agreement",
+      "hits": 5,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Outsourcing | 2026-10-01": {
+      "phrase": "outsourcing agreement",
+      "hits": 0,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Promotion | 2026-04-01": {
+      "phrase": "promotion agreement",
+      "hits": 12,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Promotion | 2026-05-01": {
+      "phrase": "promotion agreement",
+      "hits": 20,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Promotion | 2026-06-01": {
+      "phrase": "promotion agreement",
+      "hits": 6,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Promotion | 2026-07-01": {
+      "phrase": "promotion agreement",
+      "hits": 6,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Promotion | 2026-08-01": {
+      "phrase": "promotion agreement",
+      "hits": 23,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Promotion | 2026-09-01": {
+      "phrase": "promotion agreement",
+      "hits": 5,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Promotion | 2026-10-01": {
+      "phrase": "promotion agreement",
+      "hits": 1,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Reseller | 2026-04-01": {
+      "phrase": "reseller agreement",
+      "hits": 29,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Reseller | 2026-05-01": {
+      "phrase": "reseller agreement",
+      "hits": 22,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Reseller | 2026-06-01": {
+      "phrase": "reseller agreement",
+      "hits": 6,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Reseller | 2026-07-01": {
+      "phrase": "reseller agreement",
+      "hits": 13,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Reseller | 2026-08-01": {
+      "phrase": "reseller agreement",
+      "hits": 15,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Reseller | 2026-09-01": {
+      "phrase": "reseller agreement",
+      "hits": 7,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Reseller | 2026-10-01": {
+      "phrase": "reseller agreement",
+      "hits": 1,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Service | 2026-04-01": {
+      "phrase": "services agreement",
+      "hits": 4951,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Service | 2026-05-01": {
+      "phrase": "services agreement",
+      "hits": 2653,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Service | 2026-06-01": {
+      "phrase": "services agreement",
+      "hits": 1907,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Service | 2026-07-01": {
+      "phrase": "services agreement",
+      "hits": 1927,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Service | 2026-08-01": {
+      "phrase": "services agreement",
+      "hits": 2857,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Service | 2026-09-01": {
+      "phrase": "services agreement",
+      "hits": 1701,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Service | 2026-10-01": {
+      "phrase": "services agreement",
+      "hits": 152,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Sponsorship | 2026-04-01": {
+      "phrase": "sponsorship agreement",
+      "hits": 75,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Sponsorship | 2026-05-01": {
+      "phrase": "sponsorship agreement",
+      "hits": 83,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Sponsorship | 2026-06-01": {
+      "phrase": "sponsorship agreement",
+      "hits": 61,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Sponsorship | 2026-07-01": {
+      "phrase": "sponsorship agreement",
+      "hits": 57,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Sponsorship | 2026-08-01": {
+      "phrase": "sponsorship agreement",
+      "hits": 90,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Sponsorship | 2026-09-01": {
+      "phrase": "sponsorship agreement",
+      "hits": 80,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Sponsorship | 2026-10-01": {
+      "phrase": "sponsorship agreement",
+      "hits": 11,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Strategic Alliance | 2026-04-01": {
+      "phrase": "strategic alliance agreement",
+      "hits": 28,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Strategic Alliance | 2026-05-01": {
+      "phrase": "strategic alliance agreement",
+      "hits": 18,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Strategic Alliance | 2026-06-01": {
+      "phrase": "strategic alliance agreement",
+      "hits": 1,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Strategic Alliance | 2026-07-01": {
+      "phrase": "strategic alliance agreement",
+      "hits": 4,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Strategic Alliance | 2026-08-01": {
+      "phrase": "strategic alliance agreement",
+      "hits": 14,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Strategic Alliance | 2026-09-01": {
+      "phrase": "strategic alliance agreement",
+      "hits": 11,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Strategic Alliance | 2026-10-01": {
+      "phrase": "strategic alliance agreement",
+      "hits": 1,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Supply | 2026-04-01": {
+      "phrase": "supply agreement",
+      "hits": 568,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Supply | 2026-05-01": {
+      "phrase": "supply agreement",
+      "hits": 542,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Supply | 2026-06-01": {
+      "phrase": "supply agreement",
+      "hits": 193,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Supply | 2026-07-01": {
+      "phrase": "supply agreement",
+      "hits": 255,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Supply | 2026-08-01": {
+      "phrase": "supply agreement",
+      "hits": 800,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Supply | 2026-09-01": {
+      "phrase": "supply agreement",
+      "hits": 208,
+      "relation": "eq",
+      "truncated": false
+    },
+    "Supply | 2026-10-01": {
+      "phrase": "supply agreement",
+      "hits": 26,
+      "relation": "eq",
+      "truncated": false
+    }
+  }
+}

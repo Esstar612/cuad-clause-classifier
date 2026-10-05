@@ -3173,10 +3173,18 @@ Fixed before any Step 7 number is computed. No model is retrained, no prompt or 
 - **Contract ids:** integers from 1000 in draw order (CUAD's are 0 to 509), with accession, file name and archive URL beside them.
 - **Labels (Step 9b):** a 36-item checklist (the 33 scored types plus the 3 rare CUAD types, so CUAD's exclusion rule applies unchanged); every occurrence marked; offsets in code points; exports carry no text. The labeling guide uses CUAD train contracts only for span lengths and examples and leaves out the Step 4a model-behavior cases.
 - **Fresh evaluation rules, fixed now:** Rule F = scored labels present in at least 10 fresh contracts (`PER_LABEL_MIN_FRESH_CONTRACTS`); plain (unstratified) contract resampling, 2,000 resamples for intervals and 10,000 for paired differences, stream `fresh`. The comparison family, adjudication and the one fresh run per model are pre-registered in 9b, before any model sees a fresh contract.
+- **Frame coverage after listing:** the draw runs as pre-registered on the 11 types that have candidates; the 11 empty types are a reported limitation. The fresh set gives each model a clean first look on those types and says nothing about the others.
+  - Alternatives considered: an amendment typing unclassified exhibits by the title in their opening lines.
+  - Why rejected: it would change a sourcing rule after seeing the frame counts, and the frame as listed still fills 30 slots.
 - **Discipline:** no model sees a fresh text in 9a, no API spend, no frozen artifact changes; nobody reads a fresh contract body before labeling (commands print counts, reason codes and numbers; the snapshot holds exhibit descriptions only); the labeling tool is tried on a CUAD train contract.
 
 ### Numbers measured
-- None yet. `list`, `draw` and `describe` outputs are added when run.
+- Frame listing, 2026-04-01 to 2026-10-04 (listed 2026-10-05T01:15:20 UTC): 59,982 unique documents matched the 22 phrases; 3,835 are EX-10 exhibits; by description, 393 (10.2%) name exactly one type, 3,442 (89.8%) are unclassified, 0 are ambiguous. No query reached the 10,000-hit cap.
+  - In frame by type: Service 164, Agency 58, License 58, Consulting 54, Development 26, Distributor 11, Supply 11, Collaboration/Cooperation 4, Marketing 4, Manufacturing 2, Joint Venture 1. The other 11 types (Affiliate, Co-Branding, Endorsement, Hosting, IP, Maintenance, Outsourcing, Promotion, Reseller, Sponsorship, Strategic Alliance) have none; they hold 49 of the 96 CUAD test contracts.
+  - Starting allocation of the 30 slots (before exclusions): License 4, Development 4, Distributor 3, Service 3, Collaboration/Cooperation 3, Marketing 3, Supply 3, Manufacturing 2, Agency 2, Consulting 2, Joint Venture 1.
+  - Command: `python -m src.fresh.source list`
+  - File: `data/fresh/candidates.parquet`, `data/fresh/list_report.json`
+- `draw` and `describe` outputs are added when run.
 
 ### Problems hit and how we solved them
 - The first `list` run stopped on its first query: EFTS answered HTTP 500 to all 5 attempts (waits of 1 to 8 s). The same request then succeeded 12 times in a row, so the errors were a transient burst on SEC's side. Retries raised to 8 attempts (waits up to 64 s) before any candidate was listed or checked. This also lowers the chance that a passing contract is rejected as `efts_error` during the draw; no exclusion rule changed.
