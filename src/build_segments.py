@@ -36,9 +36,9 @@ def build_segments(contexts: dict[int, str], spans: pd.DataFrame, contracts: pd.
     return pd.DataFrame(rows)[COLUMNS]
 
 
-def load_segments(include_excluded: bool = False) -> pd.DataFrame:
+def load_segments(include_excluded: bool = False, path=SEGMENTS_PATH) -> pd.DataFrame:
     """Segments with labels as Python lists. Excluded segments are dropped unless asked for."""
-    df = pd.read_parquet(SEGMENTS_PATH)
+    df = pd.read_parquet(path)
     if not include_excluded:
         df = df[~df["exclude"]].reset_index(drop=True)
     df["labels"] = df["labels"].map(list)

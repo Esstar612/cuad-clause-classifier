@@ -3133,3 +3133,56 @@ Fixed before any Step 7 number is computed. No model is retrained, no prompt or 
 
 ### Resume-worthy
 - Deployed frozen contract-review models as one container to Cloud Run and GKE behind a static front end, and verified with a pre-registered parity check that the deployed service reproduces the evaluated validation predictions exactly (0 flag disagreements in about 400,000 label decisions).
+
+## 2026-10-04: Step 9a pre-registration, fresh non-CUAD test set (sourcing rules, before any EDGAR request)
+
+### What we built
+- `src/fresh/`: `config.py` (frame, keyword lists, exclusion constants), `edgar.py` (EFTS and archive client, `SEC_USER_AGENT` from `.env`, at most 5 requests per second, retries with backoff), `source.py` (`list`, `draw`, `describe`, `bundle`), `text.py` (pinned HTML to text conversion), `build.py` (label exports to `fresh_segments.parquet` through `label_contract` at the frozen settings, and Rule F), `agreement.py` (span F1, presence agreement, Cohen's kappa), `guide.py` (writes `docs/fresh_labeling_guide.md` from CUAD train contracts only).
+- `tools/labeler/`: one offline HTML file and `offsets.js`; a generated `bundle.js` holds the texts and is gitignored. Saved work is keyed by contract id and text hash, so a rebuilt text starts clean.
+- `fresh` subcommands on `src.baseline`, `src.transformer`, `src.transformer_tuned` and `src.llm.run`, each with its own `fresh_run.json` marker and the existing version, recipe, frozen-prompt and label-order guards; `python -m src.evaluate fresh NAME`. `resample_weights` gains `stratify` (default unchanged).
+- `.gitignore`: `data/fresh/text/`, `data/processed/fresh_segments.parquet`, `tools/labeler/bundle.js`.
+- Plan reviews: `docs/reviews/2026-10-04-9a-r1.md` to `-r3.md`.
+
+### Decisions made
+- **Source:** SEC EDGAR EX-10 exhibits filed after the frozen LLMs' training cutoffs; about 30 contracts in the CUAD test set's contract-type mix (96 contracts; 22 of the 23 in-distribution types; Non-Compete/No-Solicit/Non-Disparagement has no test contracts; Franchise and Transportation are the shift set).
+  - Alternatives considered: other public contract sources; a mix chosen for label coverage.
+  - Why rejected: EX-10 exhibits are the population CUAD itself was drawn from, with filing dates that prove post-cutoff; the CUAD test mix keeps the fresh result comparable to the test result.
+- **Training cutoffs and frame start**, looked up 2026-10-04:
+  - claude-sonnet-5: training data cutoff Jan 2026 (https://platform.claude.com/docs/en/models/sonnet-5/overview).
+  - gemini-3.8-flash: knowledge cutoff March 2026 (https://deepmind.google/models/model-cards/gemini-3-8-flash/, published September 2026).
+  - deepseek-v4p1-flash: no published cutoff (Fireworks model page, DeepSeek API change log and release note of 2026-09-10, Hugging Face model card). Its fresh result carries that caveat.
+  - `FRAME_START` = 2026-04-01, the day after the latest published cutoff. `FRAME_END` = the listing date, recorded in `data/fresh/list_report.json`.
+- **Frame:** EFTS, one quoted-phrase query per CUAD contract type (`src/fresh/config.py`), run per calendar month; hits kept when the exhibit type starts with `EX-10`. Queries that reach EFTS's 10,000-hit cap are listed as truncated. The hit list is saved once to `data/fresh/candidates.parquet` (metadata only, committed); every draw reads that snapshot, never a live query.
+- **Type assignment** by the exhibit description, lowercase phrase match: exactly one type matched gives that type; none is unclassified; more than one is ambiguous. A phrase contained in a longer matched phrase of another type does not count ("hosting services agreement" is Hosting, not also Service). Unclassified and ambiguous candidates leave the frame and their shares of all EX-10 hits are reported.
+- **Allocation:** 30 slots in proportion to the CUAD test mix, largest remainder; ties by CUAD test count, then type name; a type that runs out passes each missing slot to the next type in remainder order that still has candidates.
+- **Draw:** per type, a seeded permutation of its candidates sorted by accession and file name (stream `fresh_source/<type>`). Candidates are checked lazily in permutation order until the type is filled. When a type's permutation runs out, its capacity becomes its accepted count, the allocation is recomputed, and every type continues from where it stopped; no candidate is checked twice. Types are processed in name order. The draw stops at 30 accepted or when the frame cannot be filled. Every check is logged.
+- **Exclusions, in order**, with reason codes:
+  - `not_html`: the exhibit is not HTML (plain-text, PDF-only, image).
+  - `fetch_error`: the document cannot be fetched after retries. `conversion_error`: unclosed script or style.
+  - `too_short` / `too_long`: gold text under 5,000 or over 338,211 characters (CUAD's longest contract; the lower bound is a new choice, since CUAD's shortest is 645).
+  - `amendment`: the description or first 500 characters match `\bamendment\b|\bwaiver\b|\bjoinder\b|side letter`, and do not contain "amended and restated".
+  - `form_or_template`: 3 or more blank-party markers (`_{5,}`, `[●]`, `[Name`) in the first 3,000 characters.
+  - `redacted`: more than 1 redaction marker (`[***]`, `[*]`, a run of 3 or more asterisks, `[REDACTED]`, `[Omitted]`) per 1,000 characters.
+  - `cuad_overlap`: 8-word shingle containment of 0.20 or more against any of the 510 CUAD texts, in either direction (the larger).
+  - `duplicate`: containment of 0.50 or more, in either direction, with a contract accepted earlier.
+  - `prior_appearance` / `efts_error`: the 3 longest sentences of 15 to 40 words are each searched on EFTS for filings dated 2001-01-01 to the day before `FRAME_START`; the contract is rejected when all 3 return a hit (a contract with fewer than 3 such sentences is not rejected by this rule), and with `efts_error` when a query fails.
+    - Alternatives considered: the single longest sentence, as first planned.
+    - Why rejected: one long boilerplate sentence (counterparts, entire agreement) appears in thousands of earlier filings, so a single hit would reject most new contracts; a refiled earlier contract still hits on all 3.
+- **Rejection log** (`data/fresh/draw_log.csv`, committed): type, accession, file name, reason code and measured numbers only, never a sentence or excerpt.
+- **Gold text:** stdlib `html.parser`, fixed block and cell separators, whitespace collapsed per line, at most one blank line. UTF-8, else cp1252. SHA-256 of the text and of the raw HTML in `data/fresh/contracts.parquet`; the text hash goes into every label export and is checked in the labeling tool before tagging and again in `build`.
+- **Contract ids:** integers from 1000 in draw order (CUAD's are 0 to 509), with accession, file name and archive URL beside them.
+- **Labels (Step 9b):** a 36-item checklist (the 33 scored types plus the 3 rare CUAD types, so CUAD's exclusion rule applies unchanged); every occurrence marked; offsets in code points; exports carry no text. The labeling guide uses CUAD train contracts only for span lengths and examples and leaves out the Step 4a model-behavior cases.
+- **Fresh evaluation rules, fixed now:** Rule F = scored labels present in at least 10 fresh contracts (`PER_LABEL_MIN_FRESH_CONTRACTS`); plain (unstratified) contract resampling, 2,000 resamples for intervals and 10,000 for paired differences, stream `fresh`. The comparison family, adjudication and the one fresh run per model are pre-registered in 9b, before any model sees a fresh contract.
+- **Discipline:** no model sees a fresh text in 9a, no API spend, no frozen artifact changes; nobody reads a fresh contract body before labeling (commands print counts, reason codes and numbers; the snapshot holds exhibit descriptions only); the labeling tool is tried on a CUAD train contract.
+
+### Numbers measured
+- None yet. `list`, `draw` and `describe` outputs are added when run.
+
+### Problems hit and how we solved them
+- None yet.
+
+### Surprises in the data or results
+- None yet.
+
+### Resume-worthy
+none

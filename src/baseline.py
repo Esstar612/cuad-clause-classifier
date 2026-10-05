@@ -2,6 +2,7 @@
 
   python -m src.baseline search    grid on validation, choose by macro-AP, tune Rule B thresholds, save
   python -m src.baseline heldout   one-time test and shift predictions from the frozen model
+  python -m src.baseline fresh     one-time predictions on the Step 9 fresh set
 """
 
 from __future__ import annotations
@@ -24,6 +25,7 @@ from sklearn.pipeline import Pipeline
 
 from src import config
 from src.build_segments import load_segments
+from src.fresh.build import heldout_sets, refuse_rerun
 from src.labels import SHIFT_MEASURABLE_LABELS, label_set
 from src.metrics import contracts_per_label, per_label, summary
 from src.predictions import to_prediction_frame, write_predictions
@@ -34,7 +36,7 @@ FAIL_F1 = 0.30  # a label clearly fails on validation below this F1, or at zero 
 REDACTION = re.compile(r"\*{3,}|_{5,}")
 ARTIFACTS = {name: config.BASELINE_DIR / name for name in
              ("model.joblib", "thresholds.json", "labels.json", "config.json",
-              "search_log.csv", "heldout_run.json")}
+              "search_log.csv", "heldout_run.json", "fresh_run.json")}
 BATCH_NOTE = "batch-amortized: one predict_proba call over the split, divided by its segment count"
 
 
@@ -248,33 +250,24 @@ def _report(name, y, pred, proba, label_order, labels=None) -> None:
     print(f"{name}: {_fmt(summary(y, pred, proba, label_order, labels=labels))}")
 
 
-def heldout(force: bool) -> None:
+def heldout(force: bool, fresh: bool = False) -> None:
     pd.set_option("display.width", 220)
     pd.set_option("display.max_rows", 200)
-    marker = ARTIFACTS["heldout_run.json"]
-    if marker.exists() and not force:
-        raise SystemExit(f"Refusing: held-out sets already evaluated ({marker.read_text().strip()}). "
-                         "Test is touched once per model. Override with "
-                         "--i-know-this-reruns-test, and log it.")
+    marker = ARTIFACTS["fresh_run.json" if fresh else "heldout_run.json"]
+    refuse_rerun(marker, fresh, force)
     saved = json.loads(ARTIFACTS["config.json"].read_text())
     version = model_version()
     if version != saved["model_version"]:
         raise SystemExit(f"Artifacts changed since search: {version} != {saved['model_version']}")
-    marker.write_text(json.dumps({"started_utc": _now(), "model_version": version, "forced": force}))
-
     pipe = joblib.load(ARTIFACTS["model.joblib"])
     thresholds = json.loads(ARTIFACTS["thresholds.json"].read_text())
     label_order = json.loads(ARTIFACTS["labels.json"].read_text())["label_order"]
     segments, spans, splits, current_order = load_data()
     if current_order != label_order:
         raise SystemExit("Label order differs from the saved model")
-    test_contracts = contracts_per_label(spans, splits, "test")
-    rule_a = [lab for lab in label_order
-              if test_contracts.get(lab, 0) >= config.PER_LABEL_MIN_TEST_CONTRACTS]
-    rule_c = sorted(SHIFT_MEASURABLE_LABELS)
-
-    for split in ("test", "shift"):
-        part = segments[segments["split"] == split].reset_index(drop=True)
+    sets = heldout_sets(segments, fresh)
+    marker.write_text(json.dumps({"started_utc": _now(), "model_version": version, "forced": force}))
+    for split, part in sets:
         proba, batch_ms = timed_proba(pipe, part["text"].tolist())
         pred = apply_thresholds(proba, label_order, thresholds)
         y = indicator(part["labels"], label_order)
@@ -286,12 +279,16 @@ def heldout(force: bool) -> None:
         _report("All labels (combined)", y, pred, proba, label_order)
         table = per_label(y, pred, proba, label_order)
         if split == "test":
+            test_contracts = contracts_per_label(spans, splits, "test")
+            rule_a = [lab for lab in label_order
+                      if test_contracts.get(lab, 0) >= config.PER_LABEL_MIN_TEST_CONTRACTS]
             _report(f"Rule A labels ({len(rule_a)})", y, pred, proba, label_order, labels=rule_a)
             table["test_contracts"] = table["label"].map(test_contracts).fillna(0).astype(int)
             table["main_table"] = table["label"].isin(rule_a)
             print("All 33 labels (main_table=False: insufficient support, not interpreted):")
             print(table.sort_values(["main_table", "f1"]).round(3).to_string(index=False))
-        else:
+        elif split == "shift":
+            rule_c = sorted(SHIFT_MEASURABLE_LABELS)
             for ctype in config.SHIFT_TYPES:
                 m = (part["contract_type"] == ctype).to_numpy()
                 _report(f"{ctype}, all labels", y[m], pred[m], proba[m], label_order)
@@ -312,11 +309,13 @@ def main() -> None:
     sub.add_parser("search")
     held = sub.add_parser("heldout")
     held.add_argument("--i-know-this-reruns-test", dest="force", action="store_true")
+    fr = sub.add_parser("fresh")
+    fr.add_argument("--i-know-this-reruns-fresh", dest="force", action="store_true")
     args = parser.parse_args()
     if args.cmd == "search":
         search()
     else:
-        heldout(args.force)
+        heldout(args.force, fresh=args.cmd == "fresh")
 
 
 if __name__ == "__main__":

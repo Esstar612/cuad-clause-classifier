@@ -17,8 +17,9 @@
   python -m src.llm.run thresholds --model M                Rule B thresholds on validation
   python -m src.llm.run repeat --model M [--max-cost X]    nondeterminism check (2 extra runs)
   python -m src.llm.run heldout --model M [--max-cost X]    one-time test + shift run
+  python -m src.llm.run fresh --model M [--max-cost X]      one-time run on the Step 9 fresh set
 
-Paid commands (iterate, val, repeat, heldout) stop before any call if spend so far plus their
+Paid commands (iterate, val, repeat, heldout, fresh) stop before any call if spend so far plus their
 projected cost would pass the $100 soft checkpoint; rerun with --past-checkpoint to approve.
 
 Models: claude (claude-sonnet-5), gemini (gemini-3.8-flash), fireworks-deepseek (DeepSeek V4.1 Flash on
@@ -48,6 +49,7 @@ from src import config
 from src.bootstrap import f1_metrics, per_contract_counts
 from src.build_segments import load_segments
 from src.evaluate import indicator
+from src.fresh.build import heldout_sets
 from src.labels import label_set
 from src.llm.cache import BudgetExceeded, Ledger, cache_path, load_record, request_hash, save_record
 from src.llm.clients import make_classifier, worst_case_cost
@@ -1024,13 +1026,13 @@ def cmd_repeat(args) -> None:
         print(f"    {lab}: {v:.3f}")
 
 
-def heldout_guard(marker: Path, prompt_hash_: str, force: bool) -> dict:
-    """Test is touched once per model. A completed run blocks reruns unless forced (and
+def heldout_guard(marker: Path, prompt_hash_: str, force: bool, what: str = "test") -> dict:
+    """Test (and the fresh set) is touched once per model. A completed run blocks reruns unless forced (and
     logged). A started but incomplete run may resume: no predictions or metrics were shown."""
     state = json.loads(marker.read_text()) if marker.exists() else {}
     if state.get("completed_utc") and not force:
-        raise SystemExit(f"Refusing: held-out sets already evaluated ({state}). Test is touched once "
-                         "per model. Override with --i-know-this-reruns-test, and log it.")
+        raise SystemExit(f"Refusing: {what} set already evaluated ({state}). It is touched once "
+                         f"per model. Override with --i-know-this-reruns-{what}, and log it.")
     if not state or state.get("completed_utc"):
         state = {"started_utc": _now(), "prompt_hash": prompt_hash_, "forced": bool(force)}
         marker.parent.mkdir(parents=True, exist_ok=True)
@@ -1085,16 +1087,18 @@ def cmd_heldout(args) -> None:
     thresholds = json.loads(thr_path.read_text())
     segments, _, label_order = load_inputs()
     labels = set(label_order)
-    marker = model_dir(args.model) / "heldout_run.json"
+    fresh = args.cmd == "fresh"
+    marker = model_dir(args.model) / ("fresh_run.json" if fresh else "heldout_run.json")
     prior = json.loads(marker.read_text()) if marker.exists() else {}
     if args.redo_invalid and not prior.get("invalid"):
         raise SystemExit("--redo-invalid applies only after a split was declared invalid")
-    splits = ("test", "shift")
+    sets = dict(heldout_sets(segments, fresh))
+    splits = tuple(sets)
     namespaces = {sp: split_namespace(prior, sp, version, args.redo_invalid) for sp in splits}
-    split_calls = {sp: build_calls(segments[segments["split"] == sp], frozen["batch_size"]) for sp in splits}
+    split_calls = {sp: build_calls(sets[sp], frozen["batch_size"]) for sp in splits}
     soft_checkpoint(args.model, [(split_calls[sp], version, namespaces[sp]) for sp in splits],
                     label_order, args.past_checkpoint)
-    state = heldout_guard(marker, frozen["prompt_hash"], args.force)
+    state = heldout_guard(marker, frozen["prompt_hash"], args.force, "fresh" if fresh else "test")
     for split in splits:
         calls = split_calls[split]
         result = run_calls(args.model, calls, version, namespaces[split], label_order, max_cost=args.max_cost)
@@ -1102,7 +1106,7 @@ def cmd_heldout(args) -> None:
         status, health, health_notes = split_health([result.records[c.key] for c in calls], version, labels,
                                                       state, split)
         marker.write_text(json.dumps(state))
-        frame = build_frame(segments, calls, result, label_order, thresholds, args.model,
+        frame = build_frame(sets[split], calls, result, label_order, thresholds, args.model,
                             _version_tag(args.model, version, served_models(result), thresholds))
         path = config.PREDICTIONS_DIR / f"{args.model}_{split}{'_invalid' if status == 'invalid' else ''}.parquet"
         write_predictions(frame, path, label_order,
@@ -1119,13 +1123,13 @@ def cmd_heldout(args) -> None:
             raise SystemExit(f"{split} declared invalid for infrastructure reasons: below-floor share "
                              f"{health['below_floor_share']:.2%} > {config.LLM_HEALTH_MAX_SHARE:.0%} "
                              f"(run-health rule, BUILD_LOG 3n). Redo it once with: python -m src.llm.run "
-                             f"heldout --model {args.model} --redo-invalid")
+                             f"{args.cmd} --model {args.model} --redo-invalid")
         if status == "unreliable":
             print(f"  FLAG: the one redo of {split} also exceeds {config.LLM_HEALTH_MAX_SHARE:.0%}; "
                   "it stands and is reported as unreliable for infrastructure reasons")
     state["completed_utc"] = _now()
     marker.write_text(json.dumps(state))
-    print(f"Done. Score with: python -m src.evaluate model {args.model}")
+    print(f"Done. Score with: python -m src.evaluate {'fresh' if fresh else 'model'} {args.model}")
 
 TIMEOUT_PREFIXES = ("connection:", "408", "504")
 
@@ -1412,7 +1416,7 @@ def main() -> None:
     p.add_argument("--prompt", required=True)
     p.add_argument("--batch-size", type=int, choices=[1, WINDOW], required=True)
     p.add_argument("--force", action="store_true")
-    for name in ("val", "repeat", "heldout"):
+    for name in ("val", "repeat", "heldout", "fresh"):
         p = sub.add_parser(name)
         p.add_argument("--model", choices=models, required=True)
         p.add_argument("--max-cost", type=float)
@@ -1420,7 +1424,9 @@ def main() -> None:
                        help="approve continuing past the $100 soft checkpoint (Rule E)")
         if name == "heldout":
             p.add_argument("--i-know-this-reruns-test", dest="force", action="store_true")
-        if name in ("val", "heldout"):
+        if name == "fresh":
+            p.add_argument("--i-know-this-reruns-fresh", dest="force", action="store_true")
+        if name in ("val", "heldout", "fresh"):
             p.add_argument("--redo-invalid", action="store_true",
                            help="redo a split declared invalid by the run-health rule, once")
     p = sub.add_parser("thresholds")
@@ -1431,7 +1437,7 @@ def main() -> None:
      "gate-v4": cmd_gate_v4, "n1-sample": cmd_n1_sample, "smoke-check": cmd_smoke_check,
      "iterate": cmd_iterate, "compare": cmd_compare,
      "freeze": cmd_freeze, "val": cmd_val, "thresholds": cmd_thresholds, "repeat": cmd_repeat,
-     "heldout": cmd_heldout}[args.cmd](args)
+     "heldout": cmd_heldout, "fresh": cmd_heldout}[args.cmd](args)
 
 
 if __name__ == "__main__":

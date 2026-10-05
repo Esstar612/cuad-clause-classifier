@@ -20,9 +20,12 @@ from src import config
 
 def resample_weights(contracts: pd.DataFrame, stream: str,
                      n_resamples: int = config.BOOTSTRAP_RESAMPLES,
-                     seed: int = config.SEED) -> tuple[np.ndarray, np.ndarray]:
+                     seed: int = config.SEED, stratify: bool = True) -> tuple[np.ndarray, np.ndarray]:
     """Returns (contract_ids, W). W[b, c] = times contract_ids[c] is drawn in resample b.
-    Within each contract type, draw as many contracts as the type has, with replacement."""
+    Within each contract type, draw as many contracts as the type has, with replacement.
+    stratify=False draws from all contracts as one group (the fresh set)."""
+    if not stratify:
+        contracts = contracts.assign(contract_type="all")
     c = (contracts[["contract_id", "contract_type"]].drop_duplicates()
          .sort_values(["contract_type", "contract_id"]).reset_index(drop=True))
     rng = np.random.default_rng([seed, zlib.crc32(stream.encode())])

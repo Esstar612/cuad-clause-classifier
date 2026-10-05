@@ -7,6 +7,7 @@
   python -m src.transformer validate                  all encoders: validation inference, Rule B
   python -m src.transformer select                    pre-registered rule; domain comparison
   python -m src.transformer heldout                   selected encoder only, test and shift, once
+  python -m src.transformer fresh                     selected encoder only, the Step 9 fresh set, once
 
 No validation output of any encoder exists until every encoder is trained (validate refuses before).
 """
@@ -33,6 +34,7 @@ from src import config
 from src.baseline import BATCH_NOTE, _now, indicator, load_data, single_segment_latency
 from src.bootstrap import f1_metrics, paired_difference, per_contract_counts, resample_weights
 from src.evaluate import load_predictions
+from src.fresh.build import heldout_sets, refuse_rerun
 from src.metrics import per_label, summary
 from src.predictions import to_prediction_frame, write_predictions
 from src.thresholds import apply_thresholds, pooled_labels, tune_thresholds
@@ -422,11 +424,9 @@ def select() -> None:
     print(f"\nWrote {config.TRANSFORMER_DIR / 'selected.json'} and {config.PREDICTIONS_DIR / 'transformer_val.parquet'}")
 
 
-def heldout(force: bool) -> None:
-    marker = config.TRANSFORMER_DIR / "heldout_run.json"
-    if marker.exists() and not force:
-        raise SystemExit("Refusing: held-out sets already evaluated. Test is touched once per model. "
-                         "Override with --i-know-this-reruns-test, and log it.")
+def heldout(force: bool, fresh: bool = False) -> None:
+    marker = config.TRANSFORMER_DIR / ("fresh_run.json" if fresh else "heldout_run.json")
+    refuse_rerun(marker, fresh, force)
     selected = json.loads((config.TRANSFORMER_DIR / "selected.json").read_text())
     key = selected["encoder"]
     if model_version(key) != selected["model_version"]:
@@ -437,14 +437,14 @@ def heldout(force: bool) -> None:
     segments, _, _, current_order = load_data()
     if current_order != label_order:
         raise SystemExit("Label order differs from the saved model")
-    started = _now()
-    marker.write_text(json.dumps({"started_utc": started, "model_version": selected["model_version"],
-                                  "forced": force}))
+    sets = heldout_sets(segments, fresh)
     tok = AutoTokenizer.from_pretrained(d)
     model = AutoModelForSequenceClassification.from_pretrained(d).float()
     thresholds = json.loads((d / "thresholds.json").read_text())
-    for split in ("test", "shift"):
-        part = segments[segments["split"] == split].reset_index(drop=True)
+    started = _now()
+    marker.write_text(json.dumps({"started_utc": started, "model_version": selected["model_version"],
+                                  "forced": force}))
+    for split, part in sets:
         proba, n_trunc, batch_ms = predict_proba(model, tok, part["text"])
         pred = apply_thresholds(proba, label_order, thresholds)
         write_predictions(to_prediction_frame(part, proba, pred, label_order, "transformer",
@@ -458,7 +458,7 @@ def heldout(force: bool) -> None:
         print({k: round(v, 4) if isinstance(v, float) else v for k, v in s.items()})
     marker.write_text(json.dumps({"started_utc": started, "completed_utc": _now(),
                                   "model_version": selected["model_version"], "forced": force}))
-    print("Run `python -m src.evaluate model transformer` for intervals.")
+    print(f"Run `python -m src.evaluate {'fresh' if fresh else 'model'} transformer` for intervals.")
 
 
 def main() -> None:
@@ -475,7 +475,9 @@ def main() -> None:
     sub.add_parser("validate")
     sub.add_parser("select")
     h = sub.add_parser("heldout")
-    h.add_argument("--i-know-this-reruns-test", action="store_true")
+    h.add_argument("--i-know-this-reruns-test", dest="force", action="store_true")
+    h = sub.add_parser("fresh")
+    h.add_argument("--i-know-this-reruns-fresh", dest="force", action="store_true")
     args = parser.parse_args()
     if args.cmd == "fetch":
         fetch()
@@ -490,7 +492,7 @@ def main() -> None:
     elif args.cmd == "select":
         select()
     else:
-        heldout(args.i_know_this_reruns_test)
+        heldout(args.force, fresh=args.cmd == "fresh")
 
 
 if __name__ == "__main__":

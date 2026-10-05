@@ -32,3 +32,8 @@ data/processed/segments.parquet
 
 # Step 6c candidate validation predictions (20 files; only the selected one is kept)
 data/predictions/transformer-tuned-candidates/
+
+# Step 9 fresh set: contract text and raw HTML stay local; links, hashes and label offsets are committed
+data/fresh/text/
+data/processed/fresh_segments.parquet
+tools/labeler/bundle.js

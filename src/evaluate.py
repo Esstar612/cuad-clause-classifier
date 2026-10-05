@@ -3,6 +3,7 @@
   python -m src.evaluate model NAME          test + shift metrics with contract-bootstrap CIs,
                                              calibration on test, error analysis on validation
   python -m src.evaluate compare NAME_A NAME_B   paired differences on identical resamples
+  python -m src.evaluate fresh NAME          Step 9 fresh set: Rule F and all labels, plain contract resampling
 
 Reads data/predictions/{NAME}_{val,test,shift}.parquet (shared format) and writes
 data/eval/{NAME}.json or data/eval/compare_{A}_vs_{B}.json.
@@ -29,6 +30,8 @@ FAIL_F1 = 0.30  # same failure rule as the baseline search: F1 below this, or ze
 SCOPE_METRICS = ("macro_f1", "micro_f1", "macro_ap", "none_fp_rate", "parse_failure_rate")
 METHOD = (f"{config.BOOTSTRAP_RESAMPLES} contract-level bootstrap resamples, stratified by "
           f"contract type, percentile {int(config.CI_LEVEL * 100)}% intervals, seed {config.SEED}")
+FRESH_METHOD = (f"{config.BOOTSTRAP_RESAMPLES} contract-level bootstrap resamples, not stratified by contract "
+                f"type, percentile {int(config.CI_LEVEL * 100)}% intervals, seed {config.SEED}")
 COMPARE_METRICS = ("macro_f1", "micro_f1", "none_fp_rate", "parse_failure_rate")
 ADJUSTED_LEVEL = 1 - (1 - config.CI_LEVEL) / config.COMPARE_FAMILY_SIZE
 COMPARE_METHOD = (f"{config.BOOTSTRAP_RESAMPLES_COMPARE} contract-level bootstrap resamples, stratified by contract "
@@ -77,10 +80,10 @@ class Part:
     """One evaluated set of contracts with fixed resamples; `key` names the random stream."""
 
     def __init__(self, key: str, df: pd.DataFrame, y_true, y_pred, proba, contracts: pd.DataFrame,
-                 n_resamples: int = config.BOOTSTRAP_RESAMPLES, with_ap: bool = True):
+                 n_resamples: int = config.BOOTSTRAP_RESAMPLES, with_ap: bool = True, stratify: bool = True):
         self.key = key
         sub = contracts[contracts["contract_id"].isin(set(df["contract_id"]))]
-        ids, self.W = resample_weights(sub, stream=key, n_resamples=n_resamples)
+        ids, self.W = resample_weights(sub, stream=key, n_resamples=n_resamples, stratify=stratify)
         col = {cid: i for i, cid in enumerate(ids)}
         self.seg_pos = df["contract_id"].map(col).to_numpy()
         self.ones = np.ones((1, len(ids)))
@@ -300,6 +303,40 @@ def evaluate_model(name: str) -> None:
     print(f"\nWrote {config.EVAL_DIR / f'{name}.json'}")
 
 
+def evaluate_fresh(name: str) -> None:
+    from src.fresh import config as F
+    contracts = pd.read_parquet(F.CONTRACTS)
+    df, label_order, y_true, y_pred, proba = load_predictions(name, "fresh")
+    if not (df["split"] == "fresh").all() or not df["contract_id"].isin(contracts["contract_id"]).all():
+        raise SystemExit("the fresh file holds rows outside the fresh set")
+    if df["model_version"].nunique() != 1:
+        raise SystemExit(f"the fresh file must hold one model version: {sorted(set(df['model_version']))}")
+    idx = {lab: j for j, lab in enumerate(label_order)}
+    sets = {"Rule F": [idx[lab] for lab in json.loads(F.RULE_F.read_text())["rule_f"]],
+            "all": list(range(len(label_order)))}
+    part = Part("fresh", df, y_true, y_pred, proba, contracts, stratify=False)
+    sparse = sparse_scores(name, "fresh")
+    result = {"model": name, "model_version": df["model_version"].iloc[0], "method": FRESH_METHOD,
+              "sparse_scores": sparse, "scopes": {f"fresh | {s}": part.scope(sets[s])[0] for s in sets},
+              "per_label_fresh": part.per_label(sets["all"], label_order)}
+    rule_f = {label_order[j] for j in sets["Rule F"]}
+    for row in result["per_label_fresh"]:
+        row["main_table"] = row["label"] in rule_f
+    _dump(result, config.EVAL_DIR / f"{name}_fresh.json")
+    print(f"Model: {name}   version: {result['model_version']}\nMethod: {FRESH_METHOD}")
+    if sparse:
+        print("Scores are sparse (unlisted labels score 0): macro_ap is a lower bound.")
+    for scope, s in result["scopes"].items():
+        print(f"{scope:16s} labels={s['n_labels']:2d} contracts={s['contracts']:3d}  "
+              + "  ".join(f"{m}={_show(s[m])}" for m in SCOPE_METRICS))
+    flat = pd.DataFrame([{**{k: v for k, v in r.items() if k not in ("f1", "ap")},
+                          "f1": r["f1"]["point"], "f1_lo": r["f1"]["ci_low"], "f1_hi": r["f1"]["ci_high"],
+                          "ap": r["ap"]["point"]} for r in result["per_label_fresh"]])
+    print("\n=== Per-label fresh (main_table=False: under Rule F support, not interpreted) ===")
+    print(flat.sort_values(["main_table", "f1"]).round(3).to_string(index=False))
+    print(f"\nWrote {config.EVAL_DIR / f'{name}_fresh.json'}")
+
+
 def family_of(name_a: str, name_b: str) -> str | None:
     return next((f for f, pairs in config.COMPARE_FAMILIES.items() if (name_a, name_b) in pairs), None)
 
@@ -416,9 +453,13 @@ def main() -> None:
     c = sub.add_parser("compare")
     c.add_argument("name_a")
     c.add_argument("name_b")
+    f = sub.add_parser("fresh")
+    f.add_argument("name")
     args = parser.parse_args()
     if args.cmd == "model":
         evaluate_model(args.name)
+    elif args.cmd == "fresh":
+        evaluate_fresh(args.name)
     else:
         compare(args.name_a, args.name_b)
 

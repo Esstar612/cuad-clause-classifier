@@ -4,6 +4,7 @@
   python -m src.transformer_tuned validate            every candidate of every completed run: validation, Rule B
   python -m src.transformer_tuned select              pre-registered rule (macro-AP, tie, macro-F1, simpler)
   python -m src.transformer_tuned heldout             selected candidate only, test and shift, once
+  python -m src.transformer_tuned fresh               selected candidate only, the Step 9 fresh set, once
 
 No validation output of any candidate exists until every run has finished or failed (validate refuses before).
 A failed run contributes no candidates.
@@ -246,11 +247,9 @@ def select() -> None:
           f"{config.PREDICTIONS_DIR / (config.TUNED_MODEL_NAME + '_val.parquet')}")
 
 
-def heldout(force: bool) -> None:
-    marker = config.TUNED_DIR / "heldout_run.json"
-    if marker.exists() and not force:
-        raise SystemExit("Refusing: held-out sets already evaluated. Test is touched once per model. "
-                         "Override with --i-know-this-reruns-test, and log it.")
+def heldout(force: bool, fresh: bool = False) -> None:
+    marker = config.TUNED_DIR / ("fresh_run.json" if fresh else "heldout_run.json")
+    T.refuse_rerun(marker, fresh, force)
     selected = json.loads((config.TUNED_DIR / "selected.json").read_text())
     key = selected["candidate"]
     if T.model_version(key, config.TUNED_DIR) != selected["model_version"]:
@@ -262,14 +261,14 @@ def heldout(force: bool) -> None:
     segments, _, _, current_order = T.load_data()
     if current_order != label_order:
         raise SystemExit("Label order differs from the saved model")
-    started = T._now()
-    marker.write_text(json.dumps({"started_utc": started, "model_version": selected["model_version"],
-                                  "forced": force}))
+    sets = T.heldout_sets(segments, fresh)
     tok = AutoTokenizer.from_pretrained(d)
     model = AutoModelForSequenceClassification.from_pretrained(d).float()
     thresholds = json.loads((d / "thresholds.json").read_text())
-    for split in ("test", "shift"):
-        part = segments[segments["split"] == split].reset_index(drop=True)
+    started = T._now()
+    marker.write_text(json.dumps({"started_utc": started, "model_version": selected["model_version"],
+                                  "forced": force}))
+    for split, part in sets:
         proba, n_trunc, batch_ms = T.predict_proba(model, tok, part["text"])
         pred = T.apply_thresholds(proba, label_order, thresholds)
         T.write_predictions(T.to_prediction_frame(part, proba, pred, label_order, config.TUNED_MODEL_NAME,
@@ -282,7 +281,7 @@ def heldout(force: bool) -> None:
         print({k: round(v, 4) if isinstance(v, float) else v for k, v in s.items()})
     marker.write_text(json.dumps({"started_utc": started, "completed_utc": T._now(),
                                   "model_version": selected["model_version"], "forced": force}))
-    print(f"Run `python -m src.evaluate model {config.TUNED_MODEL_NAME}` for intervals.")
+    print(f"Run `python -m src.evaluate {'fresh' if fresh else 'model'} {config.TUNED_MODEL_NAME}` for intervals.")
 
 
 def main() -> None:
@@ -295,7 +294,9 @@ def main() -> None:
     sub.add_parser("validate")
     sub.add_parser("select")
     h = sub.add_parser("heldout")
-    h.add_argument("--i-know-this-reruns-test", action="store_true")
+    h.add_argument("--i-know-this-reruns-test", dest="force", action="store_true")
+    h = sub.add_parser("fresh")
+    h.add_argument("--i-know-this-reruns-fresh", dest="force", action="store_true")
     args = parser.parse_args()
     if args.cmd == "train":
         train(args.run, args.restart_after_crash)
@@ -304,7 +305,7 @@ def main() -> None:
     elif args.cmd == "select":
         select()
     else:
-        heldout(args.i_know_this_reruns_test)
+        heldout(args.force, fresh=args.cmd == "fresh")
 
 
 if __name__ == "__main__":

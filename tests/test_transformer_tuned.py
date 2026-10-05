@@ -9,6 +9,7 @@ import torch
 
 from src import config, transformer
 from src import transformer_tuned as tuned
+from src.fresh import build as fresh_build
 from src.predictions import write_predictions
 from tests.test_evaluate import _toy_compare_setup
 from tests.test_transformer import LABELS, _Y, world  # noqa: F401  (world is a fixture)
@@ -218,6 +219,14 @@ def test_select_and_heldout_end_to_end_with_guards(grid, monkeypatch):
         assert (pred / f"transformer_{split}.parquet").read_bytes() == six_a[split]
     with pytest.raises(SystemExit, match="already evaluated"):
         tuned.heldout(force=False)
+    held = {p: p.read_bytes() for p in [*pred.glob("transformer*_*.parquet"), root / "tuned" / "heldout_run.json"]}
+    monkeypatch.setattr(fresh_build, "load_fresh_segments",
+                        lambda: seg[seg["split"] == "test"].assign(split="fresh").reset_index(drop=True))
+    tuned.heldout(force=False, fresh=True)
+    assert (pd.read_parquet(pred / "transformer-tuned_fresh.parquet")["split"] == "fresh").all()
+    assert held == {p: p.read_bytes() for p in held}
+    with pytest.raises(SystemExit, match="fresh set already evaluated"):
+        tuned.heldout(force=False, fresh=True)
 
     labels = root / "tuned" / winner / "labels.json"
     saved = labels.read_text()

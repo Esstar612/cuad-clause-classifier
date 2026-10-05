@@ -35,6 +35,7 @@ SEGMENT_MIN_COVERAGE = 0.5
 # Pre-registered evaluation rules (fixed 2026-09-23, before any model output existed).
 PER_LABEL_MIN_TEST_CONTRACTS = 10   # main test table; lower-support labels go to the appendix
 PER_LABEL_MIN_SHIFT_CONTRACTS = 10  # per-label shift results
+PER_LABEL_MIN_FRESH_CONTRACTS = 10  # Rule F, Step 9 fresh set (fixed 2026-10-04, before any fresh label)
 PER_CLASS_THRESHOLD_MIN_VAL_CONTRACTS = 10  # below this, labels share one pooled threshold
 
 # Model artifacts and predictions

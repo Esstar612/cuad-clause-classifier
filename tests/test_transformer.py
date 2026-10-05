@@ -10,6 +10,7 @@ import torch
 from transformers import BertConfig, BertModel, BertTokenizerFast
 
 from src import config, transformer
+from src.fresh import build as fresh_build
 from src.predictions import to_prediction_frame, write_predictions
 
 LABELS = [f"L{i:02d}" for i in range(33)]
@@ -199,6 +200,16 @@ def test_end_to_end_validate_select_heldout_and_guards(world, monkeypatch):
     assert (root / "pred" / "transformer_test.parquet").exists() and (root / "pred" / "transformer_shift.parquet").exists()
     with pytest.raises(SystemExit, match="already evaluated"):
         transformer.heldout(force=False)
+    held = {p.name: p.read_bytes() for p in [*(root / "pred").glob("transformer_*.parquet"),
+                                             root / "transformer" / "heldout_run.json"]}
+    monkeypatch.setattr(fresh_build, "load_fresh_segments",
+                        lambda: seg[seg["split"] == "test"].assign(split="fresh").reset_index(drop=True))
+    transformer.heldout(force=False, fresh=True)
+    assert (pd.read_parquet(root / "pred" / "transformer_fresh.parquet")["split"] == "fresh").all()
+    assert held == {name: (root / ("transformer" if name.endswith(".json") else "pred") / name).read_bytes()
+                    for name in held}
+    with pytest.raises(SystemExit, match="fresh set already evaluated"):
+        transformer.heldout(force=False, fresh=True)
     sel = root / "transformer" / selected["encoder"]
     labels = sel / "labels.json"
     saved = labels.read_text()

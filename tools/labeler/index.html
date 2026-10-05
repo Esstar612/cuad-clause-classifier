@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clause Labeler</title>
+<style>
+  :root { --bg: #fff; --fg: #1d1d1f; --muted: #6b6b70; --line: #dcdce0; --mark: #ffe58a; --accent: #2457d6; --bad: #b3261e; --ok: #1b7f3b; }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 14px/1.45 system-ui, sans-serif; color: var(--fg); background: var(--bg); display: grid; grid-template-columns: 1fr 380px; height: 100vh; }
+  #textpane { overflow: auto; padding: 16px 24px; border-right: 1px solid var(--line); }
+  pre { white-space: pre-wrap; word-wrap: break-word; font: 14px/1.6 Georgia, serif; margin: 0; }
+  mark { background: var(--mark); }
+  mark.focus { outline: 2px solid var(--accent); }
+  aside { overflow: auto; padding: 12px 16px; }
+  h2 { font-size: 13px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); margin: 18px 0 6px; }
+  label { display: block; margin: 6px 0; }
+  input[type=text], select { width: 100%; padding: 6px; font: inherit; }
+  button { font: inherit; padding: 6px 10px; cursor: pointer; }
+  button:disabled { cursor: not-allowed; opacity: .5; }
+  #status.bad { color: var(--bad); } #status.ok { color: var(--ok); }
+  ul { list-style: none; padding: 0; margin: 0; }
+  #spans li { display: grid; grid-template-columns: 1fr auto auto; gap: 6px; align-items: center; padding: 3px 0; border-bottom: 1px solid var(--line); }
+  #spans li span { cursor: pointer; }
+  #checklist li { display: flex; justify-content: space-between; gap: 8px; padding: 2px 0; border-bottom: 1px solid var(--line); }
+  #checklist .state { color: var(--muted); white-space: nowrap; }
+  #checklist .todo { color: var(--bad); }
+  .row { display: flex; gap: 8px; }
+  .row > * { flex: 1; }
+</style>
+</head>
+<body>
+<main id="textpane"><pre id="text"></pre></main>
+<aside>
+  <label>Annotator <input type="text" id="annotator" placeholder="your initials"></label>
+  <label>Contract <select id="contract"></select></label>
+  <p id="status">Load bundle.js next to this file (python -m src.fresh.source bundle).</p>
+
+  <h2>Tag the selection</h2>
+  <div class="row"><select id="category"></select><button id="tag" disabled>Tag</button></div>
+
+  <h2>Spans (<span id="count">0</span>)</h2>
+  <ul id="spans"></ul>
+
+  <h2>Checklist</h2>
+  <p>A type with spans is marked. Every other type needs "not present" confirmed before export.</p>
+  <ul id="checklist"></ul>
+
+  <h2>Agreement date</h2>
+  <input type="text" id="agreementDate" placeholder="YYYY-MM-DD as stated in the contract">
+
+  <h2>Export</h2>
+  <button id="export" disabled>Export labels JSON</button>
+  <p id="exportNote"></p>
+</aside>
+<script src="offsets.js"></script>
+<script src="bundle.js"></script>
+<script>
+const B = window.BUNDLE;
+const $ = (id) => document.getElementById(id);
+const pre = $("text");
+let current = null, verified = false, u16 = null, state = {};
+
+function storageKey() { return "labeler:" + ($("annotator").value.trim() || "anonymous"); }
+function load() { try { state = JSON.parse(localStorage.getItem(storageKey())) || {}; } catch (e) { state = {}; } }
+function save() { try { localStorage.setItem(storageKey(), JSON.stringify(state)); } catch (e) { /* storage unavailable */ } }
+function work() {
+  const id = `${current.contract_id}:${current.text_sha256}`;   // a rebuilt text starts clean
+  state[id] = state[id] || { spans: [], notPresent: {}, agreementDate: "" };
+  return state[id];
+}
+
+async function sha256(text) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf), (b) => b.toString(16).padStart(2, "0")).join("");
+}
+
+function render() {
+  const w = work(), text = current.text;
+  const cuts = new Set([0, text.length]);
+  for (const s of w.spans) { cuts.add(u16[s.start]); cuts.add(u16[s.end]); }
+  const points = [...cuts].sort((a, b) => a - b);
+  pre.textContent = "";
+  for (let i = 0; i < points.length - 1; i++) {
+    const a = points[i], b = points[i + 1];
+    const cats = w.spans.filter((s) => u16[s.start] <= a && u16[s.end] >= b).map((s) => s.category);
+    if (cats.length) {
+      const m = document.createElement("mark");
+      m.textContent = text.slice(a, b);
+      m.title = [...new Set(cats)].join(", ");
+      m.dataset.at = a;
+      pre.appendChild(m);
+    } else {
+      pre.appendChild(document.createTextNode(text.slice(a, b)));
+    }
+  }
+  renderSide();
+}
+
+function renderSide() {
+  const w = work();
+  $("count").textContent = w.spans.length;
+  const list = $("spans");
+  list.textContent = "";
+  w.spans.forEach((s, i) => {
+    const li = document.createElement("li");
+    const label = document.createElement("span");
+    label.textContent = `${s.category} [${s.start}, ${s.end})`;
+    label.onclick = () => {
+      const m = pre.querySelector(`mark[data-at="${u16[s.start]}"]`);
+      if (m) { m.scrollIntoView({ block: "center" }); m.classList.add("focus"); setTimeout(() => m.classList.remove("focus"), 1200); }
+    };
+    const sel = document.createElement("select");
+    for (const c of B.categories) sel.add(new Option(c, c, false, c === s.category));
+    sel.onchange = () => { s.category = sel.value; save(); render(); };
+    const rm = document.createElement("button");
+    rm.textContent = "Remove";
+    rm.onclick = () => { w.spans.splice(i, 1); save(); render(); };
+    li.append(label, sel, rm);
+    list.appendChild(li);
+  });
+  const marked = new Set(w.spans.map((s) => s.category));
+  const cl = $("checklist");
+  cl.textContent = "";
+  for (const c of B.categories) {
+    const li = document.createElement("li");
+    const name = document.createElement("span");
+    name.textContent = c;
+    const st = document.createElement("span");
+    st.className = "state";
+    if (marked.has(c)) {
+      st.textContent = "marked";
+    } else {
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.checked = !!w.notPresent[c];
+      box.onchange = () => { w.notPresent[c] = box.checked; save(); renderSide(); };
+      const lab = document.createElement("label");
+      lab.style.margin = "0";
+      lab.append(box, " not present");
+      if (!box.checked) lab.classList.add("todo");
+      st.appendChild(lab);
+    }
+    li.append(name, st);
+    cl.appendChild(li);
+  }
+  $("agreementDate").value = w.agreementDate;
+  const missing = B.categories.filter((c) => !marked.has(c) && !w.notPresent[c]).length;
+  $("export").disabled = !verified || missing > 0;
+  $("exportNote").textContent = missing ? `${missing} checklist items still open.` : "";
+}
+
+async function openContract(idx) {
+  const c = B.contracts[idx];
+  current = c;
+  verified = false;
+  $("tag").disabled = true;
+  u16 = utf16Offsets(c.text);
+  pre.textContent = c.text;
+  if (!window.crypto || !crypto.subtle) {
+    $("status").textContent = "This browser blocks hashing on file:// pages. Run `python -m http.server -d tools/labeler` "
+                            + "and open http://localhost:8000.";
+    $("status").className = "bad";
+    return;
+  }
+  const ok = (await sha256(pre.textContent)) === c.text_sha256;
+  if (current !== c) return;   // another contract was opened while hashing
+  verified = ok;
+  $("status").textContent = ok ? `Contract ${current.contract_id}: text verified (SHA-256 matches).`
+                               : `Contract ${current.contract_id}: text hash mismatch. Do not label; rebuild the bundle.`;
+  $("status").className = ok ? "ok" : "bad";
+  $("tag").disabled = !ok;
+  render();
+}
+
+function measure(range) {
+  const before = document.createRange();
+  before.setStart(pre, 0);
+  before.setEnd(range.startContainer, range.startOffset);
+  return before.toString().length;
+}
+
+$("tag").onclick = () => {
+  const sel = window.getSelection();
+  const span = sel.rangeCount ? selectionSpan(sel.getRangeAt(0), pre, current.text, measure) : null;
+  if (!span) { $("status").textContent = "Select text inside the contract first."; return; }
+  const w = work();
+  w.spans.push({ category: $("category").value, start: span[0], end: span[1] });
+  w.spans.sort((a, b) => a.start - b.start || a.end - b.end);
+  sel.removeAllRanges();
+  save();
+  render();
+};
+
+$("agreementDate").oninput = (e) => { work().agreementDate = e.target.value; save(); };
+$("annotator").onchange = () => { load(); if (current) render(); };
+
+$("export").onclick = () => {
+  const w = work(), annotator = $("annotator").value.trim();
+  if (!annotator) { $("exportNote").textContent = "Enter your initials first."; return; }
+  const marked = new Set(w.spans.map((s) => s.category));
+  const out = {
+    contract_id: current.contract_id, annotator, guide_version: B.guide_version,
+    text_sha256: current.text_sha256, agreement_date: w.agreementDate,
+    checklist: Object.fromEntries(B.categories.map((c) => [c, marked.has(c) ? "marked" : "not present"])),
+    spans: w.spans.map((s) => ({ category: s.category, start: s.start, end: s.end })),
+    exported_utc: new Date().toISOString(),
+  };
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(new Blob([JSON.stringify(out, null, 2)], { type: "application/json" }));
+  a.download = `labels_${annotator}_${current.contract_id}.json`;
+  a.click();
+};
+
+if (B) {
+  for (const c of B.categories) $("category").add(new Option(c, c));
+  B.contracts.forEach((c, i) => $("contract").add(new Option(String(c.contract_id), i)));
+  $("contract").onchange = (e) => openContract(Number(e.target.value));
+  load();
+  openContract(0);
+}
+</script>
+</body>
+</html>
