@@ -36,7 +36,7 @@ EFTS_PAGE = 100
 EFTS_MAX_FROM = 9_900        # EFTS returns at most 10,000 hits per query
 PRIOR_START = "2001-01-01"   # start of EFTS full-text coverage
 EDGAR_MIN_INTERVAL_S = 0.2   # at most 5 requests per second (SEC allows 10)
-EDGAR_MAX_ATTEMPTS = 5
+EDGAR_MAX_ATTEMPTS = 8       # waits of 1 to 64 s between attempts: EFTS returns short bursts of HTTP 500
 EDGAR_TIMEOUT_S = 60.0
 
 # One quoted-phrase query per CUAD contract type, and the description phrases that assign the type.

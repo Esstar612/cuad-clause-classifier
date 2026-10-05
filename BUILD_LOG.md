@@ -3179,7 +3179,7 @@ Fixed before any Step 7 number is computed. No model is retrained, no prompt or 
 - None yet. `list`, `draw` and `describe` outputs are added when run.
 
 ### Problems hit and how we solved them
-- None yet.
+- The first `list` run stopped on its first query: EFTS answered HTTP 500 to all 5 attempts (waits of 1 to 8 s). The same request then succeeded 12 times in a row, so the errors were a transient burst on SEC's side. Retries raised to 8 attempts (waits up to 64 s) before any candidate was listed or checked. This also lowers the chance that a passing contract is rejected as `efts_error` during the draw; no exclusion rule changed.
 
 ### Surprises in the data or results
 - None yet.
