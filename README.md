@@ -1,16 +1,29 @@
-# CUAD contract clause classifier
+# Clause Review: six contract-clause classifiers, compared honestly
 
-**Live demo: https://clause-review-alpha.vercel.app** (a review aid; the first visit after a quiet spell takes about a minute while the server starts).
+**[Live demo](https://clause-review-alpha.vercel.app)** · **[Case study](https://portfolio-three-rose-44.vercel.app/projects/clause-review)** · [Full results](docs/results.md) · [Build log](BUILD_LOG.md)
 
-Classifies segments of commercial contracts into 33 clause types (Anti-Assignment, Change Of Control, Governing Law, and so on) using CUAD, a dataset of 510 contracts labeled by lawyers. Six models are compared under one evaluation protocol: a TF-IDF baseline, two prompted proprietary LLMs (Claude and Gemini), an open-weights LLM served on Fireworks (DeepSeek V4.1 Flash), a fine-tuned legal-BERT, and a tuned legal-BERT successor.
+![Clause Review flagging Expiration Date, Anti-Assignment and Governing Law in a marketing agreement](docs/images/clause-review.jpg)
 
-The emphasis is on honest evaluation rather than a headline number:
-- **Pre-registered rules.** Metrics, thresholds, selection rules and comparison families are written down in `BUILD_LOG.md` before the results they govern exist. For Steps 4b, 5, 6a, 6b and 6c the commit history shows the pre-registration commit before the results commit.
+Clause Review reads a commercial contract and points a lawyer to the clauses worth checking: 33 clause types such as Anti-Assignment, Change Of Control and Governing Law. Behind it is a comparison of six models on CUAD, 510 contracts labeled by lawyers: a TF-IDF baseline, two fine-tuned legal-BERTs, two prompted proprietary LLMs (Claude and Gemini), and an open-weights LLM served on Fireworks (DeepSeek V4.1 Flash). Every rule that decides a result was written down before the result existed, and every score carries a contract-level interval.
+
+The live demo is a review aid: each flag is for a lawyer to check, and unflagged text is not cleared. The first visit after a quiet spell takes about a minute while the server starts.
+
+## Key findings
+
+- **Gemini is the best model, and the lead holds up.** Test macro-F1 0.7237 [0.6997, 0.7455]; higher than Claude on both metrics on test after correcting for multiple comparisons.
+- **An open model matches a frontier model at about a ninth of the cost.** DeepSeek, run with Gemini's frozen prompt and no tuning of its own, cannot be told apart from Claude; its test and shift runs cost $1.12 against $9.66.
+- **A model that runs locally does the same.** The tuned legal-BERT keeps contract text on the firm's own machines and cannot be told apart from Claude.
+- **Every model loses accuracy on unfamiliar contract types.** On the same 17 clause types, Gemini's macro-F1 falls from 0.7333 on test to 0.5753 on Franchise and Transportation contracts, which no model saw in training. A label-free drift monitor did not detect the shift.
+- **The deployed service reproduces the evaluation exactly.** A pre-registered check found 0 changed flags in 399,036 label decisions on Cloud Run, with the same result on GKE.
+
+## How the numbers were kept honest
+
+- **Pre-registered rules.** Metrics, thresholds, selection rules and comparison families are written down in `BUILD_LOG.md` before the results they govern exist. For Steps 4b to 8 the commit history shows the pre-registration commit before the results commit.
 - **One look at test.** Every choice (hyperparameters, prompts, thresholds, model selection) is made on validation. Each model is run once on test.
 - **Contract-level splits and a shift set.** Splits are by contract, stratified by contract type. Franchise and Transportation contracts (28) are held out entirely as a distribution-shift set.
-- **Paired, contract-level bootstrap.** Model differences use 10,000 paired resamples of whole contracts, with Bonferroni-adjusted intervals across a pre-registered family of 12 comparisons. A difference is claimed only when the adjusted interval excludes zero.
-- **The deployment is checked against the evaluation.** A pre-registered parity check sends 20 validation contracts to the deployed service and compares every flag with the evaluated predictions: 0 disagreements on Cloud Run and on GKE. A GKE run that lost one request to a dropped connection is kept as a failure, next to the passing rerun.
-- **Failures are kept.** The fine-tuned transformer (6a) came last on test. That result stays in the record as it is. A tuned successor (6c) was pre-registered afterwards as a separate, post-hoc model, with a stricter interval for the second look at test.
+- **Paired, contract-level bootstrap.** Model differences use 10,000 paired resamples of whole contracts, with Bonferroni-adjusted intervals across a pre-registered family of 12 comparisons. A difference is claimed only when the adjusted interval excludes zero, and claims that clear it narrowly are labeled marginal.
+- **The deployment is checked against the evaluation.** The parity check sends 20 validation contracts to the deployed service and compares every flag with the evaluated predictions. A GKE run that lost one request to a dropped connection is kept as a failure, next to the passing rerun.
+- **Failures are kept.** The first fine-tuned transformer (6a) came last on test. That result stays in the record as it is. A tuned successor (6c) was pre-registered afterwards as a separate, post-hoc model, with a stricter interval for the second look at test.
 
 ## Results so far
 
@@ -45,7 +58,7 @@ Test (Rule A labels) and shift (Rule C labels), point [95% contract-bootstrap CI
 | 6b | Open model on Fireworks: DeepSeek V4.1 Flash under the frozen LLM protocol, judged smoke gate, no prompt iteration | BUILD_LOG Step 6b |
 | 7 | Review service: text or PDF, high-recall option, spend-capped LLM, extraction quality measured | BUILD_LOG Step 7, `docs/results.md` |
 | 8 | Deployment: one Docker image on Cloud Run (live) and GKE (verified, torn down), Vercel front end, parity check | BUILD_LOG Step 8, `docs/results.md` |
-| 9, 10 | Fresh non-CUAD test set, then an ensemble evaluated only on it (planned) | `docs/plan.md` |
+| 9, 10 | Fresh non-CUAD test set, then an ensemble evaluated only on it (next) | `docs/plan.md` |
 
 ## Layout
 
@@ -54,8 +67,10 @@ src/            library code; src/config.py holds the seed, paths and every sett
   llm/          LLM classifiers, prompts, cache, budget
 tests/          pytest suite (CPU only, no downloads, no API calls)
 service/        FastAPI review service
-scripts/        review script, train-fit diagnostic, service check
-docs/           plan, results, labeling schema, saved plan reviews
+web/            static front end for the review service (deployed on Vercel)
+deploy/         Cloud Run and GKE deploy scripts, Kubernetes manifests
+scripts/        code review, service check, deployment parity check, clause definitions
+docs/           plan, results, labeling schema, saved plan reviews, images
 data/           processed outputs, predictions, evaluation JSON (raw data is not committed)
 models/         frozen model metadata and thresholds (weights are not committed)
 BUILD_LOG.md    dated decisions, pre-registrations, numbers and problems, step by step
