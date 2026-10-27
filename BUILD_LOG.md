@@ -3243,7 +3243,11 @@ none
   - Segment characters, p10 / p25 / p50 / p75 / p90: CUAD test 62 / 106 / 270 / 670 / 1,274; fresh 60 / 84 / 191 / 404 / 747.
   - Contract characters, median: CUAD test 33,799.5; fresh 33,859.5.
   - Command: `python -m src.fresh.source describe`
-- The draw's own counts (accepted contracts per type, rejections by reason code) are not yet logged; they come from the `python -m src.fresh.source draw` output.
+- Draw (run 2026-10-04): 30 accepted of 54 candidates checked. Rejections: prior_appearance 11, too_short 6, amendment 6, redacted 1; no other reason code occurred.
+  - Accepted / checked per type: Agency 2 / 9, Collaboration/Cooperation 3 / 3, Consulting 2 / 4, Development 4 / 5, Distributor 4 / 7, Joint Venture 1 / 1, License 4 / 7, Manufacturing 2 / 2, Marketing 2 / 4, Service 3 / 6, Supply 3 / 6.
+  - Against the starting allocation, Marketing filled 2 of its 3 slots (its 4 frame candidates were all checked) and Distributor took the freed slot (4 instead of 3), as the reallocation rule provides. Every other type filled its starting allocation.
+  - Source: the original `draw` printout was not saved; these counts are regenerated from the committed rejection log with the same pandas operations `cmd_draw` prints (reason value counts; accepted and checked per type).
+  - File: `data/fresh/draw_log.csv`
 
 ### Problems hit and how we solved them
 None.
