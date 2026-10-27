@@ -1,0 +1,19 @@
+Micro precision and recall, point [95% CI], 2000 contract-level resamples on the src.evaluate streams. Post-hoc: computed after every model's single held-out run; no claims.
+baseline             test | Rule A  precision 0.7148 [0.6871, 0.7464]  recall 0.6233 [0.5962, 0.6524]  micro-F1 0.6659 (matches data/eval)  tp 920 fp 367 fn 556
+baseline             test | all     precision 0.7072 [0.6782, 0.7396]  recall 0.6087 [0.5811, 0.6375]  micro-F1 0.6543 (matches data/eval)  tp 949 fp 393 fn 610
+baseline             shift | Rule C  precision 0.6220 [0.5433, 0.7123]  recall 0.4217 [0.3617, 0.4931]  micro-F1 0.5027 (matches data/eval)  tp 237 fp 144 fn 325
+claude               test | Rule A  precision 0.7625 [0.7341, 0.7923]  recall 0.6741 [0.6495, 0.7017]  micro-F1 0.7156 (matches data/eval)  tp 995 fp 310 fn 481
+claude               test | all     precision 0.7498 [0.7236, 0.7786]  recall 0.6671 [0.6423, 0.6951]  micro-F1 0.7060 (matches data/eval)  tp 1040 fp 347 fn 519
+claude               shift | Rule C  precision 0.5953 [0.5409, 0.6747]  recall 0.5445 [0.4751, 0.6148]  micro-F1 0.5688 (matches data/eval)  tp 306 fp 208 fn 256
+gemini               test | Rule A  precision 0.7690 [0.7396, 0.8019]  recall 0.7331 [0.7066, 0.7615]  micro-F1 0.7506 (matches data/eval)  tp 1082 fp 325 fn 394
+gemini               test | all     precision 0.7626 [0.7333, 0.7950]  recall 0.7210 [0.6955, 0.7498]  micro-F1 0.7412 (matches data/eval)  tp 1124 fp 350 fn 435
+gemini               shift | Rule C  precision 0.5923 [0.5410, 0.6637]  recall 0.5765 [0.5205, 0.6387]  micro-F1 0.5843 (matches data/eval)  tp 324 fp 223 fn 238
+transformer          test | Rule A  precision 0.5363 [0.5140, 0.5598]  recall 0.6213 [0.5939, 0.6524]  micro-F1 0.5756 (matches data/eval)  tp 917 fp 793 fn 559
+transformer          test | all     precision 0.4898 [0.4668, 0.5140]  recall 0.6030 [0.5748, 0.6353]  micro-F1 0.5405 (matches data/eval)  tp 940 fp 979 fn 619
+transformer          shift | Rule C  precision 0.4842 [0.4296, 0.5509]  recall 0.4893 [0.4461, 0.5385]  micro-F1 0.4867 (matches data/eval)  tp 275 fp 293 fn 287
+transformer-tuned    test | Rule A  precision 0.6972 [0.6679, 0.7276]  recall 0.6802 [0.6529, 0.7102]  micro-F1 0.6886 (matches data/eval)  tp 1004 fp 436 fn 472
+transformer-tuned    test | all     precision 0.6775 [0.6504, 0.7075]  recall 0.6709 [0.6442, 0.7012]  micro-F1 0.6742 (matches data/eval)  tp 1046 fp 498 fn 513
+transformer-tuned    shift | Rule C  precision 0.6553 [0.5950, 0.7205]  recall 0.5142 [0.4658, 0.5597]  micro-F1 0.5763 (matches data/eval)  tp 289 fp 152 fn 273
+fireworks-deepseek   test | Rule A  precision 0.7280 [0.6990, 0.7595]  recall 0.6999 [0.6721, 0.7321]  micro-F1 0.7136 (matches data/eval)  tp 1033 fp 386 fn 443
+fireworks-deepseek   test | all     precision 0.7219 [0.6950, 0.7521]  recall 0.6960 [0.6689, 0.7267]  micro-F1 0.7087 (matches data/eval)  tp 1085 fp 418 fn 474
+fireworks-deepseek   shift | Rule C  precision 0.6121 [0.5428, 0.6857]  recall 0.5587 [0.4879, 0.6342]  micro-F1 0.5842 (matches data/eval)  tp 314 fp 199 fn 248
