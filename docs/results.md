@@ -895,6 +895,32 @@ Sources: `python -m src.llm.run heldout --model <name>` (`data/processed/llm_hel
 - Step 6b (DeepSeek on Fireworks, from the smoke to the held-out run): about $2.10, for a ledger total of about $55.81.
 - Repeat check (first 30 iteration windows, 295 validation segments; three runs; Rule B thresholds): Claude's exact label-set agreement across all three runs was 0.9763, with a none-versus-some flip rate of 0.0136 to 0.0169 between pairs of runs (Claude takes no temperature or seed). Gemini's three runs, with `seed=42`, were identical (agreement 1.0); this is measured on 30 windows and is not a guarantee of determinism. DeepSeek, with `seed=42` on Fireworks, agreed on 0.9627 of segments across all three runs, with a flip rate of 0.0169 to 0.0271.
 
+## Overall precision and recall (post-hoc, 2026-10-26)
+Micro precision and recall over the scope's labels, from the saved held-out predictions. Computed after every model's single test and shift run, so descriptive only, with no claims and no comparison family. Same Rule B flags, label scopes and resamples as the F1 tables (2000 contract-level resamples, stratified by contract type, seed 42); for every row the micro-F1 rebuilt from these counts matched `data/eval/<model>.json`. Source: `python -m scripts.micro_pr | tee data/processed/micro_pr.txt`.
+
+> Contamination caveat: CUAD has been public since 2021, so Claude, Gemini and DeepSeek may have seen these contracts and labels in training, and their scores may be optimistic relative to unseen contracts. The shift set is part of the same release (docs/plan.md, Limitations).
+
+| Model | Scope | Precision [95% CI] | Recall [95% CI] | Micro-F1 | TP | FP | FN |
+|---|---|---|---|---|---|---|---|
+| baseline | test \| Rule A | 0.7148 [0.6871, 0.7464] | 0.6233 [0.5962, 0.6524] | 0.6659 | 920 | 367 | 556 |
+| baseline | test \| all | 0.7072 [0.6782, 0.7396] | 0.6087 [0.5811, 0.6375] | 0.6543 | 949 | 393 | 610 |
+| baseline | shift \| Rule C | 0.6220 [0.5433, 0.7123] | 0.4217 [0.3617, 0.4931] | 0.5027 | 237 | 144 | 325 |
+| claude | test \| Rule A | 0.7625 [0.7341, 0.7923] | 0.6741 [0.6495, 0.7017] | 0.7156 | 995 | 310 | 481 |
+| claude | test \| all | 0.7498 [0.7236, 0.7786] | 0.6671 [0.6423, 0.6951] | 0.7060 | 1040 | 347 | 519 |
+| claude | shift \| Rule C | 0.5953 [0.5409, 0.6747] | 0.5445 [0.4751, 0.6148] | 0.5688 | 306 | 208 | 256 |
+| gemini | test \| Rule A | 0.7690 [0.7396, 0.8019] | 0.7331 [0.7066, 0.7615] | 0.7506 | 1082 | 325 | 394 |
+| gemini | test \| all | 0.7626 [0.7333, 0.7950] | 0.7210 [0.6955, 0.7498] | 0.7412 | 1124 | 350 | 435 |
+| gemini | shift \| Rule C | 0.5923 [0.5410, 0.6637] | 0.5765 [0.5205, 0.6387] | 0.5843 | 324 | 223 | 238 |
+| transformer | test \| Rule A | 0.5363 [0.5140, 0.5598] | 0.6213 [0.5939, 0.6524] | 0.5756 | 917 | 793 | 559 |
+| transformer | test \| all | 0.4898 [0.4668, 0.5140] | 0.6030 [0.5748, 0.6353] | 0.5405 | 940 | 979 | 619 |
+| transformer | shift \| Rule C | 0.4842 [0.4296, 0.5509] | 0.4893 [0.4461, 0.5385] | 0.4867 | 275 | 293 | 287 |
+| transformer-tuned | test \| Rule A | 0.6972 [0.6679, 0.7276] | 0.6802 [0.6529, 0.7102] | 0.6886 | 1004 | 436 | 472 |
+| transformer-tuned | test \| all | 0.6775 [0.6504, 0.7075] | 0.6709 [0.6442, 0.7012] | 0.6742 | 1046 | 498 | 513 |
+| transformer-tuned | shift \| Rule C | 0.6553 [0.5950, 0.7205] | 0.5142 [0.4658, 0.5597] | 0.5763 | 289 | 152 | 273 |
+| fireworks-deepseek | test \| Rule A | 0.7280 [0.6990, 0.7595] | 0.6999 [0.6721, 0.7321] | 0.7136 | 1033 | 386 | 443 |
+| fireworks-deepseek | test \| all | 0.7219 [0.6950, 0.7521] | 0.6960 [0.6689, 0.7267] | 0.7087 | 1085 | 418 | 474 |
+| fireworks-deepseek | shift \| Rule C | 0.6121 [0.5428, 0.6857] | 0.5587 [0.4879, 0.6342] | 0.5842 | 314 | 199 | 248 |
+
 ## Confidence intervals
 - Method: 2000 contract-level bootstrap resamples, stratified by contract type, percentile 95% intervals, seed 42.
 - Resampling unit: the contract; within each contract type, as many contracts as the type has are drawn with replacement. Resamples depend only on the seed, a stream name (test, shift, shift:Franchise, shift:Transportation), and the contract ids and types, so every model evaluated later sees identical resamples (paired comparisons).

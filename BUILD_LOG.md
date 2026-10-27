@@ -3194,3 +3194,36 @@ Fixed before any Step 7 number is computed. No model is retrained, no prompt or 
 
 ### Resume-worthy
 none
+
+## 2026-10-26: Overall precision and recall on test and shift (post-hoc, from saved predictions)
+
+### What we built
+- `scripts/micro_pr.py`: micro precision and recall per model for test Rule A, test all labels and shift Rule C, with 95% contract-level bootstrap intervals. It reads the saved held-out predictions through `src.evaluate`'s loaders, label sets and resamples, and never loads or reruns a model. It stops if the predictions' `model_version` differs from `data/eval/<model>.json`, or if the micro-F1 rebuilt from its counts differs from the recorded one.
+- `tests/test_micro_pr.py`: 3 tests (hand-computed fixture shared with `tests/test_evaluate.py`, no predictions, a resample with no support).
+- Results section "Overall precision and recall (post-hoc, 2026-10-26)" in `docs/results.md`.
+
+### Decisions made
+- Computed after every model's single held-out run, from the stored predictions: descriptive, no claims, no comparison family.
+  - Alternatives considered: leave overall precision and recall unreported, since the harness records only per-label precision and recall on test.
+  - Why rejected: the counts already exist in the saved predictions, and no model, prompt, threshold or test-set choice changes.
+- Precision is 0 when nothing is predicted and recall is undefined without support, the conventions of `f1_metrics`.
+
+### Numbers measured
+- Test Rule A, micro precision / micro recall, point [95% CI]: baseline 0.7148 [0.6871, 0.7464] / 0.6233 [0.5962, 0.6524]; claude 0.7625 [0.7341, 0.7923] / 0.6741 [0.6495, 0.7017]; gemini 0.7690 [0.7396, 0.8019] / 0.7331 [0.7066, 0.7615]; transformer 0.5363 [0.5140, 0.5598] / 0.6213 [0.5939, 0.6524]; transformer-tuned 0.6972 [0.6679, 0.7276] / 0.6802 [0.6529, 0.7102]; fireworks-deepseek 0.7280 [0.6990, 0.7595] / 0.6999 [0.6721, 0.7321].
+- Shift Rule C, micro precision / micro recall: baseline 0.6220 [0.5433, 0.7123] / 0.4217 [0.3617, 0.4931]; claude 0.5953 [0.5409, 0.6747] / 0.5445 [0.4751, 0.6148]; gemini 0.5923 [0.5410, 0.6637] / 0.5765 [0.5205, 0.6387]; transformer 0.4842 [0.4296, 0.5509] / 0.4893 [0.4461, 0.5385]; transformer-tuned 0.6553 [0.5950, 0.7205] / 0.5142 [0.4658, 0.5597]; fireworks-deepseek 0.6121 [0.5428, 0.6857] / 0.5587 [0.4879, 0.6342].
+- Test all labels, counts and the remaining rows: `docs/results.md`.
+- The rebuilt micro-F1 matched `data/eval/<model>.json` in all 18 rows.
+  - Command: `python -m scripts.micro_pr | tee data/processed/micro_pr.txt`
+  - File: `data/processed/micro_pr.txt`
+- Tests: 303 passed, 7 warnings (1 starlette `BlockingPortal` deprecation, 6 "Mean of empty slice" from the toy LLM tests), before `tests/test_micro_pr.py` was added.
+  - Command: `pytest tests -q`
+
+### Problems hit and how we solved them
+- Code review round 1: the script did not check the model version, and gave NaN precision when nothing was predicted; both fixed, with tests. A suggested per-row split check was not added, because `src.evaluate`, which produced every recorded figure, reads the same files the same way and the micro-F1 check ties the script to them. Round 2 asked for a test of `main()`; not added, because it reads gitignored data, and its version and micro-F1 checks stop the run on any mismatch.
+
+### Surprises in the data or results
+- The 6a transformer is the only model whose test recall exceeds its precision (0.6213 against 0.5363, Rule A): its errors are mostly false positives, with 793 false positives against 559 false negatives.
+- From test Rule A to shift Rule C (different label sets), the baseline's recall falls the most, from 0.6233 to 0.4217, while its precision stays at 0.6220; it misses clauses on unseen contract types more than it raises false alarms.
+
+### Resume-worthy
+none
