@@ -3227,3 +3227,29 @@ none
 
 ### Resume-worthy
 none
+
+## 2026-10-26: Step 9a, fresh-set draw described (label-free segmentation check)
+
+### What we built
+- Nothing new. The draw outputs `data/fresh/contracts.parquet` (contract metadata and text hashes) and `data/fresh/draw_log.csv` (rejection log, reason codes and measured numbers only) were committed (23a4b2f). Their columns were checked before committing: no text, sentence or excerpt.
+
+### Decisions made
+- None. The draw ran under the Step 9a rules as pre-registered.
+
+### Numbers measured
+- Label-free segmentation, frozen settings, CUAD test against the fresh set:
+  - Contracts: 96 against 30. Segments: 9,433 against 4,552.
+  - Segments per contract, p10 / p25 / p50 / p75 / p90: CUAD test 13.5 / 34.5 / 52.5 / 123.5 / 221.5; fresh 59.4 / 71.0 / 98.5 / 221.8 / 262.0.
+  - Segment characters, p10 / p25 / p50 / p75 / p90: CUAD test 62 / 106 / 270 / 670 / 1,274; fresh 60 / 84 / 191 / 404 / 747.
+  - Contract characters, median: CUAD test 33,799.5; fresh 33,859.5.
+  - Command: `python -m src.fresh.source describe`
+- The draw's own counts (accepted contracts per type, rejections by reason code) are not yet logged; they come from the `python -m src.fresh.source draw` output.
+
+### Problems hit and how we solved them
+None.
+
+### Surprises in the data or results
+- At nearly the same median contract length (33,859.5 against 33,799.5 characters), fresh contracts split into more, shorter segments: median 98.5 segments per contract against 52.5, and median segment length 191 against 270 characters. The cause is not established. The EDGAR HTML-to-text conversion (`src/fresh/text.py`) is one candidate, since it sets the paragraph breaks `segment_text()` splits on. It matters for Step 9b because labels are assigned per segment and the models were trained on CUAD's segment lengths.
+
+### Resume-worthy
+none
